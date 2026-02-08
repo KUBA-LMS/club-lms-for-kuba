@@ -1,0 +1,83 @@
+/**
+ * Event-related types matching backend schemas
+ */
+
+export type EventType = 'official' | 'private';
+export type CostType = 'free' | 'prepaid' | 'one_n';
+export type UserRegistrationStatus = 'registered' | 'open' | 'requested' | 'closed' | 'upcoming';
+
+export interface UserBrief {
+  id: string;
+  username: string;
+  profile_image: string | null;
+}
+
+export interface ClubBrief {
+  id: string;
+  name: string;
+  logo_image: string | null;
+}
+
+export interface Event {
+  id: string;
+  title: string;
+  description: string | null;
+  images: string[];
+  event_type: EventType;
+  cost_type: CostType;
+  cost_amount: number | null;
+  registration_start: string;
+  registration_end: string;
+  event_date: string;
+  event_location: string | null;
+  max_slots: number;
+  current_slots: number;
+  provided_by: UserBrief;
+  posted_by: UserBrief;
+  club: ClubBrief;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventWithStatus extends Event {
+  user_status: UserRegistrationStatus;
+  user_registration_id: string | null;
+}
+
+export interface EventListResponse {
+  data: EventWithStatus[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface RegistrationCreate {
+  event_id: string;
+}
+
+export interface Registration {
+  id: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'checked_in';
+  payment_status: 'pending' | 'completed' | 'refunded';
+  checked_in_at: string | null;
+  user: UserBrief;
+  event: {
+    id: string;
+    title: string;
+    event_date: string;
+    event_type: EventType;
+    cost_type: CostType;
+    images: string[];
+    current_slots: number;
+    max_slots: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RegistrationListResponse {
+  data: Registration[];
+  total: number;
+  page: number;
+  limit: number;
+}

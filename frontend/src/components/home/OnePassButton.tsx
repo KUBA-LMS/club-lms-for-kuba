@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 10,
     top: -20,
-    left: '49%',
-    transform: [{ translateX: '-50%' }],
+    left: 0,
+    right: 0,
     textAlign: 'center',
   },
   passText: {

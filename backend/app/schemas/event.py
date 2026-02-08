@@ -84,7 +84,29 @@ class EventListResponse(BaseModel):
     limit: int
 
 
+class EventWithStatusListResponse(BaseModel):
+    data: List["EventWithStatusResponse"]
+    total: int
+    page: int
+    limit: int
+
+
 class EventFilterEnum(str, Enum):
     upcoming = "upcoming"
     past = "past"
     all = "all"
+
+
+class UserRegistrationStatus(str, Enum):
+    """User's registration status for an event."""
+    registered = "registered"  # Confirmed registration
+    open = "open"  # Can register
+    requested = "requested"  # Pending registration
+    closed = "closed"  # Registration period ended
+    upcoming = "upcoming"  # Registration not yet open
+
+
+class EventWithStatusResponse(EventResponse):
+    """Event response with user's registration status."""
+    user_status: UserRegistrationStatus
+    user_registration_id: Optional[UUID] = None

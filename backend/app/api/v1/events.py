@@ -20,11 +20,37 @@ from app.schemas.event import (
     EventListResponse,
     EventFilterEnum,
     EventTypeEnum,
+    EventWithStatusResponse,
+    EventWithStatusListResponse,
+    UserRegistrationStatus,
 )
 from app.schemas.user import UserBriefResponse
 from app.schemas.club import ClubBriefResponse
 
 router = APIRouter()
+
+
+def calculate_user_status(
+    event: Event,
+    user_registration: Optional[Registration],
+    now: datetime,
+) -> tuple[UserRegistrationStatus, Optional[UUID]]:
+    """Calculate user's registration status for an event."""
+    if user_registration:
+        if user_registration.status == "confirmed" or user_registration.status == "checked_in":
+            return UserRegistrationStatus.registered, user_registration.id
+        elif user_registration.status == "pending":
+            return UserRegistrationStatus.requested, user_registration.id
+
+    # No active registration - check event timing
+    if now < event.registration_start:
+        return UserRegistrationStatus.upcoming, None
+    elif now > event.registration_end:
+        return UserRegistrationStatus.closed, None
+    elif event.current_slots >= event.max_slots:
+        return UserRegistrationStatus.closed, None
+    else:
+        return UserRegistrationStatus.open, None
 
 
 def build_event_response(event: Event) -> EventResponse:
@@ -44,14 +70,14 @@ def build_event_response(event: Event) -> EventResponse:
         max_slots=event.max_slots,
         current_slots=event.current_slots,
         provided_by=UserBriefResponse(
-            id=event.provider.id,
-            username=event.provider.username,
-            profile_image=event.provider.profile_image,
+            id=event.provided_by.id,
+            username=event.provided_by.username,
+            profile_image=event.provided_by.profile_image,
         ),
         posted_by=UserBriefResponse(
-            id=event.poster.id,
-            username=event.poster.username,
-            profile_image=event.poster.profile_image,
+            id=event.posted_by.id,
+            username=event.posted_by.username,
+            profile_image=event.posted_by.profile_image,
         ),
         club=ClubBriefResponse(
             id=event.club.id,
@@ -63,7 +89,7 @@ def build_event_response(event: Event) -> EventResponse:
     )
 
 
-@router.get("/", response_model=EventListResponse)
+@router.get("/", response_model=EventWithStatusListResponse)
 async def list_events(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
@@ -74,14 +100,14 @@ async def list_events(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """List events with filtering and pagination."""
+    """List events with filtering and pagination, including user's registration status."""
     offset = (page - 1) * limit
     now = datetime.utcnow()
 
     # Build base query
     base_query = select(Event).options(
-        selectinload(Event.provider),
-        selectinload(Event.poster),
+        selectinload(Event.provided_by),
+        selectinload(Event.posted_by),
         selectinload(Event.club),
     )
     count_query = select(func.count(Event.id))
@@ -120,26 +146,57 @@ async def list_events(
     result = await db.execute(query)
     events = result.scalars().all()
 
-    return EventListResponse(
-        data=[build_event_response(e) for e in events],
+    # Get user's registrations for these events
+    event_ids = [e.id for e in events]
+    if event_ids:
+        reg_result = await db.execute(
+            select(Registration).where(
+                and_(
+                    Registration.user_id == current_user.id,
+                    Registration.event_id.in_(event_ids),
+                    Registration.status != "cancelled",
+                )
+            )
+        )
+        user_registrations = {r.event_id: r for r in reg_result.scalars().all()}
+    else:
+        user_registrations = {}
+
+    # Build response with status
+    events_with_status = []
+    for event in events:
+        user_reg = user_registrations.get(event.id)
+        status, reg_id = calculate_user_status(event, user_reg, now)
+
+        event_response = build_event_response(event)
+        events_with_status.append(
+            EventWithStatusResponse(
+                **event_response.model_dump(),
+                user_status=status,
+                user_registration_id=reg_id,
+            )
+        )
+
+    return EventWithStatusListResponse(
+        data=events_with_status,
         total=total,
         page=page,
         limit=limit,
     )
 
 
-@router.get("/{event_id}", response_model=EventResponse)
+@router.get("/{event_id}", response_model=EventWithStatusResponse)
 async def get_event(
     event_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Get event details."""
+    """Get event details with user's registration status."""
     result = await db.execute(
         select(Event)
         .options(
-            selectinload(Event.provider),
-            selectinload(Event.poster),
+            selectinload(Event.provided_by),
+            selectinload(Event.posted_by),
             selectinload(Event.club),
         )
         .where(Event.id == event_id)
@@ -152,7 +209,27 @@ async def get_event(
             detail="Event not found",
         )
 
-    return build_event_response(event)
+    # Get user's registration for this event
+    reg_result = await db.execute(
+        select(Registration).where(
+            and_(
+                Registration.user_id == current_user.id,
+                Registration.event_id == event_id,
+                Registration.status != "cancelled",
+            )
+        )
+    )
+    user_reg = reg_result.scalar_one_or_none()
+
+    now = datetime.utcnow()
+    status_val, reg_id = calculate_user_status(event, user_reg, now)
+
+    event_response = build_event_response(event)
+    return EventWithStatusResponse(
+        **event_response.model_dump(),
+        user_status=status_val,
+        user_registration_id=reg_id,
+    )
 
 
 @router.post("/", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
@@ -185,8 +262,8 @@ async def create_event(
 
     new_event = Event(
         **event_data.model_dump(),
-        provided_by=current_user.id,
-        posted_by=current_user.id,
+        provided_by_id=current_user.id,
+        posted_by_id=current_user.id,
         current_slots=0,
     )
 
@@ -197,8 +274,8 @@ async def create_event(
     result = await db.execute(
         select(Event)
         .options(
-            selectinload(Event.provider),
-            selectinload(Event.poster),
+            selectinload(Event.provided_by),
+            selectinload(Event.posted_by),
             selectinload(Event.club),
         )
         .where(Event.id == new_event.id)
@@ -219,8 +296,8 @@ async def update_event(
     result = await db.execute(
         select(Event)
         .options(
-            selectinload(Event.provider),
-            selectinload(Event.poster),
+            selectinload(Event.provided_by),
+            selectinload(Event.posted_by),
             selectinload(Event.club),
         )
         .where(Event.id == event_id)
