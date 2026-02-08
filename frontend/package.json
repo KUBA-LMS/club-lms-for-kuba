@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo-google-fonts/gafata": "^0.4.1",
     "@expo-google-fonts/open-sans": "^0.4.2",
     "@gorhom/bottom-sheet": "^5.2.8",
     "@mj-studio/react-native-naver-map": "^2.7.0",

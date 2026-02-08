@@ -10,6 +10,7 @@ import {
   OpenSans_400Regular,
   OpenSans_700Bold,
 } from '@expo-google-fonts/open-sans';
+import { Gafata_400Regular } from '@expo-google-fonts/gafata';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AuthNavigator from './src/navigation/AuthNavigator';
@@ -52,6 +53,7 @@ export default function App() {
           'PorterSansBlock': require('./src/assets/fonts/porter-sans-inline-block.ttf'),
           'OpenSans-Regular': OpenSans_400Regular,
           'OpenSans-Bold': OpenSans_700Bold,
+          'Gafata-Regular': Gafata_400Regular,
         });
         console.log('>>> Fonts loaded successfully');
       } catch (e) {
