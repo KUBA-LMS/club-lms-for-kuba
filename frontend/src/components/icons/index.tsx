@@ -144,3 +144,19 @@ export function UserIcon({ size = 24, color = '#8E8E93' }: { size?: number; colo
     </Svg>
   );
 }
+
+// Arrow Up Circle Icon - for upload actions
+export function ArrowUpCircleIcon({ size = 75, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 75 75" fill="none">
+      <Circle cx="37.5" cy="37.5" r="35" stroke={color} strokeWidth={2} />
+      <Path
+        d="M37.5 50V25M37.5 25L27.5 35M37.5 25L47.5 35"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

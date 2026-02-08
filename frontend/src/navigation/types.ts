@@ -29,12 +29,32 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+// Event form data structure for admin
+export interface EventFormData {
+  title: string;
+  event_date: Date;
+  event_location: string;
+  event_type: 'official' | 'private';
+  cost_type: 'free' | 'prepaid' | 'one_n';
+  cost_amount?: number;
+  registration_start: Date;
+  registration_end: Date;
+  max_slots: number;
+  description?: string;
+  related_event_id?: string;
+  club_id: string;
+  poster_uri?: string;
+  photo_uris?: string[];
+}
+
 // Main Stack (contains tabs and detail screens)
 export type MainStackParamList = {
   MainTabs: undefined;
   EventDetail: { eventId: string };
   ProviderDetail: { providerId: string };
-  // Add more detail screens as needed
+  // Admin screens
+  AdminCreateEvent: undefined;
+  AdminUploadPoster: { eventData: Partial<EventFormData> };
 };
 
 export type RootStackParamList = {

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from app.schemas.user import UserBriefResponse
+from app.schemas.user import UserResponse
 
 
 class LoginRequest(BaseModel):
@@ -18,7 +18,7 @@ class LoginResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    user: UserBriefResponse
+    user: UserResponse
 
 
 class RefreshTokenRequest(BaseModel):

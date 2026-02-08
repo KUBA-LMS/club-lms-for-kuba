@@ -21,7 +21,7 @@ from app.schemas.auth import (
     PasswordForgotRequest,
     PasswordResetRequest,
 )
-from app.schemas.user import UserSignUp, UserResponse, UserBriefResponse
+from app.schemas.user import UserSignUp, UserResponse
 
 router = APIRouter()
 
@@ -82,11 +82,7 @@ async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer",
-        user=UserBriefResponse(
-            id=user.id,
-            username=user.username,
-            profile_image=user.profile_image,
-        ),
+        user=user,
     )
 
 

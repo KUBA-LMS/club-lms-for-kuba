@@ -4,6 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainTabParamList, MainStackParamList } from './types';
 import HomeScreen from '../screens/main/HomeScreen';
+import ProfileScreen from '../screens/main/ProfileScreen';
+import { AdminCreateEventScreen, AdminUploadPosterScreen } from '../screens/admin';
 import { HomeIcon, CalendarIcon, ChatIcon, UserIcon } from '../components/icons';
 
 // Placeholder screens
@@ -23,13 +25,6 @@ function ChatScreen() {
   );
 }
 
-function ProfileScreen() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>Profile</Text>
-    </View>
-  );
-}
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<MainStackParamList>();
@@ -71,6 +66,8 @@ export default function MainNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="AdminCreateEvent" component={AdminCreateEventScreen} />
+      <Stack.Screen name="AdminUploadPoster" component={AdminUploadPosterScreen} />
     </Stack.Navigator>
   );
 }
