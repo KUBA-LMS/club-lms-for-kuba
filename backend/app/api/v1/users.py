@@ -13,6 +13,8 @@ from app.schemas.user import (
     UserUpdate,
     UserResponse,
     UserBriefResponse,
+    UserBankAccountUpdate,
+    UserBankAccountResponse,
     UserListResponse,
     UserProfileResponse,
     UserSearchItemResponse,
@@ -199,6 +201,51 @@ async def update_current_user(
     await db.refresh(current_user)
 
     return current_user
+
+
+# --- Bank account ---
+
+@router.get("/me/bank-account", response_model=UserBankAccountResponse)
+async def get_bank_account(
+    current_user: User = Depends(get_current_user),
+):
+    """Get current user's bank account info."""
+    return UserBankAccountResponse(
+        bank_name=current_user.bank_name,
+        bank_account_number=current_user.bank_account_number,
+        account_holder_name=current_user.account_holder_name,
+    )
+
+
+@router.put("/me/bank-account", response_model=UserBankAccountResponse)
+async def update_bank_account(
+    data: UserBankAccountUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Register or update bank account."""
+    current_user.bank_name = data.bank_name
+    current_user.bank_account_number = data.bank_account_number
+    current_user.account_holder_name = data.account_holder_name
+    await db.commit()
+    await db.refresh(current_user)
+    return UserBankAccountResponse(
+        bank_name=current_user.bank_name,
+        bank_account_number=current_user.bank_account_number,
+        account_holder_name=current_user.account_holder_name,
+    )
+
+
+@router.delete("/me/bank-account", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_bank_account(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Remove bank account info."""
+    current_user.bank_name = None
+    current_user.bank_account_number = None
+    current_user.account_holder_name = None
+    await db.commit()
 
 
 # --- Friends list ---

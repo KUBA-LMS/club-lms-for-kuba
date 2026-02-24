@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Numeric, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, Numeric, ForeignKey, Enum as SQLEnum, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -34,10 +34,15 @@ class PaymentSplit(Base, TimestampMixin):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     amount = Column(Numeric(10, 2), nullable=False)
     status = Column(
-        SQLEnum("pending", "accumulated", "deposit_used", name="split_status_enum"),
+        SQLEnum(
+            "pending", "sent", "confirmed", "accumulated", "deposit_used",
+            name="split_status_enum",
+        ),
         default="pending",
         nullable=False,
     )
+    sent_at = Column(DateTime, nullable=True)
+    confirmed_at = Column(DateTime, nullable=True)
 
     # Foreign Keys
     payment_request_id = Column(UUID(as_uuid=True), ForeignKey("payment_requests.id"), nullable=False)

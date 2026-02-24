@@ -103,4 +103,6 @@ def _can_subscribe(channel: str, user_id: str, user_role: str | None) -> bool:
         return user_role == "admin"
     if channel.startswith("chat:"):
         return True  # Membership enforced at REST layer
+    if channel.startswith("club:"):
+        return True  # Membership enforced at REST layer
     return False

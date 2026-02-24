@@ -58,6 +58,20 @@ class UserProfileImageUpdate(BaseModel):
     profile_image: str
 
 
+class UserBankAccountUpdate(BaseModel):
+    bank_name: str = Field(..., min_length=1, max_length=50)
+    bank_account_number: str = Field(..., min_length=1, max_length=50)
+    account_holder_name: str = Field(..., min_length=1, max_length=100)
+
+
+class UserBankAccountResponse(BaseModel):
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    account_holder_name: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
 # Response schemas
 class UserResponse(BaseModel):
     id: UUID
@@ -70,6 +84,9 @@ class UserResponse(BaseModel):
     gender: Optional[GenderEnum] = None
     role: UserRoleEnum
     is_active: bool
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    account_holder_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

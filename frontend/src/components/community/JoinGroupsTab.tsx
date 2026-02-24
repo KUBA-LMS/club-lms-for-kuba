@@ -16,6 +16,7 @@ import { QRCodeIcon, PlusCircleIcon, ExitIcon } from '../icons';
 import BarcodeScannerModal from '../onepass/BarcodeScannerModal';
 import CreateGroupModal from './CreateGroupModal';
 import LeaveGroupModal from './LeaveGroupModal';
+import QRCodeModal from './QRCodeModal';
 import { colors } from '../../constants';
 import {
   getMyGroups,
@@ -24,6 +25,7 @@ import {
   leaveGroup,
   MyGroup,
 } from '../../services/clubs';
+import { wsService } from '../../services/websocket';
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -33,6 +35,7 @@ interface GroupItemProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onLeave: (group: { id: string; name: string }) => void;
+  onShowQR: (group: { id: string; name: string }) => void;
 }
 
 function GroupItem({
@@ -40,6 +43,7 @@ function GroupItem({
   isExpanded,
   onToggleExpand,
   onLeave,
+  onShowQR,
 }: GroupItemProps) {
   const swipeableRef = useRef<Swipeable>(null);
 
@@ -107,6 +111,15 @@ function GroupItem({
               {group.name}
             </Text>
           </View>
+
+          {/* QR Code button */}
+          <TouchableOpacity
+            style={styles.qrIconButton}
+            onPress={() => onShowQR({ id: group.id, name: group.name })}
+            activeOpacity={0.6}
+          >
+            <QRCodeIcon size={18} color="#000000" />
+          </TouchableOpacity>
 
           {group.subgroups.length > 0 && (
             <TouchableOpacity
@@ -186,6 +199,11 @@ export default function JoinGroupsTab() {
   } | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  const [qrTarget, setQrTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
   const fetchGroups = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -201,6 +219,32 @@ export default function JoinGroupsTab() {
   useEffect(() => {
     fetchGroups();
   }, [fetchGroups]);
+
+  // --- WebSocket: real-time group join updates ---
+  const groupIdsKey = groups.map((g) => g.id).join(',');
+  useEffect(() => {
+    if (groups.length === 0) return;
+
+    const unsubs: (() => void)[] = [];
+    for (const group of groups) {
+      const channel = `club:${group.id}`;
+      wsService.subscribe(channel);
+      const off = wsService.on(channel, (msg) => {
+        if ((msg as any).type === 'member_joined') {
+          fetchGroups();
+        }
+      });
+      unsubs.push(() => {
+        off();
+        wsService.unsubscribe(channel);
+      });
+    }
+
+    return () => {
+      unsubs.forEach((fn) => fn());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupIdsKey]);
 
   // --- QR scan ---
   const handleBarcodeScanned = useCallback(
@@ -279,6 +323,7 @@ export default function JoinGroupsTab() {
         isExpanded={expandedIds.has(item.id)}
         onToggleExpand={() => toggleExpand(item.id)}
         onLeave={setLeaveTarget}
+        onShowQR={setQrTarget}
       />
     ),
     [expandedIds, toggleExpand],
@@ -358,6 +403,14 @@ export default function JoinGroupsTab() {
         isLeaving={isLeaving}
         onBack={() => setLeaveTarget(null)}
         onProceed={handleLeaveConfirm}
+      />
+
+      {/* QR Code display modal */}
+      <QRCodeModal
+        visible={qrTarget !== null}
+        groupId={qrTarget?.id ?? ''}
+        groupName={qrTarget?.name ?? ''}
+        onClose={() => setQrTarget(null)}
       />
     </View>
   );
@@ -472,6 +525,10 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans-Bold',
     fontSize: 16,
     color: '#000000',
+  },
+  qrIconButton: {
+    padding: 8,
+    marginRight: 4,
   },
   expandButton: {
     paddingHorizontal: 8,

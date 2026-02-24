@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { ClipboardListIcon } from '../icons';
 import ReadReceipt from './ReadReceipt';
-import { Message, PaymentRequest, PaymentSplit } from '../../types/chat';
-import * as chatApi from '../../services/chat';
+import { Message } from '../../types/chat';
 
 interface SplitCompletedBubbleProps {
   message: Message;
@@ -25,33 +24,6 @@ export default function SplitCompletedBubble({
   isOwn,
   unreadCount = 0,
 }: SplitCompletedBubbleProps) {
-  const [paymentReq, setPaymentReq] = useState<PaymentRequest | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (message.payment_request_id) {
-      setIsLoading(true);
-      chatApi
-        .getPaymentRequest(message.payment_request_id)
-        .then(setPaymentReq)
-        .catch(() => {})
-        .finally(() => setIsLoading(false));
-    }
-  }, [message.payment_request_id]);
-
-  const accumulatedTotal = paymentReq
-    ? paymentReq.splits
-        .filter((s: PaymentSplit) => s.status === 'accumulated')
-        .reduce((sum: number, s: PaymentSplit) => sum + s.amount, 0)
-    : 0;
-  const depositUsedTotal = paymentReq
-    ? paymentReq.splits
-        .filter((s: PaymentSplit) => s.status === 'deposit_used')
-        .reduce((sum: number, s: PaymentSplit) => sum + s.amount, 0)
-    : 0;
-
-  const showAccumulatedTag = accumulatedTotal > 0;
-
   return (
     <View style={[styles.row, isOwn && styles.ownRow]}>
       {isOwn && (
@@ -62,32 +34,13 @@ export default function SplitCompletedBubble({
       )}
       <View style={styles.card}>
         <View style={styles.titleRow}>
-          <ClipboardListIcon size={20} color="#8E8E93" />
+          <ClipboardListIcon size={20} color="#34C759" />
           <Text style={styles.title}>1/N Completed</Text>
         </View>
-        <View style={styles.amountRow}>
-          <Text style={styles.amount}>
-            {formatAmount(message.payment_amount || 0)}
-          </Text>
-          {showAccumulatedTag && (
-            <Text style={styles.accumulatedTag}> (Accumulated)</Text>
-          )}
-        </View>
-
-        {isLoading ? (
-          <ActivityIndicator size="small" color="#8E8E93" style={{ marginTop: 6 }} />
-        ) : paymentReq ? (
-          <>
-            <Text style={styles.detailText}>
-              Accumulated Total: {formatAmount(accumulatedTotal)}
-            </Text>
-            {depositUsedTotal > 0 && (
-              <Text style={styles.detailText}>
-                Remaining Deposit: {formatAmount(depositUsedTotal)}
-              </Text>
-            )}
-          </>
-        ) : null}
+        <Text style={styles.amount}>
+          {formatAmount(message.payment_amount || 0)}
+        </Text>
+        <Text style={styles.subtitle}>All payments confirmed</Text>
       </View>
       {!isOwn && <Text style={styles.time}>{formatTime(message.created_at)}</Text>}
     </View>
@@ -126,30 +79,19 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'OpenSans-Bold',
     fontSize: 15,
-    color: '#000000',
+    color: '#34C759',
     marginLeft: 6,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-    marginBottom: 4,
   },
   amount: {
     fontFamily: 'OpenSans-Bold',
     fontSize: 22,
     color: '#000000',
+    marginBottom: 4,
   },
-  accumulatedTag: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 14,
-    color: '#E8A317',
-  },
-  detailText: {
+  subtitle: {
     fontFamily: 'OpenSans-Regular',
     fontSize: 13,
     color: '#8E8E93',
-    marginTop: 2,
   },
   time: {
     fontFamily: 'OpenSans-Regular',

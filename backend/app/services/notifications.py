@@ -149,6 +149,42 @@ async def notify_friend_request(
     })
 
 
+# --- Club notifications ---
+
+
+async def notify_member_joined(
+    club_id: UUID, user_id: UUID, username: str, profile_image: str | None,
+):
+    """Broadcast to all club channel subscribers that a new member joined."""
+    await manager.publish(f"club:{club_id}", {
+        "type": "member_joined",
+        "channel": f"club:{club_id}",
+        "data": {
+            "club_id": str(club_id),
+            "user_id": str(user_id),
+            "username": username,
+            "profile_image": profile_image,
+        },
+    })
+
+
+async def notify_split_status_changed(
+    chat_id: UUID, payment_request_id: UUID,
+    split_id: UUID, user_id: UUID, new_status: str,
+):
+    """Broadcast split status change to all chat room subscribers."""
+    await manager.publish(f"chat:{chat_id}", {
+        "type": "split_status_changed",
+        "channel": f"chat:{chat_id}",
+        "data": {
+            "payment_request_id": str(payment_request_id),
+            "split_id": str(split_id),
+            "user_id": str(user_id),
+            "new_status": new_status,
+        },
+    })
+
+
 async def notify_friend_request_accepted(
     to_user_id: UUID, request_id: UUID,
     by_user_id: UUID, by_username: str, by_profile_image: str | None,

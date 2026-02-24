@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   Modal,
   TouchableOpacity,
   Pressable,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +20,8 @@ interface TypeSelectorBottomSheetProps {
   onSelect: (type: EventType | CostType) => void;
   type: 'event' | 'cost';
   selectedValue?: EventType | CostType;
+  costAmount?: number;
+  onCostAmountChange?: (amount: number | undefined) => void;
 }
 
 const EVENT_TYPES: { value: EventType; label: string; color: string }[] = [
@@ -37,14 +41,32 @@ export default function TypeSelectorBottomSheet({
   onSelect,
   type,
   selectedValue,
+  costAmount,
+  onCostAmountChange,
 }: TypeSelectorBottomSheetProps) {
   const insets = useSafeAreaInsets();
   const options = type === 'event' ? EVENT_TYPES : COST_TYPES;
+  const priceInputRef = useRef<TextInput>(null);
+  const showPriceInput = type === 'cost' && (selectedValue === 'prepaid' || selectedValue === 'one_n');
+
+  useEffect(() => {
+    if (showPriceInput) {
+      setTimeout(() => priceInputRef.current?.focus(), 300);
+    }
+  }, [showPriceInput]);
+
+  const handleOverlayPress = () => {
+    Keyboard.dismiss();
+    onClose();
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
+      <Pressable style={styles.overlay} onPress={handleOverlayPress}>
+        <Pressable
+          style={[styles.container, { paddingBottom: insets.bottom + 16 }]}
+          onPress={() => Keyboard.dismiss()}
+        >
           <View style={styles.header}>
             <View style={styles.handle} />
             <TouchableOpacity style={styles.doneButton} onPress={onClose}>
@@ -68,6 +90,24 @@ export default function TypeSelectorBottomSheet({
               </TouchableOpacity>
             ))}
           </View>
+
+          {showPriceInput && (
+            <View style={styles.priceInputContainer}>
+              <TextInput
+                ref={priceInputRef}
+                style={styles.priceInput}
+                value={costAmount?.toString() || ''}
+                onChangeText={(text) => {
+                  const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
+                  onCostAmountChange?.(isNaN(num) ? undefined : num);
+                }}
+                placeholder="Enter amount"
+                placeholderTextColor="#8E8E93"
+                keyboardType="number-pad"
+              />
+              <Text style={styles.currencyLabel}>KRW</Text>
+            </View>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -132,5 +172,30 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans-Bold',
     fontSize: 14,
     color: '#FFFFFF',
+  },
+  priceInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 32,
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#C5C5C5',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    height: 42,
+  },
+  priceInput: {
+    flex: 1,
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: '#1E1E1E',
+    padding: 0,
+  },
+  currencyLabel: {
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: '#8E8E93',
+    marginLeft: 8,
   },
 });

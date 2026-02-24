@@ -8,6 +8,7 @@ from uuid import UUID
 from app.core.database import get_db
 from app.core.security import get_current_user, get_current_admin_user
 from app.models.user import User, user_club
+from app.services.notifications import notify_member_joined
 from app.models.club import Club
 from app.schemas.club import (
     ClubCreate,
@@ -338,6 +339,14 @@ async def join_club(
         )
     )
     await db.commit()
+
+    # Notify club channel subscribers in real-time
+    await notify_member_joined(
+        club_id=club_id,
+        user_id=current_user.id,
+        username=current_user.username,
+        profile_image=current_user.profile_image,
+    )
 
     return {
         "message": "Successfully joined club",

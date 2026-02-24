@@ -189,42 +189,65 @@ export async function getMyClubs(): Promise<MyClubItem[]> {
   return response.data;
 }
 
-// --- Deposits ---
+// --- Bank Account ---
 
-export interface DepositItem {
-  id: string;
-  balance: number;
-  club_id: string;
-  club_name: string;
+export interface BankAccountData {
+  bank_name: string;
+  bank_account_number: string;
+  account_holder_name: string;
 }
 
-export interface DepositTransaction {
+export interface BankAccountResponse {
+  bank_name: string | null;
+  bank_account_number: string | null;
+  account_holder_name: string | null;
+}
+
+export async function getBankAccount(): Promise<BankAccountResponse> {
+  const response = await api.get<BankAccountResponse>('/users/me/bank-account');
+  return response.data;
+}
+
+export async function updateBankAccount(data: BankAccountData): Promise<BankAccountResponse> {
+  const response = await api.put<BankAccountResponse>('/users/me/bank-account', data);
+  return response.data;
+}
+
+export async function deleteBankAccount(): Promise<void> {
+  await api.delete('/users/me/bank-account');
+}
+
+// --- Settlement History ---
+
+export interface SettlementHistoryItem {
   id: string;
+  payment_request_id: string;
+  chat_id: string;
+  chat_name: string | null;
+  direction: 'sent' | 'received';
+  counterpart: {
+    id: string;
+    username: string;
+    profile_image: string | null;
+  };
   amount: number;
-  balance_after: number;
-  description: string;
+  status: string;
   created_at: string;
 }
 
-export interface DepositTransactionListResponse {
-  data: DepositTransaction[];
+export interface SettlementHistoryResponse {
+  data: SettlementHistoryItem[];
   total: number;
   page: number;
   limit: number;
 }
 
-export async function getMyDeposits(): Promise<DepositItem[]> {
-  const response = await api.get<DepositItem[]>('/deposits/me');
-  return response.data;
-}
-
-export async function getDepositTransactions(
-  depositId: string,
+export async function getSettlementHistory(
   page = 1,
   limit = 20,
-): Promise<DepositTransactionListResponse> {
-  const response = await api.get<DepositTransactionListResponse>(
-    `/deposits/${depositId}/transactions`,
+): Promise<SettlementHistoryResponse> {
+  const response = await api.get<SettlementHistoryResponse>(
+    '/payments/payments/settlement-history',
     { params: { page, limit } },
   );
   return response.data;

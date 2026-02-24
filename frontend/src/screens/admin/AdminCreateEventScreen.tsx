@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,8 +25,11 @@ import DatePickerBottomSheet from "../../components/admin/DatePickerBottomSheet"
 import TypeSelectorBottomSheet from "../../components/admin/TypeSelectorBottomSheet";
 import RegistrationPeriodBottomSheet from "../../components/admin/RegistrationPeriodBottomSheet";
 import ProviderSelectorBottomSheet from "../../components/admin/ProviderSelectorBottomSheet";
-import { SearchIcon, ArrowUpCircleIcon } from "../../components/icons";
+import PostVisibilityBottomSheet from "../../components/admin/PostVisibilityBottomSheet";
+import { SearchIcon, ArrowUpCircleIcon, CheckIcon } from "../../components/icons";
 import AddressSearchBottomSheet from "../../components/admin/AddressSearchBottomSheet";
+import { listEvents } from "../../services/events";
+import { EventWithStatus } from "../../types/event";
 
 type NavigationProp = NativeStackNavigationProp<
   MainStackParamList,
@@ -119,6 +123,11 @@ export default function AdminCreateEventScreen() {
   const [showCostTypePicker, setShowCostTypePicker] = useState(false);
   const [showRegistrationPeriod, setShowRegistrationPeriod] = useState(false);
   const [showProviderSelector, setShowProviderSelector] = useState(false);
+  const [showPostVisibility, setShowPostVisibility] = useState(false);
+
+  // Provider/visibility display names
+  const [providerName, setProviderName] = useState('');
+  const [visibilityName, setVisibilityName] = useState('');
 
   // Main image state
   const [mainImageUri, setMainImageUri] = useState<string | null>(null);
@@ -150,6 +159,60 @@ export default function AdminCreateEventScreen() {
   const updateFormData = useCallback((key: keyof EventFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   }, []);
+
+  // Related events search
+  const [relatedSearchText, setRelatedSearchText] = useState("");
+  const [relatedSearchResults, setRelatedSearchResults] = useState<EventWithStatus[]>([]);
+  const [relatedSearchLoading, setRelatedSearchLoading] = useState(false);
+  const [showRelatedDropdown, setShowRelatedDropdown] = useState(false);
+  const [selectedRelatedEvent, setSelectedRelatedEvent] = useState<{ id: string; title: string } | null>(null);
+  const relatedSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const relatedInputRef = useRef<TextInput>(null);
+
+  const fetchRelatedEvents = useCallback(async (searchText: string) => {
+    setRelatedSearchLoading(true);
+    try {
+      const params: { filter: "all"; search?: string; limit: number } = { filter: "all", limit: 10 };
+      if (searchText.trim()) params.search = searchText.trim();
+      const res = await listEvents(params);
+      setRelatedSearchResults(res.data);
+    } catch (err) {
+      console.error("Failed to fetch related events:", err);
+      setRelatedSearchResults([]);
+    } finally {
+      setRelatedSearchLoading(false);
+    }
+  }, []);
+
+  const handleRelatedSearchChange = useCallback((text: string) => {
+    setRelatedSearchText(text);
+    setSelectedRelatedEvent(null);
+    updateFormData("related_event_id", undefined);
+    setShowRelatedDropdown(true);
+
+    if (relatedSearchTimer.current) clearTimeout(relatedSearchTimer.current);
+    relatedSearchTimer.current = setTimeout(() => fetchRelatedEvents(text), 300);
+  }, [updateFormData, fetchRelatedEvents]);
+
+  const handleSelectRelatedEvent = useCallback((event: EventWithStatus) => {
+    setSelectedRelatedEvent({ id: event.id, title: event.title });
+    setRelatedSearchText(event.title);
+    updateFormData("related_event_id", event.id);
+    setShowRelatedDropdown(false);
+    relatedInputRef.current?.blur();
+  }, [updateFormData]);
+
+  const handleRelatedInputFocus = useCallback(() => {
+    setShowRelatedDropdown(true);
+    fetchRelatedEvents(relatedSearchText);
+  }, [relatedSearchText, fetchRelatedEvents]);
+
+  const handleClearRelatedEvent = useCallback(() => {
+    setSelectedRelatedEvent(null);
+    setRelatedSearchText("");
+    updateFormData("related_event_id", undefined);
+    setShowRelatedDropdown(false);
+  }, [updateFormData]);
 
   const formatDate = (date?: Date) => {
     if (!date) return "";
@@ -395,18 +458,79 @@ export default function AdminCreateEventScreen() {
           />
 
           {/* Link Related Events */}
-          <FormInput
-            label="Link Related Events"
-            value=""
-            onPress={() => {}}
-            rightIcon={<SearchIcon size={14} color="#1E1E1E" />}
-          />
+          <View style={styles.relatedContainer}>
+            <View style={styles.inputContainer}>
+              <View style={styles.inputRow}>
+                <TextInput
+                  ref={relatedInputRef}
+                  style={styles.textInput}
+                  value={relatedSearchText}
+                  onChangeText={handleRelatedSearchChange}
+                  onFocus={handleRelatedInputFocus}
+                  onBlur={() => {
+                    // Delay to allow item press to register
+                    setTimeout(() => setShowRelatedDropdown(false), 200);
+                  }}
+                  placeholder="Link Related Events"
+                  placeholderTextColor="#1E1E1E"
+                />
+                {selectedRelatedEvent ? (
+                  <TouchableOpacity onPress={handleClearRelatedEvent} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Text style={styles.clearIcon}>x</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <SearchIcon size={14} color="#1E1E1E" />
+                )}
+              </View>
+            </View>
+            {showRelatedDropdown && (
+              <View style={styles.relatedDropdown}>
+                {relatedSearchLoading ? (
+                  <ActivityIndicator size="small" color="#000" style={{ paddingVertical: 12 }} />
+                ) : relatedSearchResults.length === 0 ? (
+                  <Text style={styles.relatedDropdownEmpty}>No events found</Text>
+                ) : (
+                  <ScrollView
+                    style={styles.relatedDropdownScroll}
+                    keyboardShouldPersistTaps="always"
+                    nestedScrollEnabled
+                  >
+                    {relatedSearchResults.map((event) => {
+                      const isSelected = selectedRelatedEvent?.id === event.id;
+                      return (
+                        <TouchableOpacity
+                          key={event.id}
+                          style={[styles.relatedDropdownItem, isSelected && styles.relatedDropdownItemSelected]}
+                          onPress={() => handleSelectRelatedEvent(event)}
+                        >
+                          <Text
+                            style={[styles.relatedDropdownItemText, isSelected && styles.relatedDropdownItemTextSelected]}
+                            numberOfLines={1}
+                          >
+                            {event.title}
+                          </Text>
+                          {isSelected && <CheckIcon size={14} color="#3B82F6" />}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                )}
+              </View>
+            )}
+          </View>
 
           {/* Provider */}
           <FormInput
             label="Select Provider"
-            value=""
+            value={providerName}
             onPress={() => setShowProviderSelector(true)}
+          />
+
+          {/* Post Visibility */}
+          <FormInput
+            label="Select Post Visibility"
+            value={visibilityName}
+            onPress={() => setShowPostVisibility(true)}
           />
 
           {/* Next Button */}
@@ -443,10 +567,15 @@ export default function AdminCreateEventScreen() {
         onClose={() => setShowCostTypePicker(false)}
         onSelect={(type) => {
           updateFormData("cost_type", type);
-          setShowCostTypePicker(false);
+          if (type === "free") {
+            updateFormData("cost_amount", undefined);
+            setShowCostTypePicker(false);
+          }
         }}
         type="cost"
         selectedValue={formData.cost_type}
+        costAmount={formData.cost_amount}
+        onCostAmountChange={(amount) => updateFormData("cost_amount", amount)}
       />
 
       <RegistrationPeriodBottomSheet
@@ -466,9 +595,27 @@ export default function AdminCreateEventScreen() {
         onClose={() => setShowProviderSelector(false)}
         onSelect={(clubId, clubName) => {
           updateFormData("club_id", clubId);
+          setProviderName(clubName);
           setShowProviderSelector(false);
         }}
         selectedClubId={formData.club_id}
+      />
+
+      <PostVisibilityBottomSheet
+        visible={showPostVisibility}
+        onClose={() => setShowPostVisibility(false)}
+        onSelect={(type, clubId, clubName) => {
+          updateFormData("visibility_type", type);
+          updateFormData("visibility_club_id", clubId);
+          if (type === 'friends_only') {
+            setVisibilityName('Only to my friends');
+          } else if (clubName) {
+            setVisibilityName(clubName);
+          }
+          setShowPostVisibility(false);
+        }}
+        selectedType={formData.visibility_type}
+        selectedClubId={formData.visibility_club_id}
       />
 
       <AddressSearchBottomSheet
@@ -688,5 +835,63 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans-Bold",
     fontSize: 16,
     color: "#FFFFFF",
+  },
+  relatedContainer: {
+    zIndex: 10,
+  },
+  clearIcon: {
+    fontFamily: "OpenSans-Bold",
+    fontSize: 14,
+    color: "#8E8E93",
+    paddingHorizontal: 4,
+  },
+  relatedDropdown: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#C5C5C5",
+    marginTop: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
+      },
+      android: { elevation: 4 },
+    }),
+  },
+  relatedDropdownScroll: {
+    maxHeight: 180,
+  },
+  relatedDropdownEmpty: {
+    fontFamily: "OpenSans-Regular",
+    fontSize: 13,
+    color: "#8E8E93",
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  relatedDropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E5E5EA",
+  },
+  relatedDropdownItemSelected: {
+    backgroundColor: "#F0F5FF",
+  },
+  relatedDropdownItemText: {
+    fontFamily: "OpenSans-Regular",
+    fontSize: 14,
+    color: "#1E1E1E",
+    flex: 1,
+    marginRight: 8,
+  },
+  relatedDropdownItemTextSelected: {
+    fontFamily: "OpenSans-Bold",
+    color: "#3B82F6",
   },
 });

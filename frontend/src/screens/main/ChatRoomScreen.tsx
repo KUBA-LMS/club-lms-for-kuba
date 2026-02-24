@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BottomSheetModal, BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { MainStackParamList } from '../../navigation/types';
 import { useAuth } from '../../context/AuthContext';
 import { useChatRoom } from '../../hooks/useChat';
@@ -25,6 +26,7 @@ import SplitCompletedBubble from '../../components/chat/SplitCompletedBubble';
 import ChatMessageBar from '../../components/chat/ChatMessageBar';
 import TransferTicketModal from '../../components/chat/TransferTicketModal';
 import RequestSplitModal from '../../components/chat/RequestSplitModal';
+import PaymentDetailSheet from '../../components/chat/PaymentDetailSheet';
 
 type ScreenRouteProp = RouteProp<MainStackParamList, 'ChatRoom'>;
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
@@ -48,11 +50,14 @@ export default function ChatRoomScreen() {
     loadMore,
     setMessages,
     getUnreadCount,
+    paymentUpdateSignal,
   } = useChatRoom(chatId);
 
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
+  const [selectedPaymentRequestId, setSelectedPaymentRequestId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
+  const paymentSheetRef = useRef<BottomSheetModal>(null);
 
   const isGroup = chat ? chat.type === 'group' || chat.type === 'event' : false;
 
@@ -85,6 +90,11 @@ export default function ChatRoomScreen() {
     },
     [chatId, setMessages],
   );
+
+  const handleOpenPaymentDetail = useCallback((paymentRequestId: string) => {
+    setSelectedPaymentRequestId(paymentRequestId);
+    paymentSheetRef.current?.present();
+  }, []);
 
   const shouldShowAvatar = useCallback(
     (message: Message, index: number): boolean => {
@@ -127,6 +137,8 @@ export default function ChatRoomScreen() {
               isOwn={isOwn}
               currentUserId={userId}
               unreadCount={unreadCount}
+              paymentUpdateSignal={paymentUpdateSignal}
+              onOpenDetail={handleOpenPaymentDetail}
             />
           );
         case 'payment_completed':
@@ -148,7 +160,7 @@ export default function ChatRoomScreen() {
           );
       }
     },
-    [userId, shouldShowAvatar, getUnreadCount],
+    [userId, shouldShowAvatar, getUnreadCount, paymentUpdateSignal, handleOpenPaymentDetail],
   );
 
   const handleEndReached = useCallback(() => {
@@ -166,6 +178,7 @@ export default function ChatRoomScreen() {
   }
 
   return (
+    <BottomSheetModalProvider>
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: insets.top }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -226,7 +239,15 @@ export default function ChatRoomScreen() {
           onProceed={handleRequestSplit}
         />
       )}
+
+      <PaymentDetailSheet
+        ref={paymentSheetRef}
+        paymentRequestId={selectedPaymentRequestId}
+        currentUserId={userId}
+        onClose={() => setSelectedPaymentRequestId(null)}
+      />
     </KeyboardAvoidingView>
+    </BottomSheetModalProvider>
   );
 }
 

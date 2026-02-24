@@ -21,14 +21,6 @@ export type AuthStackParamList = {
   ForgotPassword: undefined;
 };
 
-// Bottom Tab Navigation
-export type MainTabParamList = {
-  Explore: undefined;
-  Home: undefined;
-  Groups: undefined;
-  Profile: undefined;
-};
-
 // Event form data structure for admin
 export interface EventFormData {
   title: string;
@@ -46,13 +38,15 @@ export interface EventFormData {
   detail_address?: string;
   related_event_id?: string;
   club_id: string;
+  visibility_type?: 'friends_only' | 'club';
+  visibility_club_id?: string;
   poster_uri?: string;
   photo_uris?: string[];
 }
 
 // Main Stack (contains tabs and detail screens)
 export type MainStackParamList = {
-  MainTabs: undefined;
+  Home: undefined;
   EventDetail: { eventId: string };
   ProviderDetail: { providerId: string };
   OnePass: { eventId?: string };

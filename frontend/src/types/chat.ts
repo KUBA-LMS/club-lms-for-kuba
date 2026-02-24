@@ -66,7 +66,15 @@ export interface PaymentSplit {
   id: string;
   user: ChatMember;
   amount: number;
-  status: 'pending' | 'accumulated' | 'deposit_used';
+  status: 'pending' | 'sent' | 'confirmed';
+  sent_at: string | null;
+  confirmed_at: string | null;
+}
+
+export interface RequesterBankAccount {
+  bank_name: string | null;
+  bank_account_number: string | null;
+  account_holder_name: string | null;
 }
 
 export interface PaymentRequest {
@@ -74,6 +82,7 @@ export interface PaymentRequest {
   total_amount: number;
   status: 'pending' | 'completed' | 'cancelled';
   requester: ChatMember;
+  requester_bank: RequesterBankAccount | null;
   splits: PaymentSplit[];
   created_at: string;
 }

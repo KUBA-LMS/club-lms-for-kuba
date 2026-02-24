@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Platform,
@@ -22,8 +21,6 @@ import Animated, {
 interface AdminFaceFabProps {
   isOpen: boolean;
   onToggle: () => void;
-  onCreateEvent: () => void;
-  onAccessControl: () => void;
 }
 
 // Expressions: 0=smile, 1=wink, 2=surprise, 3=thinking, 4=smile(loop)
@@ -220,99 +217,19 @@ const f = StyleSheet.create({
 export default function AdminFaceFab({
   isOpen,
   onToggle,
-  onCreateEvent,
-  onAccessControl,
 }: AdminFaceFabProps) {
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={[styles.fab, isOpen && styles.fabActive]}
-        onPress={onToggle}
-        activeOpacity={0.8}
-      >
-        <AnimatedFace isOpen={isOpen} />
-      </TouchableOpacity>
-
-      {isOpen && (
-        <View style={styles.menu}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={onCreateEvent}
-            activeOpacity={0.8}
-          >
-            <View style={styles.menuIcon}>
-              <Text style={styles.menuIconText}>+</Text>
-            </View>
-            <Text style={styles.menuLabel}>Create Event</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={onAccessControl}
-            activeOpacity={0.8}
-          >
-            <View style={styles.menuIcon}>
-              <Text style={styles.menuIconText}>A</Text>
-            </View>
-            <Text style={styles.menuLabel}>Access Control</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+    <TouchableOpacity
+      style={[styles.fab, isOpen && styles.fabActive]}
+      onPress={onToggle}
+      activeOpacity={0.8}
+    >
+      <AnimatedFace isOpen={isOpen} />
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
-  },
-  menu: {
-    position: 'absolute',
-    top: 52,
-    right: 0,
-    gap: 8,
-    alignItems: 'flex-end',
-    zIndex: 100,
-    width: 200,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    gap: 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.18,
-        shadowRadius: 6,
-      },
-      android: { elevation: 8 },
-    }),
-  },
-  menuIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuIconText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 16,
-    color: '#FFFFFF',
-    lineHeight: 20,
-  },
-  menuLabel: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 14,
-    color: '#212121',
-    flexShrink: 0,
-  },
   fab: {
     width: 44,
     height: 44,

@@ -116,13 +116,22 @@ export async function createPaymentRequest(
 }
 
 /**
- * Respond to a payment split
+ * Mark a payment split as sent (participant transferred money externally)
  */
-export async function respondToSplit(
+export async function markSplitSent(
   splitId: string,
-  action: 'accumulated' | 'deposit_used',
 ): Promise<{ id: string; amount: number; status: string }> {
-  const response = await api.post(`/payments/payment-splits/${splitId}/respond`, { action });
+  const response = await api.post(`/payments/payment-splits/${splitId}/mark-sent`);
+  return response.data;
+}
+
+/**
+ * Confirm a payment split (requester received the money)
+ */
+export async function confirmSplit(
+  splitId: string,
+): Promise<{ id: string; amount: number; status: string }> {
+  const response = await api.post(`/payments/payment-splits/${splitId}/confirm`);
   return response.data;
 }
 

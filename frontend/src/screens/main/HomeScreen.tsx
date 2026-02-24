@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Keyboard,
+  Platform,
 } from "react-native";
 import { NaverMapView, NaverMapViewRef, NaverMapMarkerOverlay } from "../../components/Map";
 import EventMarkers from "../../components/Map/EventMarkers";
@@ -231,6 +232,7 @@ export default function HomeScreen() {
   const [events, setEvents] = useState<EventWithStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterMode>('upcoming');
+  const [bookmarkFilterActive, setBookmarkFilterActive] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetailData | null>(
     null,
   );
@@ -351,6 +353,15 @@ export default function HomeScreen() {
       fetchEvents();
     }, [fetchEvents]),
   );
+
+  const filteredEvents = useMemo(() => {
+    if (!bookmarkFilterActive) return events;
+    return events.filter((e) => e.is_bookmarked);
+  }, [events, bookmarkFilterActive]);
+
+  const handleToggleBookmarkFilter = useCallback(() => {
+    setBookmarkFilterActive((prev) => !prev);
+  }, []);
 
   // Animation for top section visibility
   const isDetailOpen = useSharedValue(0);
@@ -593,7 +604,7 @@ export default function HomeScreen() {
             isShowScaleBar={false}
           >
             <EventMarkers
-              events={events}
+              events={filteredEvents}
               selectedEventId={selectedEvent?.id as string | undefined}
               onMarkerPress={handleEventPress}
             />
@@ -645,20 +656,10 @@ export default function HomeScreen() {
             </View>
             <GroupsButton onPress={() => navigation.navigate('Community')} />
             {isAdmin && (
-              <View style={adminMenuOpen ? styles.adminFabOpen : undefined}>
-                <AdminFaceFab
-                  isOpen={adminMenuOpen}
-                  onToggle={() => setAdminMenuOpen((v) => !v)}
-                  onCreateEvent={() => {
-                    setAdminMenuOpen(false);
-                    navigation.navigate("AdminCreateEvent");
-                  }}
-                  onAccessControl={() => {
-                    setAdminMenuOpen(false);
-                    navigation.navigate("AccessControl");
-                  }}
-                />
-              </View>
+              <AdminFaceFab
+                isOpen={adminMenuOpen}
+                onToggle={() => setAdminMenuOpen((v) => !v)}
+              />
             )}
             <MyBadge onPress={() => navigation.navigate('Profile')} />
           </View>
@@ -681,7 +682,12 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.filterScrollContent}
             >
-              <FilterBadge label="Bookmark" icon={<StarsIcon size={16} />} />
+              <FilterBadge
+                label="Bookmark"
+                icon={<StarsIcon size={16} color={bookmarkFilterActive ? '#FFFFFF' : '#212121'} />}
+                isActive={bookmarkFilterActive}
+                onPress={handleToggleBookmarkFilter}
+              />
               <FilterBadge
                 label="46th_KUBA"
                 imageUri="https://via.placeholder.com/20"
@@ -765,12 +771,12 @@ export default function HomeScreen() {
                 <ActivityIndicator size="large" color="#03CA5B" />
                 <Text style={styles.loadingText}>Loading events...</Text>
               </View>
-            ) : events.length === 0 ? (
+            ) : filteredEvents.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>No events found</Text>
               </View>
             ) : (
-              events.map((event) => (
+              filteredEvents.map((event) => (
                 <EventCard
                   key={event.id}
                   title={event.title}
@@ -843,11 +849,41 @@ export default function HomeScreen() {
 
         {/* Admin FAB backdrop */}
         {isAdmin && adminMenuOpen && (
-          <TouchableOpacity
-            style={[StyleSheet.absoluteFill, { zIndex: 99 }]}
-            activeOpacity={1}
-            onPress={() => setAdminMenuOpen(false)}
-          />
+          <>
+            <TouchableOpacity
+              style={[StyleSheet.absoluteFill, { zIndex: 99 }]}
+              activeOpacity={1}
+              onPress={() => setAdminMenuOpen(false)}
+            />
+            <View style={[styles.adminMenuOverlay, { top: getSafeTop(insets) }]} pointerEvents="box-none">
+              <TouchableOpacity
+                style={styles.adminMenuItem}
+                onPress={() => {
+                  setAdminMenuOpen(false);
+                  navigation.navigate("AdminCreateEvent");
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={styles.adminMenuIcon}>
+                  <Text style={styles.adminMenuIconText}>+</Text>
+                </View>
+                <Text style={styles.adminMenuLabel}>Create Event</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.adminMenuItem}
+                onPress={() => {
+                  setAdminMenuOpen(false);
+                  navigation.navigate("AccessControl");
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={styles.adminMenuIcon}>
+                  <Text style={styles.adminMenuIconText}>A</Text>
+                </View>
+                <Text style={styles.adminMenuLabel}>Access Control</Text>
+              </TouchableOpacity>
+            </View>
+          </>
         )}
 
       </View>
@@ -969,8 +1005,59 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     paddingHorizontal: screenPadding.horizontal,
   },
-  adminFabOpen: {
+  adminMenu: {
+    position: "absolute" as const,
+    top: 52,
+    right: screenPadding.horizontal + 51 + 8,
+    gap: 8,
+    alignItems: "flex-end" as const,
+    zIndex: 200,
+  },
+  adminMenuOverlay: {
+    position: "absolute" as const,
+    right: screenPadding.horizontal + 51 + 8,
+    gap: 8,
+    alignItems: "flex-end" as const,
     zIndex: 100,
+    paddingTop: 52,
+  },
+  adminMenuItem: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    gap: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.18,
+        shadowRadius: 6,
+      },
+      android: { elevation: 8 },
+    }),
+  },
+  adminMenuIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#000000",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  adminMenuIconText: {
+    fontFamily: "OpenSans-Bold",
+    fontSize: 16,
+    color: "#FFFFFF",
+    lineHeight: 20,
+  },
+  adminMenuLabel: {
+    fontFamily: "OpenSans-Bold",
+    fontSize: 14,
+    color: "#212121",
+    flexShrink: 0,
   },
   myLocationContainer: {
     position: "absolute",

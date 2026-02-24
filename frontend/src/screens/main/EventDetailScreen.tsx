@@ -213,9 +213,9 @@ export default function EventDetailScreen() {
                     <Text style={styles.participantName} numberOfLines={1}>{p.username}</Text>
                   </View>
                 ))}
-                {event.current_slots > 5 && (
+                {event.current_slots > event.participants_preview.length && (
                   <Text style={styles.moreParticipants}>
-                    +{event.current_slots - 5} more
+                    +{event.current_slots - event.participants_preview.length} more
                   </Text>
                 )}
               </View>

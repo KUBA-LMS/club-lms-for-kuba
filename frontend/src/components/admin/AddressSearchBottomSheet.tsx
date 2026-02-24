@@ -96,11 +96,11 @@ export default function AddressSearchBottomSheet({
         onPress={() => handleSelectResult(item)}
         activeOpacity={0.7}
       >
-        {item.road_address && (
-          <Text style={styles.roadAddress}>{item.road_address}</Text>
-        )}
-        {item.jibun_address && (
-          <Text style={styles.jibunAddress}>{item.jibun_address}</Text>
+        <Text style={styles.placeName}>
+          {item.name || item.road_address || item.jibun_address}
+        </Text>
+        {item.road_address && item.name && (
+          <Text style={styles.addressSubtext}>{item.road_address}</Text>
         )}
       </TouchableOpacity>
     );
@@ -246,13 +246,13 @@ const styles = StyleSheet.create({
   resultItemSelected: {
     backgroundColor: '#F0F0F0',
   },
-  roadAddress: {
+  placeName: {
     fontFamily: 'OpenSans-SemiBold',
     fontSize: 14,
     color: '#1E1E1E',
     marginBottom: 2,
   },
-  jibunAddress: {
+  addressSubtext: {
     fontFamily: 'OpenSans-Regular',
     fontSize: 12,
     color: '#8E8E93',

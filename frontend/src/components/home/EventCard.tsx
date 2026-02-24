@@ -120,7 +120,9 @@ export default function EventCard({
 }: EventCardProps) {
   const statusConfig = getStatusConfig(status, opensAt);
   const displayedParticipants = participants.slice(0, 3);
-  const extraCount = participantCount > 3 ? participantCount - 3 : 0;
+  const extraCount = participantCount > displayedParticipants.length
+    ? participantCount - displayedParticipants.length
+    : 0;
 
   const renderActionButton = () => {
     const buttonColor = statusConfig.filled ? statusConfig.backgroundColor : statusConfig.borderColor;

@@ -53,6 +53,7 @@ export function useChatRoom(chatId: string) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [paymentUpdateSignal, setPaymentUpdateSignal] = useState(0);
 
   // Read receipt tracking: { memberId: "2026-02-24T..." | null }
   const [membersLastRead, setMembersLastRead] = useState<MembersLastRead>({});
@@ -199,6 +200,10 @@ export function useChatRoom(chatId: string) {
         setMembersLastRead((prev) => ({ ...prev, [readUserId]: lastReadAt }));
       }
     }
+
+    if (type === 'split_status_changed') {
+      setPaymentUpdateSignal((prev) => prev + 1);
+    }
   });
 
   // Mark read on initial load
@@ -236,6 +241,7 @@ export function useChatRoom(chatId: string) {
     refresh: loadInitial,
     setMessages,
     getUnreadCount,
+    paymentUpdateSignal,
   };
 }
 

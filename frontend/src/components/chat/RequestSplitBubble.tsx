@@ -10,6 +10,8 @@ interface RequestSplitBubbleProps {
   isOwn: boolean;
   currentUserId: string;
   unreadCount?: number;
+  paymentUpdateSignal?: number;
+  onOpenDetail?: (paymentRequestId: string) => void;
 }
 
 function formatTime(dateStr: string): string {
@@ -21,15 +23,38 @@ function formatAmount(amount: number): string {
   return `${Math.round(amount).toLocaleString()} KRW`;
 }
 
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'confirmed':
+      return '#34C759';
+    case 'sent':
+      return '#FF9500';
+    default:
+      return '#8E8E93';
+  }
+}
+
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case 'confirmed':
+      return 'Confirmed';
+    case 'sent':
+      return 'Sent';
+    default:
+      return 'Pending';
+  }
+}
+
 export default function RequestSplitBubble({
   message,
   isOwn,
   currentUserId,
   unreadCount = 0,
+  paymentUpdateSignal = 0,
+  onOpenDetail,
 }: RequestSplitBubbleProps) {
   const [paymentReq, setPaymentReq] = useState<PaymentRequest | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [responding, setResponding] = useState(false);
 
   useEffect(() => {
     if (message.payment_request_id) {
@@ -40,28 +65,17 @@ export default function RequestSplitBubble({
         .catch(() => {})
         .finally(() => setIsLoading(false));
     }
-  }, [message.payment_request_id]);
+  }, [message.payment_request_id, paymentUpdateSignal]);
 
   const mySplit = paymentReq?.splits.find((s: PaymentSplit) => s.user.id === currentUserId);
-  const accumulatedTotal = paymentReq
-    ? paymentReq.splits
-        .filter((s: PaymentSplit) => s.status !== 'pending')
-        .reduce((sum: number, s: PaymentSplit) => sum + s.amount, 0)
+  const confirmedCount = paymentReq
+    ? paymentReq.splits.filter((s: PaymentSplit) => s.status === 'confirmed').length
     : 0;
+  const totalCount = paymentReq?.splits.length || 0;
 
-  const handleRespond = async (action: 'accumulated' | 'deposit_used') => {
-    if (!mySplit) return;
-    setResponding(true);
-    try {
-      await chatApi.respondToSplit(mySplit.id, action);
-      if (message.payment_request_id) {
-        const updated = await chatApi.getPaymentRequest(message.payment_request_id);
-        setPaymentReq(updated);
-      }
-    } catch {
-      // silent
-    } finally {
-      setResponding(false);
+  const handlePress = () => {
+    if (message.payment_request_id && onOpenDetail) {
+      onOpenDetail(message.payment_request_id);
     }
   };
 
@@ -73,7 +87,12 @@ export default function RequestSplitBubble({
           <Text style={styles.time}>{formatTime(message.created_at)}</Text>
         </View>
       )}
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={handlePress}
+        activeOpacity={0.7}
+        disabled={!onOpenDetail}
+      >
         <View style={styles.titleRow}>
           <ClipboardListIcon size={20} color="#333333" />
           <Text style={styles.title}>Request 1/N</Text>
@@ -89,45 +108,35 @@ export default function RequestSplitBubble({
           <ActivityIndicator size="small" color="#8E8E93" style={{ marginVertical: 10 }} />
         ) : paymentReq ? (
           <>
-            <Text style={styles.accumulatedLabel}>
-              Accumulated Total: {formatAmount(accumulatedTotal)}
-            </Text>
-
-            {mySplit && mySplit.status === 'pending' && !isOwn && (
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.accumulateButton]}
-                  onPress={() => handleRespond('accumulated')}
-                  disabled={responding}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.accumulateText}>
-                    {responding ? '...' : 'Accumulate'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.depositButton]}
-                  onPress={() => handleRespond('deposit_used')}
-                  disabled={responding}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.depositText}>
-                    {responding ? '...' : 'Use Deposit'}
-                  </Text>
-                </TouchableOpacity>
+            {/* Progress */}
+            <View style={styles.progressRow}>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${totalCount > 0 ? (confirmedCount / totalCount) * 100 : 0}%` },
+                  ]}
+                />
               </View>
-            )}
+              <Text style={styles.progressText}>
+                {confirmedCount}/{totalCount}
+              </Text>
+            </View>
 
-            {mySplit && mySplit.status !== 'pending' && (
-              <View style={styles.resolvedBadge}>
-                <Text style={styles.resolvedText}>
-                  {mySplit.status === 'accumulated' ? 'Accumulated' : 'Deposit Used'}
+            {/* My status badge */}
+            {mySplit && (
+              <View style={[styles.myStatusBadge, { backgroundColor: getStatusColor(mySplit.status) + '20' }]}>
+                <Text style={[styles.myStatusText, { color: getStatusColor(mySplit.status) }]}>
+                  {getStatusLabel(mySplit.status)}
                 </Text>
               </View>
             )}
+
+            {/* Tap hint */}
+            <Text style={styles.tapHint}>Tap for details</Text>
           </>
         ) : null}
-      </View>
+      </TouchableOpacity>
       {!isOwn && <Text style={styles.time}>{formatTime(message.created_at)}</Text>}
     </View>
   );
@@ -176,51 +185,47 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans-Bold',
     fontSize: 28,
     color: '#000000',
-    marginBottom: 4,
+    marginBottom: 10,
   },
-  accumulatedLabel: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 12,
-    color: '#888888',
-    marginBottom: 14,
-  },
-  buttonRow: {
+  progressRow: {
     flexDirection: 'row',
-    gap: 18,
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
   },
-  actionButton: {
+  progressBar: {
     flex: 1,
-    height: 40,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: 5,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 2.5,
+    overflow: 'hidden',
   },
-  accumulateButton: {
-    backgroundColor: '#FFFBE6',
-  },
-  accumulateText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 14,
-    color: '#FFCC00',
-  },
-  depositButton: {
+  progressFill: {
+    height: '100%',
     backgroundColor: '#34C759',
+    borderRadius: 2.5,
   },
-  depositText: {
+  progressText: {
     fontFamily: 'OpenSans-Bold',
-    fontSize: 14,
-    color: '#003310',
+    fontSize: 12,
+    color: '#8E8E93',
   },
-  resolvedBadge: {
-    backgroundColor: '#F2F2F7',
+  myStatusBadge: {
     borderRadius: 8,
-    paddingVertical: 8,
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
   },
-  resolvedText: {
+  myStatusText: {
     fontFamily: 'OpenSans-Bold',
     fontSize: 13,
-    color: '#8E8E93',
+  },
+  tapHint: {
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 11,
+    color: '#AEAEB2',
+    textAlign: 'center',
   },
   time: {
     fontFamily: 'OpenSans-Regular',

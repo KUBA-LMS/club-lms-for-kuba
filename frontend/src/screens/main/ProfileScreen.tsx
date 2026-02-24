@@ -12,7 +12,7 @@ import {
   UIManager,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../context/AuthContext';
 import { User } from '../../types/auth';
@@ -22,12 +22,9 @@ import {
   RegistrationItem,
   getMyClubs,
   MyClubItem,
-  getMyDeposits,
-  DepositItem,
-  getDepositTransactions,
-  DepositTransaction,
+  getSettlementHistory,
+  SettlementHistoryItem,
 } from '../../services/user';
-import { listBookmarks, BookmarkedEvent } from '../../services/bookmarks';
 import {
   ArrowBackIcon,
   BellIcon,
@@ -35,7 +32,6 @@ import {
   ChevronDownIcon,
   CheckIcon,
   AlertTriangleIcon,
-  StarsIcon,
 } from '../../components/icons';
 
 if (
@@ -118,35 +114,27 @@ export default function ProfileScreen() {
   // Data state
   const [clubs, setClubs] = useState<MyClubItem[]>([]);
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
-  const [deposits, setDeposits] = useState<DepositItem[]>([]);
-  const [transactions, setTransactions] = useState<DepositTransaction[]>([]);
+  const [settlements, setSettlements] = useState<SettlementHistoryItem[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
-  const [bookmarks, setBookmarks] = useState<BookmarkedEvent[]>([]);
 
   // UI state
-  const [depositExpanded, setDepositExpanded] = useState(false);
+  const [settlementExpanded, setSettlementExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [txLoading, setTxLoading] = useState(false);
-
-  const selectedDeposit =
-    deposits.find((d) => d.club_id === selectedClubId) || null;
 
   // Fetch initial data
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [c, d, r, b] = await Promise.all([
+        const [c, s, r] = await Promise.all([
           getMyClubs(),
-          getMyDeposits(),
+          getSettlementHistory(1, 20),
           getMyRegistrations(1, 50),
-          listBookmarks(1, 20),
         ]);
         if (cancelled) return;
         setClubs(c);
-        setDeposits(d);
+        setSettlements(s.data);
         setRegistrations(r.data);
-        setBookmarks(b.data);
         if (c.length > 0) setSelectedClubId(c[0].id);
       } catch {
         // silent
@@ -159,56 +147,16 @@ export default function ProfileScreen() {
     };
   }, []);
 
-  // Re-fetch bookmarks every time screen gains focus
-  useFocusEffect(
-    useCallback(() => {
-      let cancelled = false;
-      listBookmarks(1, 20)
-        .then((res) => {
-          if (!cancelled) setBookmarks(res.data);
-        })
-        .catch(() => {});
-      return () => {
-        cancelled = true;
-      };
-    }, []),
-  );
-
-  // Fetch transactions when deposit expanded
-  useEffect(() => {
-    if (!depositExpanded || !selectedDeposit) {
-      setTransactions([]);
-      return;
-    }
-    let cancelled = false;
-    setTxLoading(true);
-    getDepositTransactions(selectedDeposit.id, 1, 20)
-      .then((res) => {
-        if (!cancelled) setTransactions(res.data);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setTxLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [depositExpanded, selectedDeposit?.id]);
-
-  const toggleDeposit = useCallback(() => {
+  const toggleSettlement = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setDepositExpanded((p) => !p);
+    setSettlementExpanded((p) => !p);
   }, []);
 
   const handleClubSelect = useCallback((id: string) => {
     setSelectedClubId(id);
-    setDepositExpanded(false);
-    setTransactions([]);
   }, []);
 
   const initial = typedUser?.username?.charAt(0).toUpperCase() || 'U';
-  const balance = selectedDeposit ? Number(selectedDeposit.balance) : 0;
-  const balanceText = `${balance.toLocaleString()} KRW`;
 
   if (loading) {
     return (
@@ -347,85 +295,66 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Deposit Card - Figma: bg #F8F9FA, borderRadius 20, expanded: bg #E5E5E5 */}
+        {/* Settlement History Card */}
         <TouchableOpacity
           style={[
             styles.depositCard,
-            depositExpanded && styles.depositCardExpanded,
+            settlementExpanded && styles.depositCardExpanded,
           ]}
-          onPress={toggleDeposit}
+          onPress={toggleSettlement}
           activeOpacity={0.85}
         >
           <View style={styles.depositTop}>
             <View>
-              {/* Figma: "Deposit" Open_Sans:Bold 15px #595959 */}
-              <Text style={styles.depositLabel}>Deposit</Text>
-              {/* Figma: amount Open_Sans:Bold 30px black */}
-              <Text style={styles.depositAmount}>{balanceText}</Text>
+              <Text style={styles.depositLabel}>Settlement History</Text>
+              <Text style={styles.depositAmount}>
+                {settlements.length} record{settlements.length !== 1 ? 's' : ''}
+              </Text>
             </View>
             <View
               style={[
                 styles.chevron,
-                depositExpanded && styles.chevronFlipped,
+                settlementExpanded && styles.chevronFlipped,
               ]}
             >
               <ChevronDownIcon size={14} color="#000" />
             </View>
           </View>
 
-          {/* Transaction list (expanded) */}
-          {depositExpanded && (
+          {settlementExpanded && (
             <View style={styles.txList}>
-              {txLoading ? (
-                <ActivityIndicator
-                  size="small"
-                  color="#000"
-                  style={{ marginVertical: 16 }}
-                />
-              ) : transactions.length === 0 ? (
-                <Text style={styles.txEmpty}>No transactions</Text>
+              {settlements.length === 0 ? (
+                <Text style={styles.txEmpty}>No settlement history</Text>
               ) : (
-                transactions.map((tx, i) => {
-                  const amt = Number(tx.amount);
-                  const isPositive = amt > 0;
+                settlements.map((item, i) => {
+                  const amt = Number(item.amount);
+                  const isSent = item.direction === 'sent';
                   return (
-                    <View key={tx.id}>
+                    <View key={item.id}>
                       <View style={styles.txRow}>
-                        {/* Left: description + timestamp */}
                         <View style={styles.txLeft}>
-                          {/* Figma: Open_Sans:Bold 10px black */}
                           <Text style={styles.txDesc} numberOfLines={1}>
-                            {tx.description}
+                            {isSent ? 'Sent to' : 'Received from'} {item.counterpart.username}
                           </Text>
-                          {/* Figma: Open_Sans:Regular 10px #595959 */}
                           <Text style={styles.txTime}>
-                            {formatTimestamp(tx.created_at)}
+                            {formatTimestamp(item.created_at)}
                           </Text>
                         </View>
-                        {/* Right: amount + balance */}
                         <View style={styles.txRight}>
-                          {/* Figma: positive=#FF383C red, negative=#0088FF blue */}
                           <Text
                             style={[
                               styles.txAmt,
-                              {
-                                color: isPositive ? '#FF383C' : '#0088FF',
-                              },
+                              { color: isSent ? '#FF383C' : '#0088FF' },
                             ]}
                           >
-                            {isPositive ? '+' : ''}
-                            {amt.toLocaleString()}
+                            {isSent ? '-' : '+'}{amt.toLocaleString()} KRW
                           </Text>
-                          {/* Figma: "Deposit: **balance**" */}
                           <Text style={styles.txBal}>
-                            Deposit:{' '}
-                            <Text style={styles.txBalBold}>
-                              {Number(tx.balance_after).toLocaleString()}
-                            </Text>
+                            {item.status === 'confirmed' ? 'Confirmed' : item.status}
                           </Text>
                         </View>
                       </View>
-                      {i < transactions.length - 1 && (
+                      {i < settlements.length - 1 && (
                         <View style={styles.txDivider} />
                       )}
                     </View>
@@ -435,53 +364,6 @@ export default function ProfileScreen() {
             </View>
           )}
         </TouchableOpacity>
-
-        {/* Bookmarks Section */}
-        {bookmarks.length > 0 && (
-          <View style={styles.bookmarksOuter}>
-            <View style={styles.bookmarksTitleRow}>
-              <StarsIcon size={18} color="#FFD700" />
-              <Text style={styles.bookmarksTitle}>Bookmarks</Text>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.bookmarksScrollContent}
-            >
-              {bookmarks.map((bk) => (
-                <TouchableOpacity
-                  key={bk.id}
-                  style={styles.bookmarkItem}
-                  onPress={() =>
-                    navigation.navigate('EventDetail', { eventId: bk.event.id })
-                  }
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.bookmarkThumb}>
-                    {bk.event.images?.[0] ? (
-                      <Image
-                        source={{ uri: bk.event.images[0] }}
-                        style={styles.bookmarkThumbImg}
-                      />
-                    ) : (
-                      <View style={styles.bookmarkThumbEmpty}>
-                        <Text style={styles.bookmarkThumbLetter}>
-                          {bk.event.title.charAt(0)}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.bookmarkEventTitle} numberOfLines={2}>
-                    {bk.event.title}
-                  </Text>
-                  <Text style={styles.bookmarkEventDate}>
-                    {formatDate(bk.event.event_date)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
 
         {/* History Section - Figma: white card, borderRadius 30, shadow */}
         <View style={styles.historyOuter}>
@@ -888,66 +770,6 @@ const styles = StyleSheet.create({
   txDivider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#C5C5C5',
-  },
-
-  // Bookmarks section
-  bookmarksOuter: {
-    marginTop: 18,
-    paddingLeft: 20,
-  },
-  bookmarksTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
-  },
-  bookmarksTitle: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 16,
-    color: '#000000',
-  },
-  bookmarksScrollContent: {
-    gap: 12,
-    paddingRight: 20,
-  },
-  bookmarkItem: {
-    width: 110,
-  },
-  bookmarkThumb: {
-    width: 110,
-    height: 80,
-    borderRadius: 10,
-    overflow: 'hidden',
-    borderWidth: 0.5,
-    borderColor: '#C5C5C5',
-  },
-  bookmarkThumbImg: {
-    width: '100%',
-    height: '100%',
-  },
-  bookmarkThumbEmpty: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bookmarkThumbLetter: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 20,
-    color: '#8E8E93',
-  },
-  bookmarkEventTitle: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 11,
-    color: '#000000',
-    marginTop: 6,
-  },
-  bookmarkEventDate: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
-    color: '#595959',
-    marginTop: 2,
   },
 
   // History section

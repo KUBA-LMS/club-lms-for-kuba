@@ -21,7 +21,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.kuba.clublms",
       "infoPlist": {
-        "NSCameraUsageDescription": "Camera is used to scan barcodes for event check-in"
+        "NSCameraUsageDescription": "Camera is used to scan barcodes for event check-in",
+        "LSApplicationQueriesSchemes": ["supertoss", "kakaopay"]
       }
     },
     "android": {
