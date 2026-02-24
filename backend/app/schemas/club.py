@@ -12,7 +12,7 @@ class ClubBase(BaseModel):
 
 
 class ClubCreate(ClubBase):
-    pass
+    parent_id: Optional[UUID] = None
 
 
 class ClubUpdate(BaseModel):
@@ -24,6 +24,7 @@ class ClubUpdate(BaseModel):
 
 class ClubResponse(ClubBase):
     id: UUID
+    parent_id: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
     member_count: Optional[int] = None
@@ -39,6 +40,25 @@ class ClubBriefResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class SubgroupBriefResponse(BaseModel):
+    id: UUID
+    name: str
+    logo_image: Optional[str] = None
+    role: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+class MyClubResponse(BaseModel):
+    id: UUID
+    name: str
+    logo_image: Optional[str] = None
+    role: str = "member"
+    subgroups: List[SubgroupBriefResponse] = []
+
+    model_config = {"from_attributes": True}
+
+
 class ClubListResponse(BaseModel):
     data: List[ClubResponse]
     total: int
@@ -47,4 +67,4 @@ class ClubListResponse(BaseModel):
 
 
 class JoinClubRequest(BaseModel):
-    pass  # Can add additional fields like reason, etc.
+    pass

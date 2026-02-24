@@ -31,6 +31,8 @@ class EventBase(BaseModel):
     registration_end: datetime
     event_date: datetime
     event_location: Optional[str] = Field(None, max_length=500)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     max_slots: int = Field(..., gt=0)
 
 
@@ -49,6 +51,8 @@ class EventUpdate(BaseModel):
     registration_end: Optional[datetime] = None
     event_date: Optional[datetime] = None
     event_location: Optional[str] = Field(None, max_length=500)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     max_slots: Optional[int] = Field(None, gt=0)
 
 
@@ -67,12 +71,15 @@ class EventResponse(EventBase):
 class EventBriefResponse(BaseModel):
     id: UUID
     title: str
+    description: Optional[str] = None
     event_date: datetime
     event_type: EventTypeEnum
     cost_type: CostTypeEnum
     images: List[str] = []
     current_slots: int
     max_slots: int
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
     model_config = {"from_attributes": True}
 
@@ -100,6 +107,7 @@ class EventFilterEnum(str, Enum):
 class UserRegistrationStatus(str, Enum):
     """User's registration status for an event."""
     registered = "registered"  # Confirmed registration
+    visited = "visited"  # Checked in (ticket used)
     open = "open"  # Can register
     requested = "requested"  # Pending registration
     closed = "closed"  # Registration period ended
@@ -110,3 +118,5 @@ class EventWithStatusResponse(EventResponse):
     """Event response with user's registration status."""
     user_status: UserRegistrationStatus
     user_registration_id: Optional[UUID] = None
+    participants_preview: List[UserBriefResponse] = []
+    is_bookmarked: bool = False

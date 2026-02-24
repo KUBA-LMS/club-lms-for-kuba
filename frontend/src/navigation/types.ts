@@ -23,9 +23,9 @@ export type AuthStackParamList = {
 
 // Bottom Tab Navigation
 export type MainTabParamList = {
+  Explore: undefined;
   Home: undefined;
-  Events: undefined;
-  Chat: undefined;
+  Groups: undefined;
   Profile: undefined;
 };
 
@@ -41,6 +41,9 @@ export interface EventFormData {
   registration_end: Date;
   max_slots: number;
   description?: string;
+  latitude?: number;
+  longitude?: number;
+  detail_address?: string;
   related_event_id?: string;
   club_id: string;
   poster_uri?: string;
@@ -52,9 +55,19 @@ export type MainStackParamList = {
   MainTabs: undefined;
   EventDetail: { eventId: string };
   ProviderDetail: { providerId: string };
+  OnePass: { eventId?: string };
+  // Community / Chat screens
+  Community: undefined;
+  CreateGroupChat: undefined;
+  ChatRoom: { chatId: string };
+  // Profile (stack-level, slide from right)
+  Profile: undefined;
+  EditProfile: undefined;
+  Settings: undefined;
   // Admin screens
   AdminCreateEvent: undefined;
   AdminUploadPoster: { eventData: Partial<EventFormData> };
+  AccessControl: undefined;
 };
 
 export type RootStackParamList = {

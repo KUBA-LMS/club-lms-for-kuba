@@ -15,10 +15,84 @@ from app.schemas.club import (
     ClubResponse,
     ClubBriefResponse,
     ClubListResponse,
+    MyClubResponse,
+    SubgroupBriefResponse,
     JoinClubRequest,
 )
 
 router = APIRouter()
+
+
+@router.get("/me", response_model=list[MyClubResponse])
+async def get_my_clubs(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get clubs the current user belongs to, with role and subgroups."""
+    # Get all clubs user belongs to, with their roles
+    result = await db.execute(
+        select(Club, user_club.c.role)
+        .join(user_club, user_club.c.club_id == Club.id)
+        .where(user_club.c.user_id == current_user.id)
+        .order_by(Club.name)
+    )
+    rows = result.all()
+
+    # Separate top-level groups and subgroups
+    club_roles = {row[0].id: row[1] for row in rows}
+    user_club_ids = set(club_roles.keys())
+
+    # Get top-level clubs (no parent) user belongs to
+    top_level = [row[0] for row in rows if row[0].parent_id is None]
+
+    # For each top-level club, fetch subgroups that the user is also a member of
+    responses = []
+    for club in top_level:
+        # Get subgroups of this club
+        sub_result = await db.execute(
+            select(Club).where(Club.parent_id == club.id).order_by(Club.name)
+        )
+        all_subgroups = sub_result.scalars().all()
+
+        # Filter to subgroups user is a member of
+        sub_responses = []
+        for sg in all_subgroups:
+            if sg.id in user_club_ids:
+                sub_responses.append(
+                    SubgroupBriefResponse(
+                        id=sg.id,
+                        name=sg.name,
+                        logo_image=sg.logo_image,
+                        role=club_roles.get(sg.id, "member"),
+                    )
+                )
+
+        responses.append(
+            MyClubResponse(
+                id=club.id,
+                name=club.name,
+                logo_image=club.logo_image,
+                role=club_roles.get(club.id, "member"),
+                subgroups=sub_responses,
+            )
+        )
+
+    # Also include subgroups where user is a member but NOT a member of the parent
+    subgroup_clubs = [row[0] for row in rows if row[0].parent_id is not None]
+    for sg in subgroup_clubs:
+        if sg.parent_id not in user_club_ids:
+            # User is in subgroup but not parent; show as top-level entry
+            responses.append(
+                MyClubResponse(
+                    id=sg.id,
+                    name=sg.name,
+                    logo_image=sg.logo_image,
+                    role=club_roles.get(sg.id, "member"),
+                    subgroups=[],
+                )
+            )
+
+    return responses
 
 
 @router.get("/", response_model=ClubListResponse)
@@ -66,6 +140,7 @@ async def list_clubs(
                 description=club.description,
                 logo_image=club.logo_image,
                 university=club.university,
+                parent_id=club.parent_id,
                 created_at=club.created_at,
                 updated_at=club.updated_at,
                 member_count=member_count,
@@ -104,6 +179,7 @@ async def get_club(
         description=club.description,
         logo_image=club.logo_image,
         university=club.university,
+        parent_id=club.parent_id,
         created_at=club.created_at,
         updated_at=club.updated_at,
         member_count=member_count,
@@ -114,9 +190,9 @@ async def get_club(
 async def create_club(
     club_data: ClubCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_user),
 ):
-    """Create a new club (admin only)."""
+    """Create a new club/group. Creator becomes lead."""
     # Check if club name already exists
     result = await db.execute(select(Club).where(Club.name == club_data.name))
     if result.scalar_one_or_none():
@@ -125,8 +201,27 @@ async def create_club(
             detail="Club name already exists",
         )
 
+    # If parent_id provided, check parent exists
+    if club_data.parent_id:
+        parent_result = await db.execute(
+            select(Club).where(Club.id == club_data.parent_id)
+        )
+        if not parent_result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Parent club not found",
+            )
+
     new_club = Club(**club_data.model_dump())
     db.add(new_club)
+    await db.flush()
+
+    # Auto-add creator as lead
+    await db.execute(
+        user_club.insert().values(
+            user_id=current_user.id, club_id=new_club.id, role="lead"
+        )
+    )
     await db.commit()
     await db.refresh(new_club)
 
@@ -136,9 +231,10 @@ async def create_club(
         description=new_club.description,
         logo_image=new_club.logo_image,
         university=new_club.university,
+        parent_id=new_club.parent_id,
         created_at=new_club.created_at,
         updated_at=new_club.updated_at,
-        member_count=0,
+        member_count=1,
     )
 
 
@@ -179,6 +275,7 @@ async def update_club(
         description=club.description,
         logo_image=club.logo_image,
         university=club.university,
+        parent_id=club.parent_id,
         created_at=club.created_at,
         updated_at=club.updated_at,
         member_count=member_count,
@@ -234,13 +331,18 @@ async def join_club(
             detail="Already a member of this club",
         )
 
-    # Join club
+    # Join club as member
     await db.execute(
-        user_club.insert().values(user_id=current_user.id, club_id=club_id)
+        user_club.insert().values(
+            user_id=current_user.id, club_id=club_id, role="member"
+        )
     )
     await db.commit()
 
-    return {"message": "Successfully joined club"}
+    return {
+        "message": "Successfully joined club",
+        "club": {"id": str(club.id), "name": club.name},
+    }
 
 
 @router.delete("/{club_id}/leave", status_code=status.HTTP_204_NO_CONTENT)

@@ -20,6 +20,8 @@ class Event(Base, TimestampMixin):
     registration_end = Column(DateTime, nullable=False)
     event_date = Column(DateTime, nullable=False)
     event_location = Column(String(500), nullable=True)
+    latitude = Column(Numeric(10, 7), nullable=True)
+    longitude = Column(Numeric(10, 7), nullable=True)
     max_slots = Column(Integer, nullable=False)
     current_slots = Column(Integer, default=0, nullable=False)
 

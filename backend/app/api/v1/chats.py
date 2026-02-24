@@ -10,9 +10,12 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User
 from app.models.chat import Chat, ChatMember, Message
+from app.models.ticket import Ticket
+from app.models.registration import Registration
 from app.schemas.chat import (
     ChatCreate,
     ChatResponse,
+    ChatMemberResponse,
     ChatListResponse,
     ChatTypeEnum,
     MessageCreate,
@@ -20,19 +23,30 @@ from app.schemas.chat import (
     MessageBriefResponse,
     MessageListResponse,
     ChatMemberAdd,
+    TicketTransferCreate,
 )
 from app.schemas.user import UserBriefResponse
+from app.services.notifications import (
+    notify_new_message,
+    notify_chat_list_update,
+    notify_read_receipt,
+)
 
 router = APIRouter()
 
 
-def build_chat_response(chat: Chat, last_message: Optional[Message] = None) -> ChatResponse:
+def build_chat_response(
+    chat: Chat,
+    last_message: Optional[Message] = None,
+    unread_count: int = 0,
+) -> ChatResponse:
     """Helper to build ChatResponse."""
     members = [
-        UserBriefResponse(
+        ChatMemberResponse(
             id=m.user.id,
             username=m.user.username,
             profile_image=m.user.profile_image,
+            last_read_at=m.last_read_at,
         )
         for m in chat.members
     ]
@@ -54,9 +68,76 @@ def build_chat_response(chat: Chat, last_message: Optional[Message] = None) -> C
         event_id=chat.event_id,
         members=members,
         last_message=last_msg,
+        unread_count=unread_count,
         created_at=chat.created_at,
         updated_at=chat.updated_at,
     )
+
+
+async def _get_unread_count(db: AsyncSession, chat_id: UUID, user_id: UUID) -> int:
+    """Compute unread message count for a user in a chat."""
+    # Get member's last_read_at
+    member_query = select(ChatMember.last_read_at).where(
+        (ChatMember.chat_id == chat_id) & (ChatMember.user_id == user_id)
+    )
+    result = await db.execute(member_query)
+    row = result.first()
+    if not row:
+        return 0
+
+    last_read_at = row[0]
+    if last_read_at is None:
+        # Never read - count all messages not sent by this user
+        count_query = select(func.count(Message.id)).where(
+            (Message.chat_id == chat_id) & (Message.sender_id != user_id)
+        )
+    else:
+        count_query = select(func.count(Message.id)).where(
+            (Message.chat_id == chat_id)
+            & (Message.sender_id != user_id)
+            & (Message.created_at > last_read_at)
+        )
+    count_result = await db.execute(count_query)
+    return count_result.scalar() or 0
+
+
+async def _publish_message_notifications(
+    db: AsyncSession,
+    chat_id: UUID,
+    message: Message,
+    sender: User,
+):
+    """Publish WebSocket notifications after sending a message."""
+    created_at_str = message.created_at.isoformat() if message.created_at else datetime.utcnow().isoformat()
+
+    # Publish to chat channel (for users in the chat room)
+    await notify_new_message(
+        chat_id=chat_id,
+        message_id=message.id,
+        sender_id=sender.id,
+        sender_username=sender.username,
+        content=message.content,
+        message_type=message.type,
+        created_at=created_at_str,
+        ticket_id=message.ticket_id,
+        payment_amount=message.payment_amount,
+        payment_request_id=message.payment_request_id,
+    )
+
+    # Publish to user channels for each OTHER member (chat list updates)
+    members_query = select(ChatMember.user_id).where(
+        (ChatMember.chat_id == chat_id) & (ChatMember.user_id != sender.id)
+    )
+    members_result = await db.execute(members_query)
+    for row in members_result.fetchall():
+        await notify_chat_list_update(
+            user_id=row[0],
+            chat_id=chat_id,
+            last_message=message.content,
+            last_message_type=message.type,
+            sender_username=sender.username,
+            timestamp=created_at_str,
+        )
 
 
 @router.get("/", response_model=ChatListResponse)
@@ -93,7 +174,7 @@ async def list_chats(
     chats_result = await db.execute(chats_query)
     chats = chats_result.scalars().all()
 
-    # Get last messages for each chat
+    # Get last messages and unread counts for each chat
     chat_responses = []
     for chat in chats:
         last_msg_query = (
@@ -104,7 +185,10 @@ async def list_chats(
         )
         last_msg_result = await db.execute(last_msg_query)
         last_message = last_msg_result.scalar_one_or_none()
-        chat_responses.append(build_chat_response(chat, last_message))
+
+        unread_count = await _get_unread_count(db, chat.id, current_user.id)
+
+        chat_responses.append(build_chat_response(chat, last_message, unread_count))
 
     return ChatListResponse(data=chat_responses, total=total)
 
@@ -232,7 +316,9 @@ async def get_chat(
     last_msg_result = await db.execute(last_msg_query)
     last_message = last_msg_result.scalar_one_or_none()
 
-    return build_chat_response(chat, last_message)
+    unread_count = await _get_unread_count(db, chat.id, current_user.id)
+
+    return build_chat_response(chat, last_message, unread_count)
 
 
 @router.get("/{chat_id}/messages", response_model=MessageListResponse)
@@ -283,6 +369,7 @@ async def get_chat_messages(
                 type=m.type,
                 ticket_id=m.ticket_id,
                 payment_amount=m.payment_amount,
+                payment_request_id=m.payment_request_id,
                 sender=UserBriefResponse(
                     id=m.sender.id,
                     username=m.sender.username,
@@ -335,8 +422,22 @@ async def send_message(
     chat = chat_result.scalar_one()
     chat.updated_at = datetime.utcnow()
 
+    # Mark sender's messages as read (they just sent one)
+    sender_member_query = select(ChatMember).where(
+        (ChatMember.chat_id == chat_id) & (ChatMember.user_id == current_user.id)
+    )
+    sender_member_result = await db.execute(sender_member_query)
+    sender_member = sender_member_result.scalar_one()
+    sender_member.last_read_at = datetime.utcnow()
+
     await db.commit()
     await db.refresh(new_message)
+
+    # Publish WebSocket notifications (fire-and-forget)
+    try:
+        await _publish_message_notifications(db, chat_id, new_message, current_user)
+    except Exception:
+        pass  # WS failure should not block message delivery
 
     return MessageResponse(
         id=new_message.id,
@@ -344,6 +445,148 @@ async def send_message(
         type=new_message.type,
         ticket_id=new_message.ticket_id,
         payment_amount=new_message.payment_amount,
+        payment_request_id=new_message.payment_request_id,
+        sender=UserBriefResponse(
+            id=current_user.id,
+            username=current_user.username,
+            profile_image=current_user.profile_image,
+        ),
+        created_at=new_message.created_at,
+    )
+
+
+@router.post("/{chat_id}/read", status_code=status.HTTP_204_NO_CONTENT)
+async def mark_chat_read(
+    chat_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Mark all messages in a chat as read for the current user."""
+    member_query = select(ChatMember).where(
+        (ChatMember.chat_id == chat_id) & (ChatMember.user_id == current_user.id)
+    )
+    member_result = await db.execute(member_query)
+    member = member_result.scalar_one_or_none()
+
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not a member of this chat",
+        )
+
+    now = datetime.utcnow()
+    member.last_read_at = now
+    await db.commit()
+
+    # Broadcast read receipt to chat channel (for users in the chat room)
+    try:
+        await notify_read_receipt(chat_id, current_user.id, now.isoformat())
+    except Exception:
+        pass
+
+    # Broadcast to user channels for ALL members including self
+    # Self needs it to reset unread_count on chat list when reading from inside the room
+    try:
+        from app.services.ws_manager import manager
+        members_query = select(ChatMember.user_id).where(
+            ChatMember.chat_id == chat_id
+        )
+        members_result = await db.execute(members_query)
+        for row in members_result.fetchall():
+            await manager.publish(f"user:{row[0]}", {
+                "type": "read_receipt",
+                "channel": f"user:{row[0]}",
+                "data": {
+                    "chat_id": str(chat_id),
+                    "user_id": str(current_user.id),
+                    "last_read_at": now.isoformat(),
+                },
+            })
+    except Exception:
+        pass
+
+
+@router.post("/{chat_id}/transfer-ticket", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+async def transfer_ticket(
+    chat_id: UUID,
+    data: TicketTransferCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Transfer a ticket to a chat member and send a ticket message."""
+    # Verify membership
+    member_check = await db.execute(
+        select(ChatMember).where(
+            (ChatMember.chat_id == chat_id) & (ChatMember.user_id == current_user.id)
+        )
+    )
+    if not member_check.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this chat")
+
+    # Verify ticket belongs to current user
+    ticket_query = (
+        select(Ticket)
+        .join(Registration, Ticket.registration_id == Registration.id)
+        .where(
+            (Ticket.id == data.ticket_id)
+            & (Registration.user_id == current_user.id)
+            & (Ticket.is_used == False)
+        )
+    )
+    ticket_result = await db.execute(ticket_query)
+    ticket = ticket_result.scalar_one_or_none()
+    if not ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found or not yours")
+
+    # Get the event info for the message content
+    reg_query = (
+        select(Registration)
+        .options(selectinload(Registration.event))
+        .where(Registration.id == ticket.registration_id)
+    )
+    reg_result = await db.execute(reg_query)
+    reg = reg_result.scalar_one()
+
+    event_title = reg.event.title if reg.event else "Ticket"
+    event_location = reg.event.event_location or ""
+    event_date = reg.event.event_date.strftime("%b %d, %Y") if reg.event and reg.event.event_date else ""
+
+    # Mark ticket as used (transferred)
+    ticket.is_used = True
+
+    # Create ticket_delivered message (from sender's perspective)
+    content = f"{event_title}|{event_location}|{event_date}"
+    new_message = Message(
+        chat_id=chat_id,
+        sender_id=current_user.id,
+        content=content,
+        type="ticket_delivered",
+        ticket_id=data.ticket_id,
+    )
+    db.add(new_message)
+
+    # Update chat updated_at
+    chat_query = select(Chat).where(Chat.id == chat_id)
+    chat_result = await db.execute(chat_query)
+    chat = chat_result.scalar_one()
+    chat.updated_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(new_message)
+
+    # WS notifications
+    try:
+        await _publish_message_notifications(db, chat_id, new_message, current_user)
+    except Exception:
+        pass
+
+    return MessageResponse(
+        id=new_message.id,
+        content=new_message.content,
+        type=new_message.type,
+        ticket_id=new_message.ticket_id,
+        payment_amount=None,
+        payment_request_id=None,
         sender=UserBriefResponse(
             id=current_user.id,
             username=current_user.username,

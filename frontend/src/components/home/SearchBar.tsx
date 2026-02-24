@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, Platform } from 'react-native';
+import { View, TextInput, StyleSheet, Platform, Pressable, TextInput as RNTextInput } from 'react-native';
 import { SearchIcon } from '../icons';
 import { colors } from '../../constants';
 
@@ -7,6 +7,10 @@ interface SearchBarProps {
   value?: string;
   onChangeText?: (text: string) => void;
   onSubmit?: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onTap?: () => void;
+  inputRef?: React.RefObject<RNTextInput | null>;
   placeholder?: string;
 }
 
@@ -14,23 +18,30 @@ export default function SearchBar({
   value,
   onChangeText,
   onSubmit,
+  onFocus,
+  onBlur,
+  onTap,
+  inputRef,
   placeholder = 'Search Event or Provider'
 }: SearchBarProps) {
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} onPress={onTap}>
       <View style={styles.iconWrapper}>
         <SearchIcon size={20} color={colors.gray900} />
       </View>
       <TextInput
+        ref={inputRef}
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmit}
+        onFocus={onFocus}
+        onBlur={onBlur}
         placeholder={placeholder}
         placeholderTextColor={colors.text.secondary}
         returnKeyType="search"
       />
-    </View>
+    </Pressable>
   );
 }
 

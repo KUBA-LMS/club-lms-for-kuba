@@ -33,7 +33,7 @@ const WarningIcon = ({ size = 16, color = '#FF3838' }: { size?: number; color?: 
   </Svg>
 );
 
-export type RegistrationStatus = 'registered' | 'open' | 'requested' | 'closed' | 'upcoming' | 'payment_pending';
+export type RegistrationStatus = 'registered' | 'visited' | 'open' | 'requested' | 'closed' | 'upcoming' | 'payment_pending';
 
 export interface EventDetailData {
   id: string | number;
@@ -126,6 +126,17 @@ const getButtonConfig = (status?: RegistrationStatus, opensAt?: string) => {
         action: 'none' as const,
         isOnePass: false,
         showCountdown: true,
+      };
+    case 'visited':
+      return {
+        text: 'Visited',
+        backgroundColor: 'transparent',
+        textColor: '#FF3B30',
+        borderColor: '#FF3B30',
+        disabled: true,
+        action: 'none' as const,
+        isOnePass: false,
+        showCountdown: false,
       };
     case 'closed':
       return {

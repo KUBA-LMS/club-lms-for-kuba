@@ -2,15 +2,11 @@
  * Event-related types matching backend schemas
  */
 
+import { UserBrief } from './auth';
+
 export type EventType = 'official' | 'private';
 export type CostType = 'free' | 'prepaid' | 'one_n';
-export type UserRegistrationStatus = 'registered' | 'open' | 'requested' | 'closed' | 'upcoming';
-
-export interface UserBrief {
-  id: string;
-  username: string;
-  profile_image: string | null;
-}
+export type UserRegistrationStatus = 'registered' | 'visited' | 'open' | 'requested' | 'closed' | 'upcoming';
 
 export interface ClubBrief {
   id: string;
@@ -30,6 +26,8 @@ export interface Event {
   registration_end: string;
   event_date: string;
   event_location: string | null;
+  latitude: number | null;
+  longitude: number | null;
   max_slots: number;
   current_slots: number;
   provided_by: UserBrief;
@@ -42,6 +40,8 @@ export interface Event {
 export interface EventWithStatus extends Event {
   user_status: UserRegistrationStatus;
   user_registration_id: string | null;
+  participants_preview: UserBrief[];
+  is_bookmarked: boolean;
 }
 
 export interface EventListResponse {

@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { StarsIcon, ShareIcon, LoaderIcon } from '../icons';
 import Svg, { Path } from 'react-native-svg';
+import { UserBrief } from '../../types/auth';
 
 export type RegistrationStatus =
   | 'registered'
+  | 'visited'
   | 'open'
   | 'requested'
   | 'closed'
@@ -18,8 +20,9 @@ interface EventCardProps {
   imageUri?: string;
   status: RegistrationStatus;
   opensAt?: string;
-  participants?: string[];
+  participants?: UserBrief[];
   participantCount?: number;
+  isBookmarked?: boolean;
   onPress?: () => void;
   onBookmark?: () => void;
   onShare?: () => void;
@@ -64,6 +67,14 @@ const getStatusConfig = (status: RegistrationStatus, opensAt?: string) => {
         borderColor: '#FF8D28',
         filled: true,
       };
+    case 'visited':
+      return {
+        label: 'Visited',
+        backgroundColor: 'transparent',
+        textColor: '#FF3B30',
+        borderColor: '#FF3B30',
+        filled: false,
+      };
     case 'closed':
       return {
         label: 'Registration Closed',
@@ -101,6 +112,7 @@ export default function EventCard({
   opensAt,
   participants = [],
   participantCount = 0,
+  isBookmarked = false,
   onPress,
   onBookmark,
   onShare,
@@ -187,7 +199,7 @@ export default function EventCard({
         </View>
 
         <TouchableOpacity style={styles.iconButton} onPress={onBookmark}>
-          <StarsIcon size={16} color="#212121" />
+          <StarsIcon size={16} color={isBookmarked ? '#FFD700' : '#212121'} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.iconButton} onPress={onShare}>
@@ -199,26 +211,53 @@ export default function EventCard({
 
       <View style={styles.participantsSection}>
         <View style={styles.avatarStack}>
-          {[0, 1, 2, 3].map((index) => (
-            <View
-              key={index}
-              style={[
-                styles.avatarCircle,
-                { marginLeft: index === 0 ? 0 : -5 }
-              ]}
-            />
-          ))}
+          {displayedParticipants.length > 0
+            ? displayedParticipants.map((p, index) => (
+                p.profile_image ? (
+                  <Image
+                    key={p.id}
+                    source={{ uri: p.profile_image }}
+                    style={[
+                      styles.avatarCircle,
+                      { marginLeft: index === 0 ? 0 : -5 }
+                    ]}
+                  />
+                ) : (
+                  <View
+                    key={p.id}
+                    style={[
+                      styles.avatarCircle,
+                      styles.avatarInitial,
+                      { marginLeft: index === 0 ? 0 : -5 }
+                    ]}
+                  >
+                    <Text style={styles.avatarInitialText}>
+                      {p.username.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )
+              ))
+            : [0, 1, 2].map((index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.avatarCircle,
+                    { marginLeft: index === 0 ? 0 : -5 }
+                  ]}
+                />
+              ))
+          }
         </View>
         <Text style={styles.participantsText}>
           <Text style={styles.participantsBold}>
             {displayedParticipants.length > 0
-              ? displayedParticipants.join(', ') + '...'
-              : 'justin1, troy2, nic3...'}
+              ? displayedParticipants.map(p => p.username).join(', ')
+              : ''}
           </Text>
           {extraCount > 0 && (
             <Text style={styles.participantsBold}> +{extraCount}</Text>
           )}
-          {' '}friends participating
+          {participantCount > 0 ? ' participating' : 'No participants yet'}
         </Text>
       </View>
     </TouchableOpacity>
@@ -344,6 +383,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#D9D9D9',
     borderWidth: 1,
     borderColor: '#FFFFFF',
+  },
+  avatarInitial: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#8E8E93',
+  },
+  avatarInitialText: {
+    fontFamily: 'OpenSans-Bold',
+    fontSize: 10,
+    color: '#FFFFFF',
   },
   participantsText: {
     fontFamily: 'OpenSans-Regular',

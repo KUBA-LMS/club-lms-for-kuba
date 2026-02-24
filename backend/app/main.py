@@ -5,6 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import init_db
+from app.core.redis import close_redis
+from app.services.ws_manager import manager
+from app.services.message_cleanup import cleanup_service
 from app.api.v1 import api_router
 
 
@@ -17,8 +20,19 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Warning: Database initialization failed: {e}")
         print("Application will continue without database connection.")
+    try:
+        await manager.start()
+    except Exception as e:
+        print(f"Warning: WebSocket manager failed to start: {e}")
+    try:
+        await cleanup_service.start()
+    except Exception as e:
+        print(f"Warning: Message cleanup service failed to start: {e}")
     yield
     # Shutdown
+    await cleanup_service.stop()
+    await manager.stop()
+    await close_redis()
 
 
 app = FastAPI(

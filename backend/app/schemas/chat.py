@@ -8,6 +8,10 @@ from enum import Enum
 from app.schemas.user import UserBriefResponse
 
 
+class ChatMemberResponse(UserBriefResponse):
+    last_read_at: Optional[datetime] = None
+
+
 class ChatTypeEnum(str, Enum):
     direct = "direct"
     group = "group"
@@ -19,6 +23,9 @@ class MessageTypeEnum(str, Enum):
     image = "image"
     ticket = "ticket"
     payment_request = "payment_request"
+    ticket_delivered = "ticket_delivered"
+    payment_completed = "payment_completed"
+    event_share = "event_share"
 
 
 # Chat schemas
@@ -34,8 +41,9 @@ class ChatResponse(BaseModel):
     type: ChatTypeEnum
     name: Optional[str] = None
     event_id: Optional[UUID] = None
-    members: List[UserBriefResponse]
+    members: List[ChatMemberResponse]
     last_message: Optional["MessageBriefResponse"] = None
+    unread_count: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -61,6 +69,7 @@ class MessageResponse(BaseModel):
     type: MessageTypeEnum
     ticket_id: Optional[UUID] = None
     payment_amount: Optional[Decimal] = None
+    payment_request_id: Optional[UUID] = None
     sender: UserBriefResponse
     created_at: datetime
 
@@ -87,3 +96,8 @@ class MessageListResponse(BaseModel):
 # Member management
 class ChatMemberAdd(BaseModel):
     user_ids: List[UUID]
+
+
+# Ticket transfer
+class TicketTransferCreate(BaseModel):
+    ticket_id: UUID

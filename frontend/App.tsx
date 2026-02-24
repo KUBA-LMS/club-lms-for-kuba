@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
+import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -43,6 +44,17 @@ function AppContent() {
   return isAuthenticated ? <MainNavigator /> : <AuthNavigator />;
 }
 
+const prefix = Linking.createURL('/');
+
+const linking = {
+  prefixes: [prefix, 'clublms://'],
+  config: {
+    screens: {
+      EventDetail: 'event/:eventId',
+    },
+  },
+};
+
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
 
@@ -73,7 +85,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
           <AuthProvider>
             <StatusBar style="dark" />
             <AppContent />

@@ -1,4 +1,6 @@
 import uuid
+from datetime import datetime
+
 from sqlalchemy import Column, String, Text, DateTime, Enum as SQLEnum, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -25,7 +27,7 @@ class ChatMember(Base):
     __tablename__ = "chat_members"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    joined_at = Column(DateTime, nullable=False)
+    joined_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     last_read_at = Column(DateTime, nullable=True)
 
     # Foreign Keys
@@ -43,13 +45,18 @@ class Message(Base, TimestampMixin):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     content = Column(Text, nullable=False)
     type = Column(
-        SQLEnum("text", "image", "ticket", "payment_request", name="message_type_enum"),
+        SQLEnum(
+            "text", "image", "ticket", "payment_request",
+            "ticket_delivered", "payment_completed", "event_share",
+            name="message_type_enum",
+        ),
         default="text",
         nullable=False,
     )
     # Metadata for special message types
     ticket_id = Column(UUID(as_uuid=True), nullable=True)
     payment_amount = Column(Numeric(10, 2), nullable=True)
+    payment_request_id = Column(UUID(as_uuid=True), nullable=True)  # No FK to avoid circular dep
 
     # Foreign Keys
     chat_id = Column(UUID(as_uuid=True), ForeignKey("chats.id"), nullable=False)

@@ -20,6 +20,7 @@ from typing import List
 class Settings(BaseSettings):
     APP_NAME: str = "Club LMS API"
     DEBUG: bool = True
+    DEV_MODE: bool = False
 
     # Server
     HOST: str = "0.0.0.0"
@@ -37,6 +38,17 @@ class Settings(BaseSettings):
     # WARNING: MUST be changed in production. Set via .env file.
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379"
+
+    # Naver Cloud Platform (Map SDK + Geocoding)
+    NAVER_MAP_CLIENT_ID: str = ""
+    NAVER_MAP_CLIENT_SECRET: str = ""
+
+    # Naver Developers (Search API)
+    NAVER_SEARCH_CLIENT_ID: str = ""
+    NAVER_SEARCH_CLIENT_SECRET: str = ""
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

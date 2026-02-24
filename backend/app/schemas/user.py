@@ -4,6 +4,8 @@ from datetime import datetime
 from uuid import UUID
 from enum import Enum
 
+from app.schemas.club import ClubBriefResponse
+
 
 class GenderEnum(str, Enum):
     male = "male"
@@ -92,9 +94,68 @@ class UserProfileResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class FriendRequestStatusEnum(str, Enum):
+    pending = "pending"
+    accepted = "accepted"
+    rejected = "rejected"
+
+
+# Friend/search item with common clubs
+class UserSearchItemResponse(BaseModel):
+    id: UUID
+    username: str
+    profile_image: Optional[str] = None
+    is_friend: bool = False
+    request_status: Optional[str] = None  # "sent", "received", or None
+    request_id: Optional[UUID] = None
+    common_clubs: List[ClubBriefResponse] = []
+
+    model_config = {"from_attributes": True}
+
+
+class UserFriendItemResponse(BaseModel):
+    id: UUID
+    username: str
+    profile_image: Optional[str] = None
+    common_clubs: List[ClubBriefResponse] = []
+
+    model_config = {"from_attributes": True}
+
+
 # List response with pagination
 class UserListResponse(BaseModel):
     data: List[UserResponse]
     total: int
     page: int
     limit: int
+
+
+class UserSearchListResponse(BaseModel):
+    data: List[UserSearchItemResponse]
+    total: int
+    page: int
+    limit: int
+
+
+class UserFriendListResponse(BaseModel):
+    data: List[UserFriendItemResponse]
+    total: int
+    page: int
+    limit: int
+
+
+# Friend request schemas
+class FriendRequestResponse(BaseModel):
+    id: UUID
+    from_user: UserBriefResponse
+    to_user: UserBriefResponse
+    status: FriendRequestStatusEnum
+    common_clubs: List[ClubBriefResponse] = []
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class FriendRequestListResponse(BaseModel):
+    data: List[FriendRequestResponse]
+    total: int

@@ -11,6 +11,7 @@ user_club = Table(
     Base.metadata,
     Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True),
     Column("club_id", UUID(as_uuid=True), ForeignKey("clubs.id"), primary_key=True),
+    Column("role", String(20), server_default="member", nullable=False),
 )
 
 # Association table for friendships
@@ -51,3 +52,19 @@ class User(Base, TimestampMixin):
     posted_events = relationship("Event", foreign_keys="Event.posted_by_id", back_populates="posted_by")
     chat_memberships = relationship("ChatMember", back_populates="user")
     messages = relationship("Message", back_populates="sender")
+
+
+class FriendRequest(Base, TimestampMixin):
+    __tablename__ = "friend_requests"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    from_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    to_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status = Column(
+        SQLEnum("pending", "accepted", "rejected", name="friend_request_status_enum"),
+        default="pending",
+        nullable=False,
+    )
+
+    from_user = relationship("User", foreign_keys=[from_user_id], backref="sent_friend_requests")
+    to_user = relationship("User", foreign_keys=[to_user_id], backref="received_friend_requests")

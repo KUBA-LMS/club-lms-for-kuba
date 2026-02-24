@@ -8,13 +8,13 @@ interface OnePassButtonProps {
 
 export default function OnePassButton({ onPress }: OnePassButtonProps) {
   return (
-    <View style={styles.wrapper}>
+    <TouchableOpacity
+      style={styles.wrapper}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
       <Text style={styles.numberText}>1</Text>
-      <TouchableOpacity
-        style={styles.container}
-        onPress={onPress}
-        activeOpacity={0.8}
-      >
+      <View style={styles.container}>
         <View style={styles.ticketFrame}>
           <Svg style={styles.ticketBorder} viewBox="0 0 130 30">
             <Rect
@@ -31,8 +31,8 @@ export default function OnePassButton({ onPress }: OnePassButtonProps) {
           <Text style={styles.oneText}>ONE</Text>
           <Text style={styles.passText}>PASS</Text>
         </View>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 

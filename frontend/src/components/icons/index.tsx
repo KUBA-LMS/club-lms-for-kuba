@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 // Search Icon - Figma exact SVG
 export function SearchIcon({ size = 20, color = '#212121' }: { size?: number; color?: string }) {
@@ -145,6 +145,331 @@ export function UserIcon({ size = 24, color = '#8E8E93' }: { size?: number; colo
   );
 }
 
+// Compass/Explore Icon - for bottom tab bar
+export function CompassIcon({ size = 24, color = '#8E8E93' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
+      <Path
+        d="M16.24 7.76L14.12 14.12L7.76 16.24L9.88 9.88L16.24 7.76Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Clock Icon - for search history
+export function ClockIcon({ size = 16, color = '#8E8E93' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={2} />
+      <Path
+        d="M12 7V12L15 15"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Close Icon - small X for delete buttons
+export function CloseIcon({ size = 16, color = '#8E8E93' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M18 6L6 18M6 6L18 18"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Map Pin Icon - for search result items
+export function MapPinIcon({ size = 16, color = '#8E8E93' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="10" r="3" stroke={color} strokeWidth={2} />
+    </Svg>
+  );
+}
+
+// Arrow Back Icon - for navigation back
+export function ArrowBackIcon({ size = 24, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M19 12H5M5 12L12 19M5 12L12 5"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Plus Icon - for add/create actions
+export function PlusIcon({ size = 24, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 5V19M5 12H19"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Dollar Sign Icon - for payment-related messages
+export function DollarSignIcon({ size = 16, color = '#FFB800' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" fill={color} />
+      <Path
+        d="M12 6V18M15 9.5C15 8.12 13.66 7 12 7C10.34 7 9 8.12 9 9.5C9 10.88 10.34 12 12 12C13.66 12 15 13.12 15 14.5C15 15.88 13.66 17 12 17C10.34 17 9 15.88 9 14.5"
+        stroke="white"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+// Send Arrow Icon - green circle with up arrow for chat send button
+export function SendArrowIcon({ size = 32 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Circle cx="16" cy="16" r="16" fill="#34C759" />
+      <Path
+        d="M16 22V10M16 10L11 15M16 10L21 15"
+        stroke="white"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Gift Icon - for ticket gift/transfer bubble
+export function GiftIcon({ size = 20, color = '#8B5CF6' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="3" y="8" width="18" height="4" rx="1" stroke={color} strokeWidth={2} />
+      <Path d="M12 8V21" stroke={color} strokeWidth={2} />
+      <Path d="M3 12H21V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V12Z" stroke={color} strokeWidth={2} />
+      <Path
+        d="M12 8C12 8 12 5 9.5 4C7 3 7 5 7.5 6C8 7 12 8 12 8Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M12 8C12 8 12 5 14.5 4C17 3 17 5 16.5 6C16 7 12 8 12 8Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Ticket Icon - for ticket-related messages
+export function TicketIcon({ size = 20, color = '#8B5CF6' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M2 9V6C2 5.44772 2.44772 5 3 5H21C21.5523 5 22 5.44772 22 6V9C20.8954 9 20 9.89543 20 11C20 12.1046 20.8954 13 22 13V18C22 18.5523 21.5523 19 21 19H3C2.44772 19 2 18.5523 2 18V15C3.10457 15 4 14.1046 4 13C4 11.8954 3.10457 11 2 11V9Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M9 5V19" stroke={color} strokeWidth={2} strokeDasharray="2 2" />
+    </Svg>
+  );
+}
+
+// Trash Icon - for swipe-to-delete in split modal
+export function TrashIcon({ size = 20, color = '#FF3B30' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 6H5H21"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Chevron Right Icon - for navigation arrows in lists
+export function ChevronRightIcon({ size = 20, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 18L15 12L9 6"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Clipboard List Icon - for payment request/completed bubbles
+export function ClipboardListIcon({ size = 20, color = '#8E8E93' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 5H7C6.46957 5 5.96086 5.21071 5.58579 5.58579C5.21071 5.96086 5 6.46957 5 7V19C5 19.5304 5.21071 20.0391 5.58579 20.4142C5.96086 20.7893 6.46957 21 7 21H17C17.5304 21 18.0391 20.7893 18.4142 20.4142C18.7893 20.0391 19 19.5304 19 19V7C19 6.46957 18.7893 5.96086 18.4142 5.58579C18.0391 5.21071 17.5304 5 17 5H15"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M9 5C9 4.46957 9.21071 3.96086 9.58579 3.58579C9.96086 3.21071 10.4696 3 11 3H13C13.5304 3 14.0391 3.21071 14.4142 3.58579C14.7893 3.96086 15 4.46957 15 5C15 5.53043 14.7893 6.03914 14.4142 6.41421C14.0391 6.78929 13.5304 7 13 7H11C10.4696 7 9.96086 6.78929 9.58579 6.41421C9.21071 6.03914 9 5.53043 9 5Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M9 12H15" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M9 16H13" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Arrow Right Icon - for transfer ticket list items
+export function ArrowRightIcon({ size = 20, color = '#8B5CF6' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M5 12H19M19 12L12 5M19 12L12 19"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Bell/Notification Icon - for header
+export function BellIcon({ size = 24, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Edit Pencil Icon - small edit icon for profile
+export function EditPencilIcon({ size = 12, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Chevron Down Icon - for expand/collapse
+export function ChevronDownIcon({ size = 20, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 9L12 15L18 9"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Check Icon - checkmark for status
+export function CheckIcon({ size = 16, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M20 6L9 17L4 12"
+        stroke={color}
+        strokeWidth={2.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Alert Triangle Icon - for no-show status
+export function AlertTriangleIcon({ size = 24, color = '#FF383C' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M12 9v4" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M12 17h.01" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 // Arrow Up Circle Icon - for upload actions
 export function ArrowUpCircleIcon({ size = 75, color = '#000000' }: { size?: number; color?: string }) {
   return (
@@ -152,6 +477,61 @@ export function ArrowUpCircleIcon({ size = 75, color = '#000000' }: { size?: num
       <Circle cx="37.5" cy="37.5" r="35" stroke={color} strokeWidth={2} />
       <Path
         d="M37.5 50V25M37.5 25L27.5 35M37.5 25L47.5 35"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// QR Code Icon
+export function QRCodeIcon({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="3" y="3" width="7" height="7" rx="1" stroke={color} strokeWidth={1.5} />
+      <Rect x="14" y="3" width="7" height="7" rx="1" stroke={color} strokeWidth={1.5} />
+      <Rect x="3" y="14" width="7" height="7" rx="1" stroke={color} strokeWidth={1.5} />
+      <Rect x="5.5" y="5.5" width="2" height="2" rx={0.5} fill={color} />
+      <Rect x="16.5" y="5.5" width="2" height="2" rx={0.5} fill={color} />
+      <Rect x="5.5" y="16.5" width="2" height="2" rx={0.5} fill={color} />
+      <Path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z" fill={color} />
+    </Svg>
+  );
+}
+
+// Exit/Leave Icon (arrow exiting a box)
+export function ExitIcon({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Plus Circle Icon
+export function PlusCircleIcon({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={1.5} />
+      <Path d="M12 8v8M8 12h8" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Upload Icon (arrow up from tray)
+export function UploadIcon({ size = 24, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
         stroke={color}
         strokeWidth={2}
         strokeLinecap="round"

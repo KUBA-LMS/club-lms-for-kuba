@@ -5,26 +5,25 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainTabParamList, MainStackParamList } from './types';
 import HomeScreen from '../screens/main/HomeScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
-import { AdminCreateEventScreen, AdminUploadPosterScreen } from '../screens/admin';
-import { HomeIcon, CalendarIcon, ChatIcon, UserIcon } from '../components/icons';
+import OnePassScreen from '../screens/main/OnePassScreen';
+import CommunityScreen from '../screens/main/CommunityScreen';
+import CreateGroupChatScreen from '../screens/main/CreateGroupChatScreen';
+import ChatRoomScreen from '../screens/main/ChatRoomScreen';
+import EditProfileScreen from '../screens/main/EditProfileScreen';
+import SettingsScreen from '../screens/main/SettingsScreen';
+import EventDetailScreen from '../screens/main/EventDetailScreen';
+import { AdminCreateEventScreen, AdminUploadPosterScreen, AccessControlScreen } from '../screens/admin';
+import CustomTabBar from '../components/navigation/CustomTabBar';
+import { useWebSocketConnection } from '../hooks/useWebSocket';
 
 // Placeholder screens
-function EventsScreen() {
+function ExploreScreen() {
   return (
     <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>Events</Text>
+      <Text style={styles.placeholderText}>Explore</Text>
     </View>
   );
 }
-
-function ChatScreen() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>Chat</Text>
-    </View>
-  );
-}
-
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<MainStackParamList>();
@@ -32,42 +31,52 @@ const Stack = createNativeStackNavigator<MainStackParamList>();
 function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      initialRouteName="Home"
+      tabBar={(props) => <CustomTabBar {...props} />}
+      backBehavior="history"
+      screenOptions={{
         headerShown: false,
-        tabBarIcon: ({ color }) => {
-          switch (route.name) {
-            case 'Home':
-              return <HomeIcon color={color} />;
-            case 'Events':
-              return <CalendarIcon color={color} />;
-            case 'Chat':
-              return <ChatIcon color={color} />;
-            case 'Profile':
-              return <UserIcon color={color} />;
-            default:
-              return <HomeIcon color={color} />;
-          }
-        },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        tabBarStyle: styles.tabBar,
-        tabBarLabelStyle: styles.tabBarLabel,
-      })}
+      }}
     >
+      <Tab.Screen name="Explore" component={ExploreScreen} />
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Events" component={EventsScreen} />
-      <Tab.Screen name="Chat" component={ChatScreen} />
+      <Tab.Screen name="Groups" component={CommunityScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
 export default function MainNavigator() {
+  useWebSocketConnection();
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen
+        name="OnePass"
+        component={OnePassScreen}
+        options={{
+          animation: 'slide_from_bottom',
+          gestureEnabled: true,
+          gestureDirection: 'vertical',
+        }}
+      />
+      <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+      <Stack.Screen name="Community" component={CommunityScreen} />
+      <Stack.Screen name="CreateGroupChat" component={CreateGroupChatScreen} />
+      <Stack.Screen name="ChatRoom" component={ChatRoomScreen} />
       <Stack.Screen name="AdminCreateEvent" component={AdminCreateEventScreen} />
       <Stack.Screen name="AdminUploadPoster" component={AdminUploadPosterScreen} />
+      <Stack.Screen name="AccessControl" component={AccessControlScreen} />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }
@@ -83,27 +92,5 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
     fontSize: 24,
     color: '#8E8E93',
-  },
-  tabBar: {
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 0,
-    height: 80,
-    paddingTop: 8,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  tabBarLabel: {
-    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
-    fontSize: 10,
-    marginTop: 4,
   },
 });

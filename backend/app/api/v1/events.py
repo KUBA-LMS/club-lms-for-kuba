@@ -12,6 +12,7 @@ from app.models.user import User
 from app.models.club import Club
 from app.models.event import Event
 from app.models.registration import Registration
+from app.models.bookmark import Bookmark
 from app.schemas.event import (
     EventCreate,
     EventUpdate,
@@ -37,7 +38,9 @@ def calculate_user_status(
 ) -> tuple[UserRegistrationStatus, Optional[UUID]]:
     """Calculate user's registration status for an event."""
     if user_registration:
-        if user_registration.status == "confirmed" or user_registration.status == "checked_in":
+        if user_registration.status == "checked_in":
+            return UserRegistrationStatus.visited, user_registration.id
+        elif user_registration.status == "confirmed":
             return UserRegistrationStatus.registered, user_registration.id
         elif user_registration.status == "pending":
             return UserRegistrationStatus.requested, user_registration.id
@@ -67,6 +70,8 @@ def build_event_response(event: Event) -> EventResponse:
         registration_end=event.registration_end,
         event_date=event.event_date,
         event_location=event.event_location,
+        latitude=event.latitude,
+        longitude=event.longitude,
         max_slots=event.max_slots,
         current_slots=event.current_slots,
         provided_by=UserBriefResponse(
@@ -148,6 +153,10 @@ async def list_events(
 
     # Get user's registrations for these events
     event_ids = [e.id for e in events]
+    user_registrations = {}
+    participants_map: dict[UUID, list[UserBriefResponse]] = {}
+    bookmarked_ids: set[UUID] = set()
+
     if event_ids:
         reg_result = await db.execute(
             select(Registration).where(
@@ -159,8 +168,41 @@ async def list_events(
             )
         )
         user_registrations = {r.event_id: r for r in reg_result.scalars().all()}
-    else:
-        user_registrations = {}
+
+        # Fetch participants preview (top 5 confirmed/checked_in per event)
+        part_result = await db.execute(
+            select(Registration)
+            .options(selectinload(Registration.user))
+            .where(
+                and_(
+                    Registration.event_id.in_(event_ids),
+                    Registration.status.in_(["confirmed", "checked_in"]),
+                )
+            )
+            .order_by(Registration.created_at.asc())
+        )
+        for reg in part_result.scalars().all():
+            if reg.event_id not in participants_map:
+                participants_map[reg.event_id] = []
+            if len(participants_map[reg.event_id]) < 5:
+                participants_map[reg.event_id].append(
+                    UserBriefResponse(
+                        id=reg.user.id,
+                        username=reg.user.username,
+                        profile_image=reg.user.profile_image,
+                    )
+                )
+
+        # Fetch bookmarks for current user
+        bk_result = await db.execute(
+            select(Bookmark.event_id).where(
+                and_(
+                    Bookmark.user_id == current_user.id,
+                    Bookmark.event_id.in_(event_ids),
+                )
+            )
+        )
+        bookmarked_ids = {row[0] for row in bk_result.fetchall()}
 
     # Build response with status
     events_with_status = []
@@ -174,6 +216,8 @@ async def list_events(
                 **event_response.model_dump(),
                 user_status=status,
                 user_registration_id=reg_id,
+                participants_preview=participants_map.get(event.id, []),
+                is_bookmarked=event.id in bookmarked_ids,
             )
         )
 
@@ -221,6 +265,39 @@ async def get_event(
     )
     user_reg = reg_result.scalar_one_or_none()
 
+    # Participants preview (top 5)
+    part_result = await db.execute(
+        select(Registration)
+        .options(selectinload(Registration.user))
+        .where(
+            and_(
+                Registration.event_id == event_id,
+                Registration.status.in_(["confirmed", "checked_in"]),
+            )
+        )
+        .order_by(Registration.created_at.asc())
+        .limit(5)
+    )
+    participants_preview = [
+        UserBriefResponse(
+            id=r.user.id,
+            username=r.user.username,
+            profile_image=r.user.profile_image,
+        )
+        for r in part_result.scalars().all()
+    ]
+
+    # Bookmark status
+    bk_result = await db.execute(
+        select(Bookmark).where(
+            and_(
+                Bookmark.user_id == current_user.id,
+                Bookmark.event_id == event_id,
+            )
+        )
+    )
+    is_bookmarked = bk_result.scalar_one_or_none() is not None
+
     now = datetime.utcnow()
     status_val, reg_id = calculate_user_status(event, user_reg, now)
 
@@ -229,6 +306,8 @@ async def get_event(
         **event_response.model_dump(),
         user_status=status_val,
         user_registration_id=reg_id,
+        participants_preview=participants_preview,
+        is_bookmarked=is_bookmarked,
     )
 
 

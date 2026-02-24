@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -10,22 +10,27 @@ import {
   Platform,
   Alert,
   Image,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
-import { NaverMapView } from '@mj-studio/react-native-naver-map';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MainStackParamList, EventFormData } from '../../navigation/types';
-import { screenPadding } from '../../constants';
-import DatePickerBottomSheet from '../../components/admin/DatePickerBottomSheet';
-import TypeSelectorBottomSheet from '../../components/admin/TypeSelectorBottomSheet';
-import RegistrationPeriodBottomSheet from '../../components/admin/RegistrationPeriodBottomSheet';
-import ProviderSelectorBottomSheet from '../../components/admin/ProviderSelectorBottomSheet';
-import { SearchIcon, ArrowUpCircleIcon } from '../../components/icons';
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import { NaverMapView, NaverMapMarkerOverlay, NaverMapViewRef } from "../../components/Map";
+import MapPin from "../../components/Map/MapPin";
+import { LinearGradient } from "expo-linear-gradient";
+import { MainStackParamList, EventFormData } from "../../navigation/types";
+import { screenPadding } from "../../constants";
+import DatePickerBottomSheet from "../../components/admin/DatePickerBottomSheet";
+import TypeSelectorBottomSheet from "../../components/admin/TypeSelectorBottomSheet";
+import RegistrationPeriodBottomSheet from "../../components/admin/RegistrationPeriodBottomSheet";
+import ProviderSelectorBottomSheet from "../../components/admin/ProviderSelectorBottomSheet";
+import { SearchIcon, ArrowUpCircleIcon } from "../../components/icons";
+import AddressSearchBottomSheet from "../../components/admin/AddressSearchBottomSheet";
 
-type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'AdminCreateEvent'>;
+type NavigationProp = NativeStackNavigationProp<
+  MainStackParamList,
+  "AdminCreateEvent"
+>;
 
 // Form input component
 interface FormInputProps {
@@ -35,7 +40,7 @@ interface FormInputProps {
   onPress?: () => void;
   placeholder?: string;
   editable?: boolean;
-  keyboardType?: 'default' | 'numeric';
+  keyboardType?: "default" | "numeric";
   rightIcon?: React.ReactNode;
   multiline?: boolean;
 }
@@ -47,7 +52,7 @@ function FormInput({
   onPress,
   placeholder,
   editable = true,
-  keyboardType = 'default',
+  keyboardType = "default",
   rightIcon,
   multiline = false,
 }: FormInputProps) {
@@ -55,7 +60,11 @@ function FormInput({
 
   if (onPress) {
     return (
-      <TouchableOpacity style={styles.inputContainer} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.inputContainer}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
         <View style={styles.inputRow}>
           <Text style={[styles.inputText, !value && styles.placeholderText]}>
             {value || placeholder || label}
@@ -83,7 +92,7 @@ function FormInput({
           editable={editable}
           keyboardType={keyboardType}
           multiline={multiline}
-          textAlignVertical={multiline ? 'top' : 'center'}
+          textAlignVertical={multiline ? "top" : "center"}
         />
         {rightIcon}
       </View>
@@ -101,7 +110,10 @@ export default function AdminCreateEventScreen() {
     cost_type: undefined,
   });
 
+  const mapRef = useRef<NaverMapViewRef>(null);
+
   // Bottom sheet visibility
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showEventTypePicker, setShowEventTypePicker] = useState(false);
   const [showCostTypePicker, setShowCostTypePicker] = useState(false);
@@ -112,15 +124,19 @@ export default function AdminCreateEventScreen() {
   const [mainImageUri, setMainImageUri] = useState<string | null>(null);
 
   const handlePickMainImage = useCallback(async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      Alert.alert(
+        "Permission Required",
+        "Please allow access to your photo library.",
+      );
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -132,69 +148,77 @@ export default function AdminCreateEventScreen() {
   }, []);
 
   const updateFormData = useCallback((key: keyof EventFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const formatDate = (date?: Date) => {
-    if (!date) return '';
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    if (!date) return "";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const formatRegistrationPeriod = () => {
-    if (!formData.registration_start || !formData.registration_end) return '';
+    if (!formData.registration_start || !formData.registration_end) return "";
     const start = formData.registration_start;
     const end = formData.registration_end;
     return `${formatDate(start)} ~ ${formatDate(end)}`;
   };
 
   const getEventTypeLabel = () => {
-    if (!formData.event_type) return '';
-    return formData.event_type === 'official' ? 'Official' : 'Private';
+    if (!formData.event_type) return "";
+    return formData.event_type === "official" ? "Official" : "Private";
   };
 
   const getCostTypeLabel = () => {
-    if (!formData.cost_type) return '';
+    if (!formData.cost_type) return "";
     switch (formData.cost_type) {
-      case 'free': return 'Free';
-      case 'prepaid': return 'Prepaid';
-      case 'one_n': return '1/N';
-      default: return '';
+      case "free":
+        return "Free";
+      case "prepaid":
+        return "Prepaid";
+      case "one_n":
+        return "1/N";
+      default:
+        return "";
     }
   };
 
   const handleNext = useCallback(async () => {
     // Validate required fields
     if (!formData.title) {
-      Alert.alert('Error', 'Please enter event name');
+      Alert.alert("Error", "Please enter event name");
       return;
     }
     if (!formData.event_date) {
-      Alert.alert('Error', 'Please select event date');
+      Alert.alert("Error", "Please select event date");
       return;
     }
     if (!formData.event_type) {
-      Alert.alert('Error', 'Please select event type');
+      Alert.alert("Error", "Please select event type");
       return;
     }
     if (!formData.cost_type) {
-      Alert.alert('Error', 'Please select cost type');
+      Alert.alert("Error", "Please select cost type");
       return;
     }
     if (!formData.registration_start || !formData.registration_end) {
-      Alert.alert('Error', 'Please set registration period');
+      Alert.alert("Error", "Please set registration period");
       return;
     }
     if (!formData.max_slots) {
-      Alert.alert('Error', 'Please enter number of spots');
+      Alert.alert("Error", "Please enter number of spots");
       return;
     }
     if (!formData.club_id) {
-      Alert.alert('Error', 'Please select provider');
+      Alert.alert("Error", "Please select provider");
       return;
     }
 
     // Navigate to poster upload
-    navigation.navigate('AdminUploadPoster', { eventData: formData });
+    navigation.navigate("AdminUploadPoster", { eventData: formData });
   }, [formData, navigation]);
 
   return (
@@ -202,44 +226,66 @@ export default function AdminCreateEventScreen() {
       {/* Map Background */}
       <View style={styles.mapContainer}>
         <NaverMapView
+          ref={mapRef}
           style={styles.map}
           initialCamera={{
-            latitude: 37.5665,
-            longitude: 126.9780,
-            zoom: 14,
+            latitude: formData.latitude || 37.5866076,
+            longitude: formData.longitude || 127.0291003,
+            zoom: 15,
           }}
           isShowLocationButton={false}
           isShowZoomControls={false}
           isShowCompass={false}
           isShowScaleBar={false}
-        />
+        >
+          {formData.latitude != null && formData.longitude != null && (
+            <NaverMapMarkerOverlay
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              anchor={{ x: 0.5, y: 1 }}
+            >
+              <MapPin status="open" />
+            </NaverMapMarkerOverlay>
+          )}
+        </NaverMapView>
       </View>
 
       {/* Gradient Overlay */}
       <LinearGradient
-        colors={['transparent', 'rgba(255,255,255,0.9)', 'rgba(255,255,255,1)']}
+        colors={["transparent", "rgba(255,255,255,0.9)", "rgba(255,255,255,1)"]}
         locations={[0, 0.3, 0.5]}
         style={styles.gradientOverlay}
       />
 
       {/* Header */}
       <View style={[styles.header, { top: insets.top + 10 }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>{'<'}</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>{"<"}</Text>
         </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView
         style={styles.contentContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         {/* Poster Upload Card */}
-        <View style={[styles.posterCardWrapper, { marginTop: insets.top + 60 }]}>
+        <View
+          style={[styles.posterCardWrapper, { marginTop: insets.top + 60 }]}
+        >
           {/* Main Image Selector - Square thumbnail upload */}
-          <TouchableOpacity style={styles.mainImageBox} onPress={handlePickMainImage}>
+          <TouchableOpacity
+            style={styles.mainImageBox}
+            onPress={handlePickMainImage}
+          >
             {mainImageUri ? (
               <>
-                <Image source={{ uri: mainImageUri }} style={styles.mainImagePreview} />
+                <Image
+                  source={{ uri: mainImageUri }}
+                  style={styles.mainImagePreview}
+                />
                 <View style={styles.mainBadgeOverlay}>
                   <Text style={styles.mainBadgeText}>main</Text>
                 </View>
@@ -258,7 +304,11 @@ export default function AdminCreateEventScreen() {
           <View style={styles.posterCard}>
             <TouchableOpacity
               style={styles.posterCardInner}
-              onPress={() => navigation.navigate('AdminUploadPoster', { eventData: formData })}
+              onPress={() =>
+                navigation.navigate("AdminUploadPoster", {
+                  eventData: formData,
+                })
+              }
             >
               <ArrowUpCircleIcon size={75} color="#000000" />
               <Text style={styles.posterCardText}>Upload Poster(Ticket)</Text>
@@ -269,15 +319,18 @@ export default function AdminCreateEventScreen() {
         {/* Form */}
         <ScrollView
           style={styles.formContainer}
-          contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 80 }]}
+          contentContainerStyle={[
+            styles.formContent,
+            { paddingBottom: insets.bottom + 80 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Event Name */}
           <FormInput
             label="Enter Event Name"
-            value={formData.title || ''}
-            onChangeText={(text) => updateFormData('title', text)}
+            value={formData.title || ""}
+            onChangeText={(text) => updateFormData("title", text)}
           />
 
           {/* Event Date */}
@@ -290,8 +343,8 @@ export default function AdminCreateEventScreen() {
           {/* Event Location */}
           <FormInput
             label="Enter Event Location"
-            value={formData.event_location || ''}
-            onChangeText={(text) => updateFormData('event_location', text)}
+            value={formData.event_location || ""}
+            onPress={() => setShowAddressSearch(true)}
             rightIcon={<SearchIcon size={14} color="#1E1E1E" />}
           />
 
@@ -310,11 +363,14 @@ export default function AdminCreateEventScreen() {
           />
 
           {/* Price input (shown when prepaid or 1/N is selected) */}
-          {(formData.cost_type === 'prepaid' || formData.cost_type === 'one_n') && (
+          {(formData.cost_type === "prepaid" ||
+            formData.cost_type === "one_n") && (
             <FormInput
               label="Enter Price"
-              value={formData.cost_amount?.toString() || ''}
-              onChangeText={(text) => updateFormData('cost_amount', parseInt(text) || undefined)}
+              value={formData.cost_amount?.toString() || ""}
+              onChangeText={(text) =>
+                updateFormData("cost_amount", parseInt(text) || undefined)
+              }
               keyboardType="numeric"
               rightIcon={<Text style={styles.currencyText}>KRW</Text>}
             />
@@ -330,8 +386,10 @@ export default function AdminCreateEventScreen() {
           {/* Number of Spots */}
           <FormInput
             label="Enter number of spots"
-            value={formData.max_slots?.toString() || ''}
-            onChangeText={(text) => updateFormData('max_slots', parseInt(text) || undefined)}
+            value={formData.max_slots?.toString() || ""}
+            onChangeText={(text) =>
+              updateFormData("max_slots", parseInt(text) || undefined)
+            }
             keyboardType="numeric"
             rightIcon={<Text style={styles.capacityIcon}>A</Text>}
           />
@@ -352,10 +410,7 @@ export default function AdminCreateEventScreen() {
           />
 
           {/* Next Button */}
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={handleNext}
-          >
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -366,7 +421,7 @@ export default function AdminCreateEventScreen() {
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
         onSelect={(date) => {
-          updateFormData('event_date', date);
+          updateFormData("event_date", date);
           setShowDatePicker(false);
         }}
         selectedDate={formData.event_date}
@@ -376,7 +431,7 @@ export default function AdminCreateEventScreen() {
         visible={showEventTypePicker}
         onClose={() => setShowEventTypePicker(false)}
         onSelect={(type) => {
-          updateFormData('event_type', type);
+          updateFormData("event_type", type);
           setShowEventTypePicker(false);
         }}
         type="event"
@@ -387,7 +442,7 @@ export default function AdminCreateEventScreen() {
         visible={showCostTypePicker}
         onClose={() => setShowCostTypePicker(false)}
         onSelect={(type) => {
-          updateFormData('cost_type', type);
+          updateFormData("cost_type", type);
           setShowCostTypePicker(false);
         }}
         type="cost"
@@ -398,8 +453,8 @@ export default function AdminCreateEventScreen() {
         visible={showRegistrationPeriod}
         onClose={() => setShowRegistrationPeriod(false)}
         onSelect={(start, end) => {
-          updateFormData('registration_start', start);
-          updateFormData('registration_end', end);
+          updateFormData("registration_start", start);
+          updateFormData("registration_end", end);
           setShowRegistrationPeriod(false);
         }}
         startDate={formData.registration_start}
@@ -410,10 +465,31 @@ export default function AdminCreateEventScreen() {
         visible={showProviderSelector}
         onClose={() => setShowProviderSelector(false)}
         onSelect={(clubId, clubName) => {
-          updateFormData('club_id', clubId);
+          updateFormData("club_id", clubId);
           setShowProviderSelector(false);
         }}
         selectedClubId={formData.club_id}
+      />
+
+      <AddressSearchBottomSheet
+        visible={showAddressSearch}
+        onClose={() => setShowAddressSearch(false)}
+        onSelect={({ address, latitude, longitude, detailAddress }) => {
+          const fullAddress = detailAddress ? `${address}, ${detailAddress}` : address;
+          setFormData((prev) => ({
+            ...prev,
+            event_location: fullAddress,
+            latitude,
+            longitude,
+            detail_address: detailAddress,
+          }));
+          setShowAddressSearch(false);
+          mapRef.current?.animateCameraTo({
+            latitude,
+            longitude,
+            duration: 500,
+          });
+        }}
       />
     </View>
   );
@@ -422,10 +498,10 @@ export default function AdminCreateEventScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   mapContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -435,36 +511,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gradientOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
   header: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     zIndex: 10,
   },
   backButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   backButtonText: {
     fontSize: 28,
-    color: '#000000',
-    fontWeight: '300',
+    color: "#000000",
+    fontWeight: "300",
   },
   headerBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     paddingLeft: 4,
     paddingRight: 8,
@@ -473,55 +549,55 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   mainBadge: {
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   mainBadgeText: {
-    fontFamily: 'OpenSans-SemiBold',
+    fontFamily: "OpenSans-SemiBold",
     fontSize: 12,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   plusButtonText: {
     fontSize: 20,
-    color: '#000000',
-    fontWeight: '400',
+    color: "#000000",
+    fontWeight: "400",
   },
   contentContainer: {
     flex: 1,
   },
   posterCardWrapper: {
-    alignSelf: 'center',
-    alignItems: 'flex-start',
+    alignSelf: "center",
+    alignItems: "flex-start",
   },
   mainImageBox: {
     width: 80,
     height: 80,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: "rgba(255,255,255,0.6)",
     borderRadius: 10,
     borderWidth: 0.5,
-    borderColor: '#C5C5C5',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#C5C5C5",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
   },
   mainImagePlus: {
     fontSize: 32,
-    color: '#000000',
-    fontWeight: '300',
+    color: "#000000",
+    fontWeight: "300",
     marginTop: 4,
   },
   mainImagePreview: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 10,
   },
   mainBadgeOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 6,
     left: 6,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -529,20 +605,20 @@ const styles = StyleSheet.create({
   posterCard: {
     width: 250,
     height: 324,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: "rgba(255,255,255,0.6)",
     borderRadius: 20,
     borderWidth: 0.5,
-    borderColor: '#C5C5C5',
+    borderColor: "#C5C5C5",
   },
   posterCardInner: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   posterCardText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: "OpenSans-Regular",
     fontSize: 20,
-    color: '#000000',
+    color: "#000000",
     marginTop: 16,
   },
   formContainer: {
@@ -554,37 +630,37 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   inputContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#C5C5C5',
+    borderColor: "#C5C5C5",
     paddingHorizontal: 14,
     height: 42,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   multilineContainer: {
     minHeight: 100,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
     paddingVertical: 12,
   },
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   inputText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: "OpenSans-Regular",
     fontSize: 15,
-    color: '#1E1E1E',
+    color: "#1E1E1E",
     flex: 1,
   },
   placeholderText: {
-    color: '#1E1E1E',
+    color: "#1E1E1E",
   },
   textInput: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: "OpenSans-Regular",
     fontSize: 15,
-    color: '#1E1E1E',
+    color: "#1E1E1E",
     flex: 1,
     padding: 0,
   },
@@ -593,24 +669,24 @@ const styles = StyleSheet.create({
   },
   capacityIcon: {
     fontSize: 16,
-    color: '#3B82F6',
+    color: "#3B82F6",
   },
   currencyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: "OpenSans-Regular",
     fontSize: 15,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   nextButton: {
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     height: 48,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 16,
   },
   nextButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: "OpenSans-Bold",
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
 });

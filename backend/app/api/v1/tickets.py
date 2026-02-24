@@ -18,8 +18,13 @@ from app.schemas.ticket import (
     TicketListResponse,
     TicketValidateRequest,
     TicketValidateResponse,
+    OnePassTicketResponse,
+    OnePassListResponse,
+    SelfCheckinRequest,
+    CheckinResponse,
 )
 from app.schemas.registration import RegistrationBriefResponse, RegistrationStatusEnum
+from app.schemas.event import EventBriefResponse
 
 router = APIRouter()
 
@@ -71,12 +76,134 @@ async def list_my_tickets(
                     event_id=t.registration.event_id,
                     created_at=t.registration.created_at,
                 ),
+                event_title=t.registration.event.title if t.registration.event else None,
+                event_date=t.registration.event.event_date if t.registration.event else None,
                 created_at=t.created_at,
                 updated_at=t.updated_at,
             )
             for t in tickets
         ],
         total=total,
+    )
+
+
+@router.get("/onepass", response_model=OnePassListResponse)
+async def get_onepass_tickets(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get all active tickets for OnePass display with event details."""
+    base_query = (
+        select(Ticket)
+        .join(Registration)
+        .join(Event, Registration.event_id == Event.id)
+        .options(
+            selectinload(Ticket.registration).selectinload(Registration.event)
+        )
+        .where(
+            Registration.user_id == current_user.id,
+            Registration.status.in_(["confirmed", "checked_in"]),
+        )
+        .order_by(Event.event_date.asc())
+    )
+
+    result = await db.execute(base_query)
+    tickets = result.scalars().all()
+
+    return OnePassListResponse(
+        data=[
+            OnePassTicketResponse(
+                id=t.id,
+                barcode=t.barcode,
+                is_used=t.is_used,
+                used_at=t.used_at,
+                registration_id=t.registration.id,
+                registration_status=t.registration.status,
+                event=EventBriefResponse(
+                    id=t.registration.event.id,
+                    title=t.registration.event.title,
+                    event_date=t.registration.event.event_date,
+                    event_type=t.registration.event.event_type,
+                    cost_type=t.registration.event.cost_type,
+                    images=t.registration.event.images or [],
+                    current_slots=t.registration.event.current_slots,
+                    max_slots=t.registration.event.max_slots,
+                ),
+                created_at=t.created_at,
+                updated_at=t.updated_at,
+            )
+            for t in tickets
+        ],
+        total=len(tickets),
+    )
+
+
+@router.post("/checkin", response_model=CheckinResponse)
+async def self_checkin(
+    checkin_data: SelfCheckinRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Self check-in by scanning barcode."""
+    result = await db.execute(
+        select(Ticket)
+        .options(
+            selectinload(Ticket.registration).selectinload(Registration.event),
+            selectinload(Ticket.registration).selectinload(Registration.user),
+        )
+        .where(Ticket.barcode == checkin_data.barcode)
+    )
+    ticket = result.scalar_one_or_none()
+
+    if not ticket:
+        return CheckinResponse(success=False, message="Ticket not found")
+
+    # Admin can check in anyone's ticket; regular users can only check in their own
+    if ticket.registration.user_id != current_user.id and current_user.role != "admin":
+        return CheckinResponse(success=False, message="This ticket does not belong to you")
+
+    if ticket.is_used:
+        return CheckinResponse(
+            success=False,
+            message=f"Ticket already used at {ticket.used_at}",
+        )
+
+    event = ticket.registration.event
+    now = datetime.utcnow()
+    if event.event_date.date() > now.date():
+        return CheckinResponse(success=False, message="Event has not started yet")
+
+    ticket.is_used = True
+    ticket.used_at = now
+    ticket.registration.status = RegistrationStatusEnum.checked_in
+    ticket.registration.checked_in_at = now
+
+    await db.commit()
+    await db.refresh(ticket)
+
+    return CheckinResponse(
+        success=True,
+        message="Check-in Complete",
+        ticket=OnePassTicketResponse(
+            id=ticket.id,
+            barcode=ticket.barcode,
+            is_used=ticket.is_used,
+            used_at=ticket.used_at,
+            registration_id=ticket.registration.id,
+            registration_status=ticket.registration.status,
+            event=EventBriefResponse(
+                id=event.id,
+                title=event.title,
+                event_date=event.event_date,
+                event_type=event.event_type,
+                cost_type=event.cost_type,
+                images=event.images or [],
+                current_slots=event.current_slots,
+                max_slots=event.max_slots,
+            ),
+            created_at=ticket.created_at,
+            updated_at=ticket.updated_at,
+        ),
     )
 
 

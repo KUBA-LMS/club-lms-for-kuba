@@ -22,6 +22,12 @@ from app.schemas.registration import (
 )
 from app.schemas.user import UserBriefResponse
 from app.schemas.event import EventBriefResponse
+from app.services.notifications import (
+    notify_event_updated,
+    notify_registration_changed,
+    notify_participants_changed,
+    notify_participants_preview_changed,
+)
 
 router = APIRouter()
 
@@ -129,6 +135,7 @@ async def create_registration(
 
     # Create ticket if confirmed
     if initial_status == RegistrationStatusEnum.confirmed:
+        await db.flush()  # ensure registration.id is assigned
         barcode = secrets.token_hex(16).upper()
         ticket = Ticket(
             registration_id=new_registration.id,
@@ -137,6 +144,14 @@ async def create_registration(
         db.add(ticket)
 
     await db.commit()
+
+    # Real-time notifications
+    await notify_event_updated(reg_data.event_id, event.current_slots, event.max_slots)
+    await notify_registration_changed(
+        current_user.id, reg_data.event_id, new_registration.id, initial_status,
+    )
+    await notify_participants_changed(reg_data.event_id)
+    await notify_participants_preview_changed(reg_data.event_id)
 
     # Reload with relationships
     result = await db.execute(
@@ -284,6 +299,14 @@ async def cancel_registration(
 
     await db.commit()
     await db.refresh(registration)
+
+    # Real-time notifications
+    await notify_event_updated(registration.event_id, event.current_slots, event.max_slots)
+    await notify_registration_changed(
+        current_user.id, registration.event_id, registration.id, "cancelled",
+    )
+    await notify_participants_changed(registration.event_id)
+    await notify_participants_preview_changed(registration.event_id)
 
     return build_registration_response(registration)
 

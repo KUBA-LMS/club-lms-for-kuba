@@ -3,6 +3,7 @@
     "name": "Club LMS",
     "slug": "club-lms",
     "version": "1.0.0",
+    "scheme": "clublms",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +19,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kuba.clublms"
+      "bundleIdentifier": "com.kuba.clublms",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is used to scan barcodes for event check-in"
+      }
     },
     "android": {
       "package": "com.kuba.clublms",
@@ -40,7 +44,13 @@
           "fonts": ["./src/assets/fonts/porter-sans-inline-block.ttf"]
         }
       ],
-      "./plugins/withNaverMap"
+      "./plugins/withNaverMap",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Camera is used to scan barcodes for event check-in"
+        }
+      ]
     ]
   }
 }

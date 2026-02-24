@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, clubs, events, registrations, tickets, chats
+from app.api.v1 import auth, users, clubs, events, registrations, tickets, chats, access_control, geocoding, ws, payments, deposits, bookmarks
 
 api_router = APIRouter()
 
@@ -11,3 +11,9 @@ api_router.include_router(events.router, prefix="/events", tags=["Events"])
 api_router.include_router(registrations.router, prefix="/registrations", tags=["Registrations"])
 api_router.include_router(tickets.router, prefix="/tickets", tags=["Tickets"])
 api_router.include_router(chats.router, prefix="/chats", tags=["Chats"])
+api_router.include_router(access_control.router, prefix="/access-control", tags=["Access Control"])
+api_router.include_router(geocoding.router, prefix="/geocoding", tags=["Geocoding"])
+api_router.include_router(payments.router, prefix="/payments", tags=["Payments"])
+api_router.include_router(deposits.router, prefix="/deposits", tags=["Deposits"])
+api_router.include_router(bookmarks.router, prefix="/bookmarks", tags=["Bookmarks"])
+api_router.include_router(ws.router, prefix="/ws", tags=["WebSocket"])

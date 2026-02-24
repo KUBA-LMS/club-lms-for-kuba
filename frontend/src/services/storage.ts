@@ -8,6 +8,17 @@ import { User } from '../types/auth';
  * In production, consider using expo-secure-store for sensitive data.
  */
 
+const SEARCH_HISTORY_KEY = 'search_history';
+const MAX_SEARCH_HISTORY = 20;
+
+export interface SearchHistoryItem {
+  name: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+}
+
 export const storage = {
   // Access Token
   async getAccessToken(): Promise<string | null> {
@@ -85,6 +96,51 @@ export const storage = {
       await AsyncStorage.removeItem(config.USER_KEY);
     } catch (error) {
       console.error('Error removing user:', error);
+    }
+  },
+
+  // Search History
+  async getSearchHistory(): Promise<SearchHistoryItem[]> {
+    try {
+      const json = await AsyncStorage.getItem(SEARCH_HISTORY_KEY);
+      return json ? JSON.parse(json) : [];
+    } catch (error) {
+      console.error('Error getting search history:', error);
+      return [];
+    }
+  },
+
+  async addSearchHistory(item: Omit<SearchHistoryItem, 'timestamp'>): Promise<SearchHistoryItem[]> {
+    try {
+      const history = await this.getSearchHistory();
+      const filtered = history.filter((h) => h.name !== item.name);
+      const newItem: SearchHistoryItem = { ...item, timestamp: Date.now() };
+      const updated = [newItem, ...filtered].slice(0, MAX_SEARCH_HISTORY);
+      await AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.error('Error adding search history:', error);
+      return [];
+    }
+  },
+
+  async removeSearchHistory(timestamp: number): Promise<SearchHistoryItem[]> {
+    try {
+      const history = await this.getSearchHistory();
+      const updated = history.filter((h) => h.timestamp !== timestamp);
+      await AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.error('Error removing search history:', error);
+      return [];
+    }
+  },
+
+  async clearSearchHistory(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(SEARCH_HISTORY_KEY);
+    } catch (error) {
+      console.error('Error clearing search history:', error);
     }
   },
 

@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: kuba-lms-postgres
+    container_name: club-lms-postgres
     environment:
       POSTGRES_USER: club_lms_user
       POSTGRES_PASSWORD: club_lms_password
@@ -18,7 +18,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: kuba-lms-redis
+    container_name: club-lms-redis
     ports:
       - "6379:6379"
     volumes:
