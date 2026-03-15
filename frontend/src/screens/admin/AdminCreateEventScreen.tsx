@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   mainBadgeText: {
-    fontFamily: "OpenSans-SemiBold",
+    fontFamily: "Inter-SemiBold",
     fontSize: 12,
     color: "#FFFFFF",
   },
@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   posterCardText: {
-    fontFamily: "OpenSans-Regular",
+    fontFamily: "Inter-Regular",
     fontSize: 20,
     color: "#000000",
     marginTop: 16,
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   inputText: {
-    fontFamily: "OpenSans-Regular",
+    fontFamily: "Inter-Regular",
     fontSize: 15,
     color: "#1E1E1E",
     flex: 1,
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
     color: "#1E1E1E",
   },
   textInput: {
-    fontFamily: "OpenSans-Regular",
+    fontFamily: "Inter-Regular",
     fontSize: 15,
     color: "#1E1E1E",
     flex: 1,
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     color: "#3B82F6",
   },
   currencyText: {
-    fontFamily: "OpenSans-Regular",
+    fontFamily: "Inter-Regular",
     fontSize: 15,
     color: "#8E8E93",
   },
@@ -832,7 +832,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   nextButtonText: {
-    fontFamily: "OpenSans-Bold",
+    fontFamily: "Inter-SemiBold",
     fontSize: 16,
     color: "#FFFFFF",
   },
@@ -840,7 +840,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   clearIcon: {
-    fontFamily: "OpenSans-Bold",
+    fontFamily: "Inter-SemiBold",
     fontSize: 14,
     color: "#8E8E93",
     paddingHorizontal: 4,
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
     maxHeight: 180,
   },
   relatedDropdownEmpty: {
-    fontFamily: "OpenSans-Regular",
+    fontFamily: "Inter-Regular",
     fontSize: 13,
     color: "#8E8E93",
     textAlign: "center",
@@ -884,14 +884,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0F5FF",
   },
   relatedDropdownItemText: {
-    fontFamily: "OpenSans-Regular",
+    fontFamily: "Inter-Regular",
     fontSize: 14,
     color: "#1E1E1E",
     flex: 1,
     marginRight: 8,
   },
   relatedDropdownItemTextSelected: {
-    fontFamily: "OpenSans-Bold",
+    fontFamily: "Inter-SemiBold",
     color: "#3B82F6",
   },
 });

@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   headerTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     width: 60,
   },
   closeText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#007AFF',
   },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   permissionText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   permissionButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 3,
   },
   instructionText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#FFFFFF',
     marginTop: 24,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   rescanText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#FFFFFF',
   },

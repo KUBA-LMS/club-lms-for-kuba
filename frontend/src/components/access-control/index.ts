@@ -4,6 +4,7 @@ export { default as EventSelector } from './EventSelector';
 export { default as EventSearchDropdown } from './EventSearchDropdown';
 export { default as ModeSegmentedControl } from './ModeSegmentedControl';
 export { default as ParticipantsTable } from './ParticipantsTable';
+export type { ParticipantsTableHandle } from './ParticipantsTable';
 export { default as StatusFilterTabs } from './StatusFilterTabs';
 export { default as ScanResultBanner } from './ScanResultBanner';
 export { default as ParticipantDetailCard } from './ParticipantDetailCard';

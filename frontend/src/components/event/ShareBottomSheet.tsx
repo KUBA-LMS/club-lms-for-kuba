@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#000000',
   },
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E9',
   },
   actionIconText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 11,
     color: '#000000',
   },
   actionLabel: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#595959',
   },
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#000000',
     paddingHorizontal: 20,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
     textAlign: 'center',
@@ -247,12 +247,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chatAvatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
   chatName: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#000000',
     flex: 1,

@@ -1,103 +1,122 @@
-import { Platform, TextStyle } from 'react-native';
+import { TextStyle } from 'react-native';
 
-const fontFamily = Platform.select({
-  ios: 'System',
-  android: 'Roboto',
-});
+// Inter font family keys (loaded in App.tsx)
+export const font = {
+  regular: 'Inter-Regular',
+  medium: 'Inter-Medium',
+  semibold: 'Inter-SemiBold',
+  bold: 'Inter-Bold',
+} as const;
 
 export const typography = {
   // Headings
   h1: {
-    fontFamily,
+    fontFamily: font.bold,
     fontSize: 28,
-    fontWeight: '700',
     lineHeight: 34,
+    letterSpacing: -0.3,
   } as TextStyle,
 
   h2: {
-    fontFamily,
+    fontFamily: font.bold,
     fontSize: 24,
-    fontWeight: '700',
     lineHeight: 30,
+    letterSpacing: -0.2,
   } as TextStyle,
 
   h3: {
-    fontFamily,
+    fontFamily: font.bold,
     fontSize: 20,
-    fontWeight: '700',
     lineHeight: 26,
+    letterSpacing: -0.2,
   } as TextStyle,
 
   h4: {
-    fontFamily,
+    fontFamily: font.semibold,
     fontSize: 18,
-    fontWeight: '600',
     lineHeight: 24,
+    letterSpacing: -0.1,
   } as TextStyle,
 
   // Body
   bodyLarge: {
-    fontFamily,
+    fontFamily: font.regular,
     fontSize: 16,
-    fontWeight: '400',
-    lineHeight: 22,
+    lineHeight: 24,
   } as TextStyle,
 
   body: {
-    fontFamily,
+    fontFamily: font.regular,
     fontSize: 14,
-    fontWeight: '400',
     lineHeight: 20,
   } as TextStyle,
 
   bodySmall: {
-    fontFamily,
-    fontSize: 12,
-    fontWeight: '400',
-    lineHeight: 16,
+    fontFamily: font.regular,
+    fontSize: 13,
+    lineHeight: 18,
   } as TextStyle,
 
   // Labels
   label: {
-    fontFamily,
+    fontFamily: font.semibold,
     fontSize: 14,
-    fontWeight: '600',
     lineHeight: 18,
   } as TextStyle,
 
   labelSmall: {
-    fontFamily,
+    fontFamily: font.semibold,
     fontSize: 12,
-    fontWeight: '600',
     lineHeight: 16,
+    letterSpacing: 0.1,
   } as TextStyle,
 
-  // Caption
+  // Caption (minimum 11px for accessibility)
   caption: {
-    fontFamily,
-    fontSize: 10,
-    fontWeight: '400',
-    lineHeight: 14,
+    fontFamily: font.regular,
+    fontSize: 11,
+    lineHeight: 15,
+  } as TextStyle,
+
+  captionMedium: {
+    fontFamily: font.medium,
+    fontSize: 11,
+    lineHeight: 15,
   } as TextStyle,
 
   // Button
   button: {
-    fontFamily,
+    fontFamily: font.semibold,
     fontSize: 16,
-    fontWeight: '600',
     lineHeight: 20,
+    letterSpacing: -0.1,
   } as TextStyle,
 
   buttonSmall: {
-    fontFamily,
+    fontFamily: font.semibold,
     fontSize: 14,
-    fontWeight: '600',
     lineHeight: 18,
+  } as TextStyle,
+
+  // Navigation / Header
+  navTitle: {
+    fontFamily: font.semibold,
+    fontSize: 17,
+    lineHeight: 22,
+    letterSpacing: -0.2,
+  } as TextStyle,
+
+  // Section labels (uppercase small caps style)
+  sectionLabel: {
+    fontFamily: font.semibold,
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.5,
   } as TextStyle,
 };
 
 export const fontSize = {
-  xs: 10,
+  xs: 11,
   sm: 12,
   md: 14,
   lg: 16,

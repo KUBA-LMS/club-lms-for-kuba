@@ -10,7 +10,7 @@ import ChatRoomScreen from '../screens/main/ChatRoomScreen';
 import EditProfileScreen from '../screens/main/EditProfileScreen';
 import SettingsScreen from '../screens/main/SettingsScreen';
 import EventDetailScreen from '../screens/main/EventDetailScreen';
-import { AdminCreateEventScreen, AdminUploadPosterScreen, AccessControlScreen } from '../screens/admin';
+import { AdminCreateEventScreen, AdminUploadPosterScreen, AccessControlScreen, AdminHubScreen, AdminHubSubgroupDetailScreen, AdminHubMemberDetailScreen } from '../screens/admin';
 import { useWebSocketConnection } from '../hooks/useWebSocket';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
@@ -37,6 +37,9 @@ export default function MainNavigator() {
       <Stack.Screen name="AdminCreateEvent" component={AdminCreateEventScreen} />
       <Stack.Screen name="AdminUploadPoster" component={AdminUploadPosterScreen} />
       <Stack.Screen name="AccessControl" component={AccessControlScreen} />
+      <Stack.Screen name="AdminHub" component={AdminHubScreen} />
+      <Stack.Screen name="AdminHubSubgroupDetail" component={AdminHubSubgroupDetailScreen} />
+      <Stack.Screen name="AdminHubMemberDetail" component={AdminHubMemberDetailScreen} />
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}

@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -71,8 +72,8 @@ export default function ChatRoomScreen() {
       try {
         const msg = await chatApi.transferTicket(chatId, ticket.id, otherMembers[0].id);
         setMessages((prev) => [...prev, { ...msg, status: 'sent' as const }]);
-      } catch {
-        // Error handled silently
+      } catch (err) {
+        console.error('[CHAT] transferTicket failed:', err);
       }
     },
     [chat, chatId, userId, setMessages],
@@ -84,11 +85,26 @@ export default function ChatRoomScreen() {
       try {
         const msg = await chatApi.createPaymentRequest(chatId, amount, participantIds);
         setMessages((prev) => [...prev, { ...msg, status: 'sent' as const }]);
-      } catch {
-        // Error handled silently
+      } catch (err: unknown) {
+        const apiErr = err as { detail?: string; status_code?: number };
+        if (apiErr.status_code === 400 && apiErr.detail?.includes('bank account')) {
+          Alert.alert(
+            'Bank Account Required',
+            'You need to register a bank account before requesting a payment split. Would you like to set it up now?',
+            [
+              { text: 'Later', style: 'cancel' },
+              {
+                text: 'Go to Settings',
+                onPress: () => navigation.navigate('Settings'),
+              },
+            ],
+          );
+        } else {
+          Alert.alert('Error', apiErr.detail || 'Failed to create payment request');
+        }
       }
     },
-    [chatId, setMessages],
+    [chatId, setMessages, navigation],
   );
 
   const handleOpenPaymentDetail = useCallback((paymentRequestId: string) => {

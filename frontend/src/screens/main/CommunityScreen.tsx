@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowBackIcon, PlusIcon } from '../../components/icons';
 import SegmentedControl from '../../components/community/SegmentedControl';
-import ClubFilterRow, { ClubItem } from '../../components/community/ClubFilterRow';
+import ClubFilterRow from '../../components/community/ClubFilterRow';
 import ChatListItem from '../../components/community/ChatListItem';
 import FriendSearchTab from '../../components/community/FriendSearchTab';
 import FriendRequestsTab from '../../components/community/FriendRequestsTab';
@@ -22,35 +22,10 @@ import JoinGroupsTab from '../../components/community/JoinGroupsTab';
 import { colors, screenPadding } from '../../constants';
 import { MainStackParamList } from '../../navigation/types';
 import { useChatList } from '../../hooks/useChat';
+import { useMyClubs } from '../../hooks/useMyClubs';
 import { Chat } from '../../types/chat';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
-
-// --- Mock Clubs (clubs API not yet implemented) ---
-const MOCK_CLUBS: ClubItem[] = [
-  {
-    id: 'kuba',
-    name: '45th_KUBA',
-    imageUri: 'https://via.placeholder.com/50x50/FF6B35/FFFFFF?text=KU',
-    subgroups: [
-      {
-        id: 'kuba-group-8',
-        name: '45th_KUBA_Group_8',
-        imageUri: 'https://via.placeholder.com/30x30/FF6B35/FFFFFF?text=8',
-      },
-    ],
-  },
-  {
-    id: 'kuisa',
-    name: 'KUISA',
-    imageUri: 'https://via.placeholder.com/50x50/333333/FFFFFF?text=KI',
-  },
-  {
-    id: 'leca',
-    name: 'LECA',
-    imageUri: 'https://via.placeholder.com/50x50/333333/FFFFFF?text=LE',
-  },
-];
 
 const SEGMENTS = ['Chats', 'Friends', 'Join Groups'];
 const FRIEND_SUB_TABS = ['Search', 'Requests', 'Manage'];
@@ -143,17 +118,17 @@ const subTabStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     color: '#FFFFFF',
   },
   label: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: colors.gray400,
   },
   labelActive: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     color: '#000000',
   },
   underline: {
@@ -175,38 +150,22 @@ export default function CommunityScreen() {
   const [segmentIndex, setSegmentIndex] = useState(0);
   const [friendSubTab, setFriendSubTab] = useState(0);
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
-  const [navigationStack, setNavigationStack] = useState<string[]>([]);
+  const [selectedSubgroupId, setSelectedSubgroupId] = useState<string | null>(null);
   const [requestCount, setRequestCount] = useState(0);
 
-  const { chats, isLoading, markChatAsRead } = useChatList();
+  const { clubs } = useMyClubs();
 
-  // Determine which clubs to show based on navigation depth
-  const currentClubs = useMemo(() => {
-    if (navigationStack.length === 0) {
-      return MOCK_CLUBS;
-    }
-    const parentId = navigationStack[navigationStack.length - 1];
-    const parent = MOCK_CLUBS.find((c) => c.id === parentId);
-    if (parent?.subgroups) {
-      return [parent, ...parent.subgroups];
-    }
-    return MOCK_CLUBS;
-  }, [navigationStack]);
+  // Filter club ID: subgroup takes priority over club
+  const filterClubId = selectedSubgroupId || selectedClubId;
+  const { chats, isLoading, markChatAsRead } = useChatList(filterClubId);
 
-  const handleClubSelect = useCallback((club: ClubItem) => {
-    if (club.id === selectedClubId) {
-      setSelectedClubId(null);
-      return;
-    }
-    setSelectedClubId(club.id);
-    if (club.subgroups && club.subgroups.length > 0) {
-      setNavigationStack((prev) => [...prev, club.id]);
-    }
-  }, [selectedClubId]);
+  const handleSelectClub = useCallback((clubId: string | null) => {
+    setSelectedClubId(clubId);
+    setSelectedSubgroupId(null);
+  }, []);
 
-  const handleClubBack = useCallback(() => {
-    setNavigationStack((prev) => prev.slice(0, -1));
-    setSelectedClubId(null);
+  const handleSelectSubgroup = useCallback((subgroupId: string | null) => {
+    setSelectedSubgroupId(subgroupId);
   }, []);
 
   const handleChatPress = useCallback((chatId: string) => {
@@ -257,11 +216,11 @@ export default function CommunityScreen() {
       return (
         <>
           <ClubFilterRow
-            clubs={currentClubs}
-            selectedId={selectedClubId}
-            onSelect={handleClubSelect}
-            onBack={handleClubBack}
-            showBack={navigationStack.length > 0}
+            clubs={clubs}
+            selectedClubId={selectedClubId}
+            selectedSubgroupId={selectedSubgroupId}
+            onSelectClub={handleSelectClub}
+            onSelectSubgroup={handleSelectSubgroup}
           />
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -392,12 +351,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeholderText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: colors.gray500,
   },
   placeholderSubtext: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: colors.gray400,
     marginTop: 8,

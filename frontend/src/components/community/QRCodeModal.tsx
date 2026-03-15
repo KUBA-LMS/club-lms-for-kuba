@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#000000',
     textAlign: 'center',
@@ -132,12 +132,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   qrPlaceholderText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 24,
     color: '#8E8E93',
   },
   subtitle: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
     marginBottom: 20,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 15,
     color: '#FFFFFF',
   },

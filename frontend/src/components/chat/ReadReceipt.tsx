@@ -13,7 +13,7 @@ export default function ReadReceipt({ count }: ReadReceiptProps) {
 
 const styles = StyleSheet.create({
   text: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 11,
     color: '#00C0E8',
     marginRight: 4,

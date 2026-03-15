@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#8E8E93',
   },
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   sheetTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#000000',
     marginBottom: 16,
@@ -430,13 +430,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   totalLabel: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
     marginBottom: 4,
   },
   totalAmount: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 32,
     color: '#000000',
     marginBottom: 8,
@@ -448,12 +448,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   perPersonLabel: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
   },
   perPersonAmount: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 15,
     color: '#000000',
   },
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#8E8E93',
   },
@@ -486,26 +486,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#000000',
     marginBottom: 8,
   },
   bankName: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#007AFF',
     marginBottom: 2,
   },
   accountNumber: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 18,
     color: '#000000',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   holderName: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#8E8E93',
   },
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tossButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   kakaoButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#191919',
   },
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   copyButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#000000',
   },
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   markSentText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statusBadgeText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FF9500',
   },
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -609,12 +609,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   participantName: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#000000',
   },
   participantAmount: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#8E8E93',
   },
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   statusPillText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
   },
   confirmButton: {
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   confirmButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#FFFFFF',
   },

@@ -102,6 +102,6 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontFamily: 'Gafata-Regular',
-    fontSize: 9,
+    fontSize: 11,
   },
 });

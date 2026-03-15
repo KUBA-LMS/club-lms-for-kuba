@@ -308,11 +308,11 @@ const styles = StyleSheet.create({
   },
   stepText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
-    fontSize: 10,
+    fontSize: 11,
     color: colors.black,
     textAlign: 'center',
     marginTop: spacing.xs,
@@ -327,11 +327,11 @@ const styles = StyleSheet.create({
   },
   startOverText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
-    fontSize: 8,
+    fontSize: 11,
     color: colors.black,
     textAlign: 'center',
   },
@@ -354,8 +354,8 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Bold',
-      android: 'OpenSans-Bold',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
     fontWeight: '700',
@@ -369,8 +369,8 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 12,
@@ -378,8 +378,8 @@ const styles = StyleSheet.create({
   },
   guideLink: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Bold',
-      android: 'OpenSans-Bold',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
     fontSize: 12,
@@ -404,8 +404,8 @@ const styles = StyleSheet.create({
   },
   agreementText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 15,
@@ -423,11 +423,11 @@ const styles = StyleSheet.create({
   },
   agreeAllText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
-    fontSize: 10,
+    fontSize: 11,
     color: colors.white,
   },
   completeButton: {
@@ -446,8 +446,8 @@ const styles = StyleSheet.create({
   },
   completeButtonText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 16,

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { authService } from '../services/auth';
 import { storage } from '../services/storage';
+import { setTokenRefreshCallback } from '../services/api';
 import {
   User,
   LoginRequest,
@@ -30,6 +31,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading: true,
     isAuthenticated: false,
   });
+
+  // Sync accessToken state when axios interceptor refreshes the token
+  useEffect(() => {
+    setTokenRefreshCallback((newToken: string) => {
+      setState((prev) => ({ ...prev, accessToken: newToken }));
+    });
+    return () => setTokenRefreshCallback(null);
+  }, []);
 
   // Initialize auth state from storage
   useEffect(() => {

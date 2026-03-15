@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { GeocodingResult } from '../services/geocoding';
 
-export function useSearchDebounce(
+export function useSearchDebounce<T>(
   query: string,
-  searchFn: (q: string) => Promise<GeocodingResult[]>,
+  searchFn: (q: string) => Promise<T[]>,
   delay: number = 300,
-): { results: GeocodingResult[]; isLoading: boolean } {
-  const [results, setResults] = useState<GeocodingResult[]>([]);
+): { results: T[]; isLoading: boolean } {
+  const [results, setResults] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const requestIdRef = useRef(0);
 

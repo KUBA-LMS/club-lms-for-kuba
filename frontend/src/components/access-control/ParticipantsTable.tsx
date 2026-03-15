@@ -1,6 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { Participant, TicketStatus } from '../../types/accessControl';
+
+export interface ParticipantsTableHandle {
+  scrollToUser: (userId: string) => void;
+}
 
 interface ParticipantsTableProps {
   participants: Participant[];
@@ -10,6 +14,8 @@ interface ParticipantsTableProps {
   highlightedId?: string;
   highlightColor?: string;
 }
+
+const ROW_HEIGHT = 37;
 
 const STATUS_COLORS: Record<TicketStatus, string> = {
   registered: '#000000',
@@ -33,75 +39,106 @@ const ROW_BORDER_COLORS: Record<string, string> = {
   requested: '#FF8D28',
 };
 
-export default function ParticipantsTable({
-  participants,
-  selectedParticipantId,
-  onSelectParticipant,
-  mode,
-  highlightedId,
-  highlightColor,
-}: ParticipantsTableProps) {
-  const hasData = participants.length > 0;
+const ParticipantsTable = forwardRef<ParticipantsTableHandle, ParticipantsTableProps>(
+  function ParticipantsTable(
+    { participants, selectedParticipantId, onSelectParticipant, mode, highlightedId, highlightColor },
+    ref,
+  ) {
+    const listRef = useRef<FlatList>(null);
+    const hasData = participants.length > 0;
 
-  return (
-    <View style={styles.container}>
-      <View style={[styles.headerRow, !hasData && styles.headerRowEmpty]}>
-        <Text style={[styles.headerCell, styles.noCol]}>No.</Text>
-        <Text style={[styles.headerCell, styles.nameCol]}>Legal Name</Text>
-        <Text style={[styles.headerCell, styles.groupCol]}>Related Groups</Text>
-        <Text style={[styles.headerCell, styles.statusCol]}>Check-in</Text>
-      </View>
-      <ScrollView style={styles.body} nestedScrollEnabled>
-        {participants.map((p, index) => {
-          const isHighlighted = highlightedId === p.user_id;
-          const isSelected = selectedParticipantId === p.user_id;
-          const statusColor = STATUS_COLORS[p.ticket_status] || '#000000';
-          const borderColor = isHighlighted && highlightColor
+    useImperativeHandle(ref, () => ({
+      scrollToUser(userId: string) {
+        const idx = participants.findIndex((p) => p.user_id === userId);
+        if (idx >= 0 && listRef.current) {
+          listRef.current.scrollToOffset({ offset: idx * ROW_HEIGHT, animated: true });
+        }
+      },
+    }));
+
+    const getItemLayout = useCallback(
+      (_: unknown, index: number) => ({
+        length: ROW_HEIGHT,
+        offset: ROW_HEIGHT * index,
+        index,
+      }),
+      [],
+    );
+
+    const renderItem = useCallback(
+      ({ item: p, index }: { item: Participant; index: number }) => {
+        const isHighlighted = highlightedId === p.user_id;
+        const isSelected = selectedParticipantId === p.user_id;
+        const statusColor = STATUS_COLORS[p.ticket_status] || '#000000';
+        const borderColor =
+          isHighlighted && highlightColor
             ? highlightColor
             : isSelected
-            ? ROW_BORDER_COLORS[p.ticket_status] || '#000000'
-            : undefined;
+              ? ROW_BORDER_COLORS[p.ticket_status] || '#000000'
+              : undefined;
 
-          return (
-            <TouchableOpacity
-              key={p.user_id}
-              style={[
-                styles.row,
-                borderColor ? { borderLeftWidth: 3, borderLeftColor: borderColor } : null,
-                isSelected && styles.rowSelected,
-              ]}
-              onPress={() => onSelectParticipant(p)}
-            >
-              <Text style={[styles.cell, styles.noCol]}>{index + 1}</Text>
-              <Text style={[styles.cell, styles.nameCol]} numberOfLines={1}>
-                {p.legal_name}
-              </Text>
-              <Text style={[styles.cell, styles.groupCol]} numberOfLines={1}>
-                {p.clubs.map((c) => c.name).join(', ') || '-'}
-              </Text>
-              <Text style={[styles.cell, styles.statusCol, { color: statusColor }]}>
-                {p.ticket_status === 'checked_in' || p.ticket_status === 'registered'
-                  ? '\u2713 '
-                  : ''}
-                {STATUS_LABELS[p.ticket_status]}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-        {participants.length === 0 && (
+        return (
+          <TouchableOpacity
+            style={[
+              styles.row,
+              borderColor ? { borderLeftWidth: 3, borderLeftColor: borderColor } : null,
+              isSelected && styles.rowSelected,
+            ]}
+            onPress={() => onSelectParticipant(p)}
+          >
+            <Text style={[styles.cell, styles.noCol]}>{index + 1}</Text>
+            <Text style={[styles.cell, styles.nameCol]} numberOfLines={1}>
+              {p.legal_name}
+            </Text>
+            <Text style={[styles.cell, styles.groupCol]} numberOfLines={1}>
+              {p.clubs.map((c) => c.name).join(', ') || '-'}
+            </Text>
+            <Text style={[styles.cell, styles.statusCol, { color: statusColor }]}>
+              {p.ticket_status === 'checked_in' || p.ticket_status === 'registered'
+                ? '\u2713 '
+                : ''}
+              {STATUS_LABELS[p.ticket_status]}
+            </Text>
+          </TouchableOpacity>
+        );
+      },
+      [highlightedId, highlightColor, selectedParticipantId, onSelectParticipant],
+    );
+
+    return (
+      <View style={styles.container}>
+        <View style={[styles.headerRow, !hasData && styles.headerRowEmpty]}>
+          <Text style={[styles.headerCell, styles.noCol]}>No.</Text>
+          <Text style={[styles.headerCell, styles.nameCol]}>Legal Name</Text>
+          <Text style={[styles.headerCell, styles.groupCol]}>Related Groups</Text>
+          <Text style={[styles.headerCell, styles.statusCol]}>Check-in</Text>
+        </View>
+        {hasData ? (
+          <FlatList
+            ref={listRef}
+            data={participants}
+            renderItem={renderItem}
+            keyExtractor={(p) => p.user_id}
+            getItemLayout={getItemLayout}
+            style={styles.body}
+            nestedScrollEnabled
+          />
+        ) : (
           <View style={styles.emptyRow}>
             <Text style={styles.emptyText}>No participants</Text>
           </View>
         )}
-      </ScrollView>
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          {participants.length}/{participants.length} participants
-        </Text>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            {participants.length}/{participants.length} participants
+          </Text>
+        </View>
       </View>
-    </View>
-  );
-}
+    );
+  },
+);
+
+export default ParticipantsTable;
 
 const styles = StyleSheet.create({
   container: {
@@ -110,7 +147,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5EA',
     overflow: 'hidden',
-    maxHeight: 220,
+    maxHeight: 340,
   },
   headerRow: {
     flexDirection: 'row',
@@ -122,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#C5C5C5',
   },
   headerCell: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 11,
     color: '#FFFFFF',
   },
@@ -131,7 +168,8 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    paddingVertical: 8,
+    height: ROW_HEIGHT,
+    alignItems: 'center',
     paddingHorizontal: 8,
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5EA',
@@ -140,7 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   cell: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#000000',
   },
@@ -163,7 +201,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
   },
@@ -174,7 +212,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   footerText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#8E8E93',
   },

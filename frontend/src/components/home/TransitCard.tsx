@@ -117,12 +117,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fromLabel: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 8,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: colors.gray900,
   },
   fromValue: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#00C0E8',
   },
@@ -145,15 +145,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   transitLabel: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 8,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: colors.black,
     marginTop: 2,
     textAlign: 'center',
   },
   transitTime: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: colors.success,
   },
   transitDivider: {

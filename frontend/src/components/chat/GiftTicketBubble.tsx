@@ -55,7 +55,7 @@ export default function GiftTicketBubble({
         <View style={styles.card}>
           <View style={styles.titleRow}>
             <GiftIcon size={18} color="#8B5CF6" />
-            <Text style={styles.title}>Surprise Gift!</Text>
+            <Text style={styles.title}>{isOwn ? 'Ticket Sent' : 'Surprise Gift!'}</Text>
           </View>
           <View style={styles.ticketPreview}>
             <Text style={styles.ticketTitle}>{ticket.title.toUpperCase()}</Text>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   senderName: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#8E8E93',
     marginBottom: 3,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 15,
     color: '#8B5CF6',
     marginLeft: 6,
@@ -136,13 +136,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   ticketTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
     marginBottom: 4,
   },
   ticketSubtitle: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#AEAEB2',
   },
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   acceptText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   time: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#8E8E93',
   },

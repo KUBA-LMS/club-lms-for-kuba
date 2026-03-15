@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#333333',
     marginLeft: 6,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   amount: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 28,
     color: '#000000',
     marginBottom: 10,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
   },
   progressText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#8E8E93',
   },
@@ -218,17 +218,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   myStatusText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
   },
   tapHint: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#AEAEB2',
     textAlign: 'center',
   },
   time: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#8E8E93',
     marginHorizontal: 4,

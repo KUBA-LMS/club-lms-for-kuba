@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#8E8E93',
   },
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   legalName: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#595959',
     marginTop: 2,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   statusText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
   },
   detailsGrid: {
@@ -161,12 +161,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   detailLabel: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
   },
   detailValue: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#000000',
     textAlign: 'right',

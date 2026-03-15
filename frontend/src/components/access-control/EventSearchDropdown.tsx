@@ -68,19 +68,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   eventTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#000000',
     flex: 1,
   },
   eventDate: {
-    fontFamily: 'Inter',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#595959',
     marginLeft: 12,
   },
   emptyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#8E8E93',
     textAlign: 'center',

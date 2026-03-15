@@ -1,29 +1,45 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 
 interface MyBadgeProps {
   onPress?: () => void;
+  userImage?: string;
+  username?: string;
 }
 
-export default function MyBadge({ onPress }: MyBadgeProps) {
+export default function MyBadge({ onPress, userImage, username }: MyBadgeProps) {
   return (
     <TouchableOpacity
       style={styles.container}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.badgeWrapper}>
-        <View style={[styles.pill, styles.pillOrange]} />
-        <View style={[styles.pill, styles.pillPurple]} />
-        <View style={[styles.pill, styles.pillTeal]} />
-        <Text style={styles.text}>MY</Text>
-      </View>
+      {userImage ? (
+        <Image source={{ uri: userImage }} style={styles.profileImage} />
+      ) : (
+        <View style={styles.fallbackWrapper}>
+          {username ? (
+            <Text style={styles.initialText}>{username.charAt(0).toUpperCase()}</Text>
+          ) : (
+            <>
+              <View style={[styles.pill, styles.pillOrange]} />
+              <View style={[styles.pill, styles.pillPurple]} />
+              <View style={[styles.pill, styles.pillTeal]} />
+              <Text style={styles.myText}>MY</Text>
+            </>
+          )}
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -36,12 +52,20 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  badgeWrapper: {
-    width: 51,
+  profileImage: {
+    width: 44,
     height: 44,
-    position: 'relative',
+    borderRadius: 22,
+  },
+  fallbackWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
   },
   pill: {
     position: 'absolute',
@@ -51,26 +75,32 @@ const styles = StyleSheet.create({
   },
   pillOrange: {
     backgroundColor: '#FEAC5E',
-    left: 0,
+    left: 2,
     top: 4,
     transform: [{ rotate: '-20deg' }],
   },
   pillPurple: {
     backgroundColor: '#C779D0',
-    left: 12,
+    left: 9,
     top: 4,
   },
   pillTeal: {
     backgroundColor: '#4BC0C8',
-    right: 0,
+    right: 2,
     top: 4,
     transform: [{ rotate: '20deg' }],
   },
-  text: {
+  myText: {
     fontFamily: 'Copperplate-Bold',
     fontSize: 16,
     color: '#FFFFFF',
     fontWeight: 'bold',
     zIndex: 1,
+  },
+  initialText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    color: '#555555',
+    fontWeight: 'bold',
   },
 });

@@ -64,13 +64,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   pillText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
     flex: 1,
   },
   searchIcon: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#FFFFFF',
     marginLeft: 8,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   searchInput: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#FFFFFF',
     flex: 1,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   clearText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#FFFFFF',
   },

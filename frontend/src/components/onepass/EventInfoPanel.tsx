@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     minHeight: 120,
   },
   title: {
-    fontFamily: 'Inter',
+    fontFamily: 'Inter-Regular',
     fontWeight: '700',
     fontSize: 20,
     color: '#FFFFFF',
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: 'Gafata-Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: '#FFFFFF',
     lineHeight: 14,
   },
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   detailsText: {
     fontFamily: 'Gafata-Regular',
-    fontSize: 9,
+    fontSize: 11,
     color: '#FFFFFF',
   },
 });

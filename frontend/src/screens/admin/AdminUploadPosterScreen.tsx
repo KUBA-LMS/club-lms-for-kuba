@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   headerTitle: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#000000',
   },
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   startOverText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#000000',
     textDecorationLine: 'underline',
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   uploadText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#8E8E93',
   },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backActionButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#8E8E93',
   },
   doneButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },

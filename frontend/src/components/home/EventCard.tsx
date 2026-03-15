@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { StarsIcon, ShareIcon, LoaderIcon } from '../icons';
+import { View, Text, Image, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { StarsIcon, ShareIcon } from '../icons';
 import Svg, { Path } from 'react-native-svg';
 import { UserBrief } from '../../types/auth';
 
@@ -29,14 +29,25 @@ interface EventCardProps {
   onAction?: () => void;
 }
 
-const CheckIcon = ({ size = 14, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+const ChevronRightIcon = ({ size = 20, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M11.6667 3.5L5.25 9.91667L2.33333 7"
+      d="M9 18L15 12L9 6"
       stroke={color}
-      strokeWidth={2}
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const LoaderIcon = ({ size = 14, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+    <Path
+      d="M7 1.16667V3.5M7 10.5V12.8333M2.69583 2.69583L4.34167 4.34167M9.65833 9.65833L11.3042 11.3042M1.16667 7H3.5M10.5 7H12.8333M2.69583 11.3042L4.34167 9.65833M9.65833 4.34167L11.3042 2.69583"
+      stroke={color}
+      strokeWidth={1.5}
+      strokeLinecap="round"
     />
   </Svg>
 );
@@ -44,61 +55,19 @@ const CheckIcon = ({ size = 14, color = '#FFFFFF' }: { size?: number; color?: st
 const getStatusConfig = (status: RegistrationStatus, opensAt?: string) => {
   switch (status) {
     case 'registered':
-      return {
-        label: 'Registered',
-        backgroundColor: '#000000',
-        textColor: '#FFFFFF',
-        borderColor: '#000000',
-        filled: true,
-      };
+      return { label: 'Registered', color: '#000000' };
     case 'open':
-      return {
-        label: 'Registration Open',
-        backgroundColor: '#34C759',
-        textColor: '#FFFFFF',
-        borderColor: '#34C759',
-        filled: true,
-      };
+      return { label: 'Registration Open', color: '#34C759' };
     case 'requested':
-      return {
-        label: 'Registration Requested',
-        backgroundColor: '#FF8D28',
-        textColor: '#FFFFFF',
-        borderColor: '#FF8D28',
-        filled: true,
-      };
+      return { label: 'Registration Requested', color: '#FF8D28' };
     case 'visited':
-      return {
-        label: 'Visited',
-        backgroundColor: 'transparent',
-        textColor: '#FF3B30',
-        borderColor: '#FF3B30',
-        filled: false,
-      };
+      return { label: 'Visited', color: '#FF3B30' };
     case 'closed':
-      return {
-        label: 'Registration Closed',
-        backgroundColor: 'transparent',
-        textColor: '#FF3B30',
-        borderColor: '#FF3B30',
-        filled: false,
-      };
+      return { label: 'Registration Closed', color: '#FF3B30' };
     case 'upcoming':
-      return {
-        label: opensAt ? `Opens at ${opensAt}` : 'Coming Soon',
-        backgroundColor: 'transparent',
-        textColor: '#8E8E93',
-        borderColor: '#8E8E93',
-        filled: false,
-      };
+      return { label: opensAt ? `Opens ${opensAt}` : 'Coming Soon', color: '#8E8E93' };
     default:
-      return {
-        label: '',
-        backgroundColor: 'transparent',
-        textColor: '#000000',
-        borderColor: '#000000',
-        filled: false,
-      };
+      return { label: '', color: '#8E8E93' };
   }
 };
 
@@ -118,100 +87,49 @@ export default function EventCard({
   onShare,
   onAction,
 }: EventCardProps) {
+  const { width } = useWindowDimensions();
   const statusConfig = getStatusConfig(status, opensAt);
   const displayedParticipants = participants.slice(0, 3);
   const extraCount = participantCount > displayedParticipants.length
     ? participantCount - displayedParticipants.length
     : 0;
 
-  const renderActionButton = () => {
-    const buttonColor = statusConfig.filled ? statusConfig.backgroundColor : statusConfig.borderColor;
-
-    if (status === 'registered') {
-      return (
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: buttonColor }]}
-          onPress={onAction}
-        >
-          <CheckIcon size={14} color="#FFFFFF" />
-        </TouchableOpacity>
-      );
-    }
-
+  const renderActionIcon = () => {
     if (status === 'requested') {
-      return (
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: buttonColor }]}
-          onPress={onAction}
-        >
-          <LoaderIcon size={14} color="#FFFFFF" />
-        </TouchableOpacity>
-      );
+      return <LoaderIcon size={14} color="#FFFFFF" />;
     }
-
-    return (
-      <TouchableOpacity
-        style={[
-          styles.actionButton,
-          { backgroundColor: statusConfig.filled ? buttonColor : buttonColor }
-        ]}
-        onPress={onAction}
-      >
-        <Text style={styles.infoButtonText}>i</Text>
-      </TouchableOpacity>
-    );
+    return <ChevronRightIcon size={16} color="#FFFFFF" />;
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
-      <View style={styles.topSection}>
-        <View style={styles.imageContainer}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.eventImage} />
-          ) : (
-            <View style={styles.imagePlaceholder} />
-          )}
-        </View>
-        <View style={styles.infoContainer}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={2}>{title}</Text>
-            {providerLogo && (
-              <Image source={{ uri: providerLogo }} style={styles.providerLogo} />
-            )}
-          </View>
-          <Text style={styles.date}>{date}</Text>
-          <Text style={styles.provider}>Provided by: {provider}</Text>
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.container, { width }]}>
+      {/* Title + Date row */}
+      <View style={styles.titleRow}>
+        <Text style={styles.title} numberOfLines={2}>{title}</Text>
+        <Text style={styles.date}>{date}</Text>
+      </View>
+
+      {/* Full-width image */}
+      <View style={styles.imageWrapper}>
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
+        {/* Bookmark overlay */}
+        <TouchableOpacity style={styles.bookmarkOverlay} onPress={onBookmark} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <StarsIcon size={22} color={isBookmarked ? '#FFD700' : '#FFFFFF'} filled={isBookmarked} />
+        </TouchableOpacity>
+        {/* Page dots overlay */}
+        <View style={styles.dotsRow}>
+          <View style={[styles.dot, styles.dotActive]} />
+          <View style={[styles.dot, styles.dotInactive]} />
+          <View style={[styles.dot, styles.dotInactive]} />
         </View>
       </View>
 
-      <View style={styles.bottomSection}>
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor: statusConfig.backgroundColor,
-              borderColor: statusConfig.borderColor,
-              borderWidth: statusConfig.filled ? 0 : 1,
-            }
-          ]}
-        >
-          <Text style={[styles.statusText, { color: statusConfig.textColor }]}>
-            {statusConfig.label}
-          </Text>
-        </View>
-
-        <TouchableOpacity style={styles.iconButton} onPress={onBookmark}>
-          <StarsIcon size={16} color={isBookmarked ? '#FFD700' : '#212121'} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.iconButton} onPress={onShare}>
-          <ShareIcon size={14} color="#000000" />
-        </TouchableOpacity>
-
-        {renderActionButton()}
-      </View>
-
-      <View style={styles.participantsSection}>
+      {/* Participants */}
+      <View style={styles.participantsRow}>
         <View style={styles.avatarStack}>
           {displayedParticipants.length > 0
             ? displayedParticipants.map((p, index) => (
@@ -219,48 +137,60 @@ export default function EventCard({
                   <Image
                     key={p.id}
                     source={{ uri: p.profile_image }}
-                    style={[
-                      styles.avatarCircle,
-                      { marginLeft: index === 0 ? 0 : -5 }
-                    ]}
+                    style={[styles.avatar, { marginLeft: index === 0 ? 0 : -8 }]}
                   />
                 ) : (
                   <View
                     key={p.id}
-                    style={[
-                      styles.avatarCircle,
-                      styles.avatarInitial,
-                      { marginLeft: index === 0 ? 0 : -5 }
-                    ]}
+                    style={[styles.avatar, styles.avatarFallback, { marginLeft: index === 0 ? 0 : -8 }]}
                   >
-                    <Text style={styles.avatarInitialText}>
-                      {p.username.charAt(0).toUpperCase()}
-                    </Text>
+                    <Text style={styles.avatarInitial}>{p.username.charAt(0).toUpperCase()}</Text>
                   </View>
                 )
               ))
-            : [0, 1, 2].map((index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.avatarCircle,
-                    { marginLeft: index === 0 ? 0 : -5 }
-                  ]}
-                />
+            : [0, 1, 2].map((i) => (
+                <View key={i} style={[styles.avatar, { marginLeft: i === 0 ? 0 : -8 }]} />
               ))
           }
         </View>
-        <Text style={styles.participantsText}>
-          <Text style={styles.participantsBold}>
-            {displayedParticipants.length > 0
-              ? displayedParticipants.map(p => p.username).join(', ')
-              : ''}
-          </Text>
-          {extraCount > 0 && (
-            <Text style={styles.participantsBold}> +{extraCount}</Text>
+        <Text style={styles.participantsText} numberOfLines={1}>
+          {displayedParticipants.length > 0 ? (
+            <>
+              <Text style={styles.participantsBold}>
+                {displayedParticipants.map(p => p.username).join(', ')}
+              </Text>
+              {extraCount > 0 && <Text style={styles.participantsBold}> +{extraCount}</Text>}
+              <Text> friends participating</Text>
+            </>
+          ) : (
+            <Text style={{ color: '#8E8E93' }}>No participants yet</Text>
           )}
-          {participantCount > 0 ? ' participating' : 'No participants yet'}
         </Text>
+      </View>
+
+      {/* Status bar */}
+      <View style={styles.statusBarRow}>
+        <View style={[styles.statusBar, { backgroundColor: statusConfig.color }]}>
+          <Text style={styles.statusBarText} numberOfLines={1}>{statusConfig.label}</Text>
+        </View>
+        <TouchableOpacity style={styles.shareArea} onPress={onShare}>
+          <ShareIcon size={14} color="#000000" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.arrowBtn, { backgroundColor: statusConfig.color }]}
+          onPress={onAction}
+        >
+          {renderActionIcon()}
+        </TouchableOpacity>
+      </View>
+
+      {/* Provided by */}
+      <View style={styles.providedByRow}>
+        <Text style={styles.providedByLabel}>Provided by: </Text>
+        {providerLogo && (
+          <Image source={{ uri: providerLogo }} style={styles.providerLogo} />
+        )}
+        <Text style={styles.providerName}>{provider}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -269,26 +199,39 @@ export default function EventCard({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 20,
+    marginBottom: 2,
   },
-  topSection: {
+  titleRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    minHeight: 48,
   },
-  imageContainer: {
-    width: 80,
-    height: 70,
-    borderRadius: 8,
-    overflow: 'hidden',
+  title: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    flex: 1,
+    marginRight: 8,
+    lineHeight: 24,
   },
-  eventImage: {
+  date: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 13,
+    color: '#000000',
+    flexShrink: 0,
+    marginTop: 3,
+  },
+  imageWrapper: {
+    width: '100%',
+    height: 200,
+    position: 'relative',
+  },
+  image: {
     width: '100%',
     height: '100%',
   },
@@ -297,112 +240,124 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#E5E5EA',
   },
-  infoContainer: {
-    flex: 1,
-    marginLeft: 12,
+  bookmarkOverlay: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
   },
-  titleRow: {
+  dotsRow: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
   },
-  title: {
-    fontFamily: 'NotoSansKR-Bold',
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#212121',
-    flex: 1,
-    marginRight: 8,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  providerLogo: {
-    width: 20,
-    height: 20,
-    borderRadius: 3,
-    borderWidth: 0.1,
-    borderColor: '#000000',
+  dotActive: {
+    backgroundColor: '#FFFFFF',
   },
-  date: {
-    fontFamily: 'NotoSansKR-Regular',
-    fontSize: 12,
-    color: '#757575',
-    marginTop: 2,
+  dotInactive: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
-  provider: {
-    fontFamily: 'NotoSansKR-Regular',
-    fontSize: 12,
-    color: '#494949',
-    marginTop: 8,
-  },
-  bottomSection: {
+  participantsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  statusBadge: {
-    height: 19,
-    paddingHorizontal: 6,
-    borderRadius: 5,
-    justifyContent: 'center',
-    flex: 1,
-  },
-  statusText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  iconButton: {
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButton: {
-    width: 35,
-    height: 19,
-    borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoButtonText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  participantsSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   avatarStack: {
     flexDirection: 'row',
     marginRight: 8,
   },
-  avatarCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+  avatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#D9D9D9',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
-  avatarInitial: {
+  avatarFallback: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#8E8E93',
   },
-  avatarInitialText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 10,
+  avatarInitial: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     color: '#FFFFFF',
   },
   participantsText: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    fontSize: 13,
     color: '#000000',
+    flex: 1,
   },
   participantsBold: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontWeight: '700',
+  },
+  statusBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    height: 36,
+  },
+  statusBar: {
+    flex: 1,
+    height: 36,
+    borderRadius: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  statusBarText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 13,
+    color: '#FFFFFF',
+  },
+  shareArea: {
+    width: 44,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  arrowBtn: {
+    width: 44,
+    height: 36,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  providedByRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    paddingBottom: 14,
+  },
+  providedByLabel: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: '#AEAEB2',
+  },
+  providerLogo: {
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    borderWidth: 0.5,
+    borderColor: '#C5C5C5',
+    marginRight: 4,
+  },
+  providerName: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    color: '#000000',
   },
 });

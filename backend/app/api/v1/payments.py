@@ -1,10 +1,14 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal, ROUND_CEILING
+
+logger = logging.getLogger(__name__)
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -37,6 +41,23 @@ async def create_payment_request(
     current_user: User = Depends(get_current_user),
 ):
     """Create a 1/N payment split request in a chat."""
+    # Validate total_amount
+    if data.total_amount <= Decimal("0"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payment amount must be greater than 0",
+        )
+    if data.total_amount > Decimal("10000000"):  # 10,000,000 KRW max
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payment amount exceeds maximum allowed (10,000,000 KRW)",
+        )
+    if not data.participant_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one participant is required",
+        )
+
     # Verify requester has bank account registered
     if not current_user.bank_name or not current_user.bank_account_number:
         raise HTTPException(
@@ -110,7 +131,7 @@ async def create_payment_request(
     chat_query = select(Chat).where(Chat.id == chat_id)
     chat_result = await db.execute(chat_query)
     chat = chat_result.scalar_one()
-    chat.updated_at = datetime.utcnow()
+    chat.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     await db.commit()
     await db.refresh(new_message)
@@ -123,6 +144,8 @@ async def create_payment_request(
             sender_id=current_user.id, sender_username=current_user.username,
             content=content, message_type="payment_request",
             created_at=created_at_str,
+            payment_amount=float(data.total_amount),
+            payment_request_id=str(payment_req.id),
         )
         members_query = select(ChatMember.user_id).where(
             (ChatMember.chat_id == chat_id) & (ChatMember.user_id != current_user.id)
@@ -134,8 +157,8 @@ async def create_payment_request(
                 last_message=content, last_message_type="payment_request",
                 sender_username=current_user.username, timestamp=created_at_str,
             )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("WS notification failed for payment_request chat=%s: %s", chat_id, e)
 
     return MessageResponse(
         id=new_message.id,
@@ -174,7 +197,7 @@ async def mark_split_sent(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Split is not pending")
 
     split.status = "sent"
-    split.sent_at = datetime.utcnow()
+    split.sent_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
 
     # WS notification
@@ -210,6 +233,7 @@ async def confirm_split(
     current_user: User = Depends(get_current_user),
 ):
     """Requester confirms they received the payment for a split."""
+    # Lock split + payment_request rows to prevent double-confirmation race
     split_query = (
         select(PaymentSplit)
         .options(
@@ -217,6 +241,7 @@ async def confirm_split(
             selectinload(PaymentSplit.payment_request),
         )
         .where(PaymentSplit.id == split_id)
+        .with_for_update()
     )
     split_result = await db.execute(split_query)
     split = split_result.scalar_one_or_none()
@@ -231,7 +256,7 @@ async def confirm_split(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Split must be in 'sent' status to confirm")
 
     split.status = "confirmed"
-    split.confirmed_at = datetime.utcnow()
+    split.confirmed_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.flush()
 
     # Check if all splits are confirmed -> complete the payment request
@@ -281,8 +306,8 @@ async def confirm_split(
                 message_type="payment_completed",
                 created_at=completed_msg.created_at.isoformat(),
             )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("WS notification failed for split confirm split_id=%s: %s", split_id, e)
 
     return PaymentSplitResponse(
         id=split.id,

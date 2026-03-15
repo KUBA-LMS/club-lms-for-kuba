@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontFamily: 'NotoSansKR-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: colors.text.primary,
     padding: 0,

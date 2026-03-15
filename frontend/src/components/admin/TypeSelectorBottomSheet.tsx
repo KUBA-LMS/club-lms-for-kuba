@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   doneButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   badgeText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -187,13 +187,13 @@ const styles = StyleSheet.create({
   },
   priceInput: {
     flex: 1,
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#1E1E1E',
     padding: 0,
   },
   currencyLabel: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#8E8E93',
     marginLeft: 8,

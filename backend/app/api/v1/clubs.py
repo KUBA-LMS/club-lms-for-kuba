@@ -193,16 +193,16 @@ async def create_club(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Create a new club/group. Creator becomes lead."""
-    # Check if club name already exists
-    result = await db.execute(select(Club).where(Club.name == club_data.name))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Club name already exists",
-        )
+    """Create a new club/group. Top-level clubs require admin. Subgroups require membership in parent club."""
+    # Top-level club: admin only
+    if not club_data.parent_id:
+        if current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only app admins can create top-level clubs",
+            )
 
-    # If parent_id provided, check parent exists
+    # Subgroup: verify user is a member of the parent club
     if club_data.parent_id:
         parent_result = await db.execute(
             select(Club).where(Club.id == club_data.parent_id)
@@ -212,6 +212,25 @@ async def create_club(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Parent club not found",
             )
+        membership = await db.execute(
+            select(user_club).where(
+                (user_club.c.user_id == current_user.id)
+                & (user_club.c.club_id == club_data.parent_id)
+            )
+        )
+        if not membership.first():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You must be a member of the parent club to create a subgroup",
+            )
+
+    # Check if club name already exists
+    result = await db.execute(select(Club).where(Club.name == club_data.name))
+    if result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Club name already exists",
+        )
 
     new_club = Club(**club_data.model_dump())
     db.add(new_club)

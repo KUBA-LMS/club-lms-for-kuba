@@ -63,12 +63,12 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   segmentText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
   },
   segmentTextActive: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#000000',
   },

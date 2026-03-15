@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   name: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 17,
     color: '#000000',
     flexShrink: 1,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   timestamp: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: colors.gray500,
   },
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   unreadText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 11,
     color: '#FFFFFF',
   },
   message: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: colors.gray500,
   },

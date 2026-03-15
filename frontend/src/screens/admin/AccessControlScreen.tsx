@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -22,6 +22,7 @@ import {
   ParticipantDetailCard,
   OverrideConfirmModal,
 } from '../../components/access-control';
+import type { ParticipantsTableHandle } from '../../components/access-control';
 // Camera is now inline in ScannerArea
 import { listEvents } from '../../services/events';
 import {
@@ -62,9 +63,12 @@ export default function AccessControlScreen({ navigation }: Props) {
   const [highlightColor, setHighlightColor] = useState<string | undefined>();
 
   // Override
-  const [statusFilter, setStatusFilter] = useState<TicketStatus>('registered');
+  const [statusFilter, setStatusFilter] = useState<TicketStatus>('requested');
   const [overrideModalVisible, setOverrideModalVisible] = useState(false);
   const [overrideTarget, setOverrideTarget] = useState<Participant | null>(null);
+
+  // Table ref for auto-scroll
+  const tableRef = useRef<ParticipantsTableHandle>(null);
 
   // Preload recent events on mount
   const [recentEvents, setRecentEvents] = useState<EventSearchItem[]>([]);
@@ -175,8 +179,13 @@ export default function AccessControlScreen({ navigation }: Props) {
             double_checked_in: '#FFCC00',
           };
           setHighlightColor(colorMap[res.result]);
+          // Auto-scroll to scanned participant after list refreshes
+          const userId = res.participant.user_id;
+          await fetchParticipants();
+          setTimeout(() => tableRef.current?.scrollToUser(userId), 150);
+        } else {
+          fetchParticipants();
         }
-        fetchParticipants();
       } catch {
         Alert.alert('Error', 'Failed to process scan');
       }
@@ -186,7 +195,6 @@ export default function AccessControlScreen({ navigation }: Props) {
 
   // Override flow
   const handleOverridePress = useCallback((participant: Participant) => {
-    if (participant.ticket_status !== 'requested') return;
     setOverrideTarget(participant);
     setOverrideModalVisible(true);
   }, []);
@@ -225,7 +233,7 @@ export default function AccessControlScreen({ navigation }: Props) {
       : participants;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -268,6 +276,7 @@ export default function AccessControlScreen({ navigation }: Props) {
 
         <ScrollView style={styles.flex} nestedScrollEnabled>
           <ParticipantsTable
+            ref={tableRef}
             participants={filteredParticipants}
             selectedParticipantId={selectedParticipant?.user_id}
             onSelectParticipant={handleParticipantSelect}

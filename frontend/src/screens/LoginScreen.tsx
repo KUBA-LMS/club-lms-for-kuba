@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Bold',
-      android: 'OpenSans-Bold',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
     fontWeight: '700',
@@ -266,8 +266,8 @@ const styles = StyleSheet.create({
   },
   newUserText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 12,
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Bold',
-      android: 'OpenSans-Bold',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
     fontSize: 12,
@@ -306,11 +306,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     left: spacing.md,
-    fontSize: 10,
+    fontSize: 11,
     color: colors.gray900,
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
   },
@@ -319,8 +319,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.black,
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     paddingRight: 30,
@@ -340,8 +340,8 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 12,
@@ -361,8 +361,8 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 20,

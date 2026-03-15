@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   actionLabel: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#000000',
   },
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     maxHeight: 120,
   },
   input: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#000000',
     lineHeight: 20,

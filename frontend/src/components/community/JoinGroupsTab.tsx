@@ -269,12 +269,12 @@ export default function JoinGroupsTab() {
     [fetchGroups],
   );
 
-  // --- Create group ---
+  // --- Create group (subgroup under a club) ---
   const handleCreateGroup = useCallback(
-    async (name: string, logoUri: string | null) => {
+    async (name: string, logoUri: string | null, parentId: string) => {
       setIsCreating(true);
       try {
-        await createGroup(name, logoUri);
+        await createGroup(name, logoUri, parentId);
         setShowCreateModal(false);
         fetchGroups();
       } catch (err: any) {
@@ -392,6 +392,7 @@ export default function JoinGroupsTab() {
       <CreateGroupModal
         visible={showCreateModal}
         isCreating={isCreating}
+        clubs={groups.map((g) => ({ id: g.id, name: g.name, logo_image: g.logo_image }))}
         onBack={() => setShowCreateModal(false)}
         onProceed={handleCreateGroup}
       />
@@ -436,7 +437,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   qrButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   createButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -464,12 +465,12 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: colors.gray500,
   },
   emptySubtext: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: colors.gray400,
     marginTop: 6,
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   groupLogoText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#8E8E93',
   },
@@ -513,8 +514,8 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   leadBadgeText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 8,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     color: '#FFFFFF',
   },
   groupInfo: {
@@ -522,7 +523,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   groupName: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#000000',
   },
@@ -535,7 +536,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   expandText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: colors.primary,
   },
@@ -605,12 +606,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subgroupLogoText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#8E8E93',
   },
   subgroupName: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#000000',
     flex: 1,

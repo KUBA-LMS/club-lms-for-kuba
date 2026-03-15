@@ -16,6 +16,7 @@ class GenderEnum(str, Enum):
 class UserRoleEnum(str, Enum):
     member = "member"
     admin = "admin"
+    superadmin = "superadmin"
 
 
 # Base schemas

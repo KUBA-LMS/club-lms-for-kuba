@@ -37,10 +37,12 @@ export async function searchUsers(
 }
 
 /**
- * List current user's chats
+ * List current user's chats. Optionally filter by club_id (includes subgroups).
  */
-export async function listChats(): Promise<ChatListResponse> {
-  const response = await api.get<ChatListResponse>('/chats/');
+export async function listChats(clubId?: string): Promise<ChatListResponse> {
+  const params: Record<string, string> = {};
+  if (clubId) params.club_id = clubId;
+  const response = await api.get<ChatListResponse>('/chats/', { params });
   return response.data;
 }
 

@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   label: {
-    fontFamily: 'NotoSansKR-Medium',
+    fontFamily: 'Inter-Medium',
     fontSize: 14,
     color: '#000000',
     letterSpacing: -0.08,
   },
   labelSelected: {
-    fontFamily: 'NotoSansKR-Bold',
+    fontFamily: 'Inter-Bold',
   },
 });

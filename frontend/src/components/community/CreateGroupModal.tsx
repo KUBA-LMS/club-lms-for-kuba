@@ -9,6 +9,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { UploadIcon } from '../icons';
 
@@ -19,24 +20,33 @@ try {
   // expo-image-picker not available
 }
 
+export interface ClubOption {
+  id: string;
+  name: string;
+  logo_image: string | null;
+}
+
 interface CreateGroupModalProps {
   visible: boolean;
   isCreating: boolean;
+  clubs: ClubOption[];
   onBack: () => void;
-  onProceed: (name: string, logoUri: string | null) => void;
+  onProceed: (name: string, logoUri: string | null, parentId: string) => void;
 }
 
 export default function CreateGroupModal({
   visible,
   isCreating,
+  clubs,
   onBack,
   onProceed,
 }: CreateGroupModalProps) {
   const [name, setName] = useState('');
   const [logoUri, setLogoUri] = useState<string | null>(null);
   const [isNameFocused, setIsNameFocused] = useState(false);
+  const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
 
-  const isValid = name.trim().length > 0;
+  const isValid = name.trim().length > 0 && selectedClubId !== null;
 
   const handlePickImage = useCallback(async () => {
     if (!ImagePicker) return;
@@ -67,19 +77,70 @@ export default function CreateGroupModal({
   const handleBack = useCallback(() => {
     setName('');
     setLogoUri(null);
+    setSelectedClubId(null);
     onBack();
   }, [onBack]);
 
   const handleProceed = useCallback(() => {
-    if (!isValid || isCreating) return;
-    onProceed(name.trim(), logoUri);
-  }, [isValid, isCreating, name, logoUri, onProceed]);
+    if (!isValid || isCreating || !selectedClubId) return;
+    onProceed(name.trim(), logoUri, selectedClubId);
+  }, [isValid, isCreating, name, logoUri, selectedClubId, onProceed]);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>Create New Group?</Text>
+          <Text style={styles.title}>Create New Group</Text>
+
+          {/* Club Picker */}
+          <Text style={styles.sectionLabel}>Select Club</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.clubPickerContent}
+            style={styles.clubPicker}
+          >
+            {clubs.map((club) => {
+              const isSelected = club.id === selectedClubId;
+              return (
+                <TouchableOpacity
+                  key={club.id}
+                  style={styles.clubPickerItem}
+                  onPress={() => setSelectedClubId(club.id)}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[
+                      styles.clubPickerImageWrapper,
+                      isSelected && styles.clubPickerImageSelected,
+                    ]}
+                  >
+                    {club.logo_image ? (
+                      <Image
+                        source={{ uri: club.logo_image }}
+                        style={styles.clubPickerImg}
+                      />
+                    ) : (
+                      <View style={[styles.clubPickerImg, styles.clubPickerPlaceholder]}>
+                        <Text style={styles.clubPickerPlaceholderText}>
+                          {club.name.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.clubPickerLabel,
+                      isSelected && styles.clubPickerLabelSelected,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {club.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
           {/* Logo Upload */}
           <TouchableOpacity
@@ -175,10 +236,65 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#000000',
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    color: '#8E8E93',
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  clubPicker: {
+    maxHeight: 70,
+    marginBottom: 16,
+    alignSelf: 'stretch',
+  },
+  clubPickerContent: {
+    gap: 10,
+  },
+  clubPickerItem: {
+    alignItems: 'center',
+    width: 52,
+  },
+  clubPickerImageWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#C5C5C5',
+    overflow: 'hidden',
+  },
+  clubPickerImageSelected: {
+    borderWidth: 2,
+    borderColor: '#00C0E8',
+  },
+  clubPickerImg: {
+    width: '100%',
+    height: '100%',
+  },
+  clubPickerPlaceholder: {
+    backgroundColor: '#E5E5EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clubPickerPlaceholderText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+  clubPickerLabel: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    color: '#000000',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  clubPickerLabelSelected: {
+    fontFamily: 'Inter-SemiBold',
   },
   logoArea: {
     width: 80,
@@ -200,8 +316,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   uploadText: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 8,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#000000',
     textAlign: 'center',
     lineHeight: 11,
@@ -220,13 +336,13 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
   },
   nameInputLabel: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 9,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#8E8E93',
     marginTop: 2,
   },
   nameInput: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#000000',
     padding: 0,
@@ -246,7 +362,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -262,7 +378,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#C5C5C5',
   },
   proceedButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },

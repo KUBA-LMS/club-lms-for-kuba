@@ -47,7 +47,7 @@ export default function TicketDeliveredBubble({
           ) : null}
         </View>
         <View style={styles.deliveredButton}>
-          <Text style={styles.deliveredText}>Delivered</Text>
+          <Text style={styles.deliveredText}>{isOwn ? 'Delivered' : 'Gift Received'}</Text>
         </View>
       </View>
       {!isOwn && <Text style={styles.time}>{formatTime(message.created_at)}</Text>}
@@ -86,13 +86,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   ticketTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#000000',
     marginBottom: 4,
   },
   ticketSubtitle: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#8E8E93',
   },
@@ -103,12 +103,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deliveredText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
   time: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#8E8E93',
     marginHorizontal: 4,

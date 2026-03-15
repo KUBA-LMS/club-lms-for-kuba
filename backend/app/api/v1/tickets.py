@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -169,7 +169,7 @@ async def self_checkin(
         )
 
     event = ticket.registration.event
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     if event.event_date.date() > now.date():
         return CheckinResponse(success=False, message="Event has not started yet")
 
@@ -306,7 +306,7 @@ async def validate_ticket(
 
     # Check if event date is today or in the past
     event = ticket.registration.event
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     if event.event_date.date() > now.date():
         return TicketValidateResponse(
             valid=False,
@@ -382,11 +382,11 @@ async def use_ticket(
         )
 
     ticket.is_used = True
-    ticket.used_at = datetime.utcnow()
+    ticket.used_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Also update registration status
     ticket.registration.status = RegistrationStatusEnum.checked_in
-    ticket.registration.checked_in_at = datetime.utcnow()
+    ticket.registration.checked_in_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     await db.commit()
     await db.refresh(ticket)

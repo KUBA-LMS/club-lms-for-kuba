@@ -1,17 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 
 from app.core.database import get_db
+from app.core.limiter import limiter
 from app.core.security import (
     verify_password,
     get_password_hash,
     create_access_token,
     create_refresh_token,
+    create_reset_token,
     get_current_user,
     verify_token,
 )
+from app.core.email import send_password_reset_email
 from app.models.user import User
 from app.schemas.auth import (
     LoginRequest,
@@ -27,7 +30,8 @@ router = APIRouter()
 
 
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def signup(user_data: UserSignUp, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def signup(request: Request, user_data: UserSignUp, db: AsyncSession = Depends(get_db)):
     """Register a new user."""
     # Check if username already exists
     result = await db.execute(select(User).where(User.username == user_data.username))
@@ -57,7 +61,8 @@ async def signup(user_data: UserSignUp, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def login(request: Request, login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Login with username/email and password."""
     # Try to find user by email or username
     result = await db.execute(
@@ -73,6 +78,12 @@ async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username/email or password",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if user.role == "superadmin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superadmin must use the admin dashboard",
         )
 
     access_token = create_access_token(data={"sub": str(user.id)})
@@ -92,7 +103,7 @@ async def refresh_token(
 ):
     """Refresh access token using refresh token."""
     payload = verify_token(refresh_data.refresh_token)
-    if not payload:
+    if not payload or payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
@@ -134,8 +145,9 @@ async def logout(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/forgot-password")
+@limiter.limit("3/minute")
 async def forgot_password(
-    request: PasswordForgotRequest, db: AsyncSession = Depends(get_db)
+    http_request: Request, request: PasswordForgotRequest, db: AsyncSession = Depends(get_db)
 ):
     """Request password reset email."""
     result = await db.execute(select(User).where(User.email == request.email))
@@ -143,8 +155,8 @@ async def forgot_password(
 
     # Always return success to prevent email enumeration
     if user:
-        # TODO: Send password reset email
-        pass
+        reset_token = create_reset_token(str(user.id))
+        await send_password_reset_email(user.email, reset_token)
 
     return {"message": "If the email exists, a password reset link has been sent"}
 
@@ -155,7 +167,7 @@ async def reset_password(
 ):
     """Reset password using reset token."""
     payload = verify_token(request.token)
-    if not payload:
+    if not payload or payload.get("type") != "reset":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token",

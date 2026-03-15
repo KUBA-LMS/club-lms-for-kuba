@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E5E5EA',
+    zIndex: 0,
   },
   backButton: {
     width: 36,
@@ -109,12 +110,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 17,
     color: '#000000',
   },
   memberCount: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#8E8E93',
     marginTop: 1,

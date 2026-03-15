@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   doneButtonText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#FFFFFF',
   },
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   clubAvatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#8E8E93',
   },
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   viewSubgroupsText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: '#8E8E93',
   },
 
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   subgroupAvatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#8E8E93',
   },

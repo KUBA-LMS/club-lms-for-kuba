@@ -1,11 +1,14 @@
+import logging
+import uuid as uuid_lib
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
-import secrets
+from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -66,8 +69,12 @@ async def create_registration(
     current_user: User = Depends(get_current_user),
 ):
     """Register for an event."""
-    # Get event
-    event_result = await db.execute(select(Event).where(Event.id == reg_data.event_id))
+    now = datetime.now(timezone.utc).replace(tzinfo=None)  # naive UTC for DB comparison
+
+    # Lock event row to prevent concurrent slot overbooking
+    event_result = await db.execute(
+        select(Event).where(Event.id == reg_data.event_id).with_for_update()
+    )
     event = event_result.scalar_one_or_none()
 
     if not event:
@@ -75,8 +82,6 @@ async def create_registration(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Event not found",
         )
-
-    now = datetime.utcnow()
 
     # Check registration window
     if now < event.registration_start:
@@ -105,7 +110,7 @@ async def create_registration(
             detail="Already registered for this event",
         )
 
-    # Check slots
+    # Re-check slots under lock (prevents overbooking race condition)
     if event.current_slots >= event.max_slots:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -130,13 +135,13 @@ async def create_registration(
 
     db.add(new_registration)
 
-    # Update event slots
+    # Update event slots (safe under row lock)
     event.current_slots += 1
 
     # Create ticket if confirmed
     if initial_status == RegistrationStatusEnum.confirmed:
         await db.flush()  # ensure registration.id is assigned
-        barcode = secrets.token_hex(16).upper()
+        barcode = f"KUBA-{uuid_lib.uuid4().hex[:12].upper()}"
         ticket = Ticket(
             registration_id=new_registration.id,
             barcode=barcode,
@@ -289,9 +294,9 @@ async def cancel_registration(
     # Cancel registration
     registration.status = RegistrationStatusEnum.cancelled
 
-    # Update event slots
+    # Update event slots (lock row to prevent concurrent modification)
     event_result = await db.execute(
-        select(Event).where(Event.id == registration.event_id)
+        select(Event).where(Event.id == registration.event_id).with_for_update()
     )
     event = event_result.scalar_one()
     if event.current_slots > 0:
@@ -348,7 +353,7 @@ async def checkin_registration(
         )
 
     registration.status = RegistrationStatusEnum.checked_in
-    registration.checked_in_at = datetime.utcnow()
+    registration.checked_in_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     await db.commit()
     await db.refresh(registration)

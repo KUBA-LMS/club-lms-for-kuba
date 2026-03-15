@@ -27,12 +27,14 @@ import {
 } from '../../services/user';
 import {
   ArrowBackIcon,
-  BellIcon,
+  GearIcon,
   EditPencilIcon,
   ChevronDownIcon,
   CheckIcon,
   AlertTriangleIcon,
 } from '../../components/icons';
+import { colors } from '../../constants/colors';
+import { shadows } from '../../constants/shadows';
 
 if (
   Platform.OS === 'android' &&
@@ -79,25 +81,25 @@ function getStatusInfo(reg: RegistrationItem): StatusInfo {
 
   switch (reg.status) {
     case 'checked_in':
-      return { label: 'Participated', color: '#0088FF' };
+      return { label: 'Participated', color: colors.primary };
     case 'confirmed':
       if (isPast) {
         return {
           label: 'No-show',
-          color: '#FF383C',
+          color: colors.error,
           bgColor: '#FFF4F4',
           showAlert: true,
         };
       }
-      return { label: 'Registered', color: '#000000', showCheck: true };
+      return { label: 'Registered', color: colors.black, showCheck: true };
     case 'pending':
       return {
         label: 'Requested',
-        color: '#FF8D28',
+        color: colors.warning,
         bgColor: 'rgba(255,141,40,0.3)',
       };
     case 'cancelled':
-      return { label: 'Cancelled', color: '#595959' };
+      return { label: 'Cancelled', color: colors.gray700 };
     default:
       return { label: reg.status, color: '#8E8E93' };
   }
@@ -182,8 +184,12 @@ export default function ProfileScreen() {
           <ArrowBackIcon size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My PAGE</Text>
-        <TouchableOpacity style={styles.headerSide}>
-          <BellIcon size={24} color="#000" />
+        <TouchableOpacity
+          style={styles.headerSide}
+          onPress={() => navigation.navigate('Settings')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <GearIcon size={24} color="#000" />
         </TouchableOpacity>
       </View>
       <View style={styles.headerDivider} />
@@ -344,7 +350,7 @@ export default function ProfileScreen() {
                           <Text
                             style={[
                               styles.txAmt,
-                              { color: isSent ? '#FF383C' : '#0088FF' },
+                              { color: isSent ? colors.error : colors.primary },
                             ]}
                           >
                             {isSent ? '-' : '+'}{amt.toLocaleString()} KRW
@@ -453,7 +459,7 @@ export default function ProfileScreen() {
                       {/* Alert triangle for No-show */}
                       {si.showAlert && (
                         <View style={styles.alertIcon}>
-                          <AlertTriangleIcon size={28} color="#FF383C" />
+                          <AlertTriangleIcon size={28} color={colors.error} />
                         </View>
                       )}
 
@@ -545,21 +551,21 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   clubInitial: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#000',
   },
   // Figma: club name Open_Sans 8px center, tracking -0.08
   clubName: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 8,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#000000',
     textAlign: 'center',
     marginTop: 4,
-    letterSpacing: -0.08,
+    letterSpacing: -0.1,
   },
   clubNameSelected: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
   },
 
   // Profile Card - Figma: border 1px #C5C5C5, borderRadius 10, h=95, w=355
@@ -597,7 +603,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
   avatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 22,
     color: '#000',
   },
@@ -612,11 +618,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   username: {
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-    }),
-    fontWeight: '700',
+    fontFamily: 'Inter-Bold',
     fontSize: 25,
     color: '#000000',
     textAlign: 'center',
@@ -635,8 +637,8 @@ const styles = StyleSheet.create({
     left: 14,
   },
   editBtnText: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10.5,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#000000',
   },
   // Figma: vertical divider h=70 centered vertically
@@ -655,14 +657,14 @@ const styles = StyleSheet.create({
   },
   // Figma: Open_Sans:Regular 13px black
   legalName: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
     textAlign: 'right',
   },
   // Figma: "Sup. leechan4" Open_Sans:Regular 13px #00C0E8
   roleText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#00C0E8',
     textAlign: 'right',
@@ -670,9 +672,9 @@ const styles = StyleSheet.create({
   },
   // Figma: student ID Open_Sans:Regular 15px #595959
   studentId: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
-    color: '#595959',
+    color: colors.gray700,
     textAlign: 'right',
     marginTop: 2,
   },
@@ -697,13 +699,13 @@ const styles = StyleSheet.create({
   },
   // Figma: "Deposit" Open_Sans:Bold 15px #595959
   depositLabel: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 15,
-    color: '#595959',
+    color: colors.gray700,
   },
   // Figma: amount Open_Sans:Bold 30px black
   depositAmount: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 30,
     color: '#000000',
     marginTop: -2,
@@ -721,9 +723,9 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   txEmpty: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
-    color: '#595959',
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    color: colors.gray700,
     textAlign: 'center',
     paddingVertical: 12,
   },
@@ -738,34 +740,31 @@ const styles = StyleSheet.create({
   },
   // Figma: description Open_Sans:Bold 10px black
   txDesc: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     color: '#000000',
   },
-  // Figma: timestamp Open_Sans:Regular 10px #595959
   txTime: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
-    color: '#595959',
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    color: colors.gray700,
     marginTop: 6,
   },
   txRight: {
     alignItems: 'flex-end',
   },
-  // Figma: amount 10px, positive=#FF383C, negative=#0088FF
   txAmt: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
   },
-  // Figma: "Deposit: **balance**"
   txBal: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#000000',
     marginTop: 2,
   },
   txBalBold: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
   },
   txDivider: {
     height: StyleSheet.hairlineWidth,
@@ -780,30 +779,22 @@ const styles = StyleSheet.create({
   // Figma: white card borderRadius 30, shadow 15px 15px 50px rgba(0,0,0,0.15)
   historyCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 30,
+    borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 15, height: 15 },
-        shadowOpacity: 0.15,
-        shadowRadius: 25,
-      },
-      android: { elevation: 8 },
-    }),
+    ...shadows.lg,
   },
   // Figma: "History" Open_Sans:Bold 20px black
   historyTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#000000',
     marginBottom: 8,
     marginLeft: 4,
   },
   historyEmpty: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
     textAlign: 'center',
@@ -840,7 +831,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ticketThumbLetter: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#8E8E93',
   },
@@ -853,7 +844,7 @@ const styles = StyleSheet.create({
   },
   // Figma: event title Open_Sans:Regular 13px black
   historyEventTitle: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
   },
@@ -871,7 +862,7 @@ const styles = StyleSheet.create({
   },
   // Figma: date Open_Sans:Regular 13px black
   historyDate: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
   },
@@ -882,14 +873,14 @@ const styles = StyleSheet.create({
   },
   // Figma: "Status:" Open_Sans:Regular 13px
   historyStatusLabel: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
     marginRight: 4,
   },
   // Figma: status value Open_Sans:Bold 13px
   historyStatusVal: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
   },
   checkIconWrap: {
@@ -902,9 +893,9 @@ const styles = StyleSheet.create({
   },
   // Figma: "Details  >" 9px
   detailsLink: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 9,
-    color: '#000000',
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    color: colors.gray500,
     position: 'absolute',
     right: 4,
     bottom: 8,

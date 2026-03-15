@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, G, Defs, Filter, FeFlood, FeBlend, FeGaussianBlur } from 'react-native-svg';
+import { View, Text, StyleSheet } from 'react-native';
+import Svg, { Path, Ellipse, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { UserRegistrationStatus } from '../../types/event';
 
 interface MapPinProps {
   status: UserRegistrationStatus;
   size?: number;
   selected?: boolean;
+  date?: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -15,53 +16,69 @@ const STATUS_COLORS: Record<string, string> = {
   open: '#34C759',
   requested: '#FF8D28',
   closed: '#C20000',
-  upcoming: '#FFFFFF',
+  upcoming: '#8E8E93',
 };
 
-export default function MapPin({ status, size = 36, selected }: MapPinProps) {
+// Figma SVG: 35×42, teardrop pin body (white→color gradient) + ellipse shadow
+export default function MapPin({ status, size = 35, selected, date }: MapPinProps) {
   const scale = selected ? 1.3 : 1;
   const w = Math.round(size * scale);
-  const h = w;
-  const fillColor = STATUS_COLORS[status] || '#FFFFFF';
-  const filterId = `blur_${status}`;
+  const h = Math.round(42 * scale);
+  const statusColor = STATUS_COLORS[status] || '#34C759';
+  const gradId = `pinGrad_${status}`;
 
   return (
-    <View style={[styles.container, { width: w, height: h }]} collapsable={false}>
-      <Svg width={w} height={h} viewBox="0 0 27 27" fill="none">
-        <Circle cx="13.5" cy="11.5" r="7.5" fill="white" />
-        <Path
-          d="M13.7432 1.1875L14.1914 1.19824C16.4243 1.30388 18.5548 2.19112 20.2061 3.71191C21.8574 5.2328 22.9165 7.28317 23.2051 9.5L23.2529 9.94531L23.2813 10.4434C23.3592 12.7616 22.6514 15.0391 21.2725 16.9043L20.9668 17.2969L15.5742 23.8916C15.3231 24.199 15.0071 24.447 14.6485 24.6172C14.2896 24.7874 13.8971 24.876 13.5 24.876C13.1029 24.876 12.7104 24.7874 12.3516 24.6172C11.9929 24.447 11.677 24.199 11.4258 23.8916L6.03419 17.2969C4.34925 15.2348 3.52916 12.5993 3.74709 9.94531L3.79494 9.5C4.08354 7.28317 5.14262 5.2328 6.79396 3.71191C8.55544 2.08964 10.8622 1.18828 13.2569 1.1875H13.7432ZM13.5 6.40625C12.2154 6.40625 10.9836 6.91682 10.0752 7.8252C9.16683 8.73357 8.65627 9.96536 8.65627 11.25C8.65627 12.5346 9.16683 13.7664 10.0752 14.6748C10.9836 15.5832 12.2154 16.0938 13.5 16.0938C14.7847 16.0937 16.0164 15.5832 16.9248 14.6748C17.8332 13.7664 18.3438 12.5346 18.3438 11.25L18.3379 11.0098C18.2785 9.81259 17.7764 8.67679 16.9248 7.8252C16.0164 6.91682 14.7847 6.40625 13.5 6.40625Z"
-          fill="black"
-          stroke="#FFFDFD"
-        />
-        <G filter={`url(#${filterId})`}>
-          <Path
-            d="M9.84375 11.25C9.84375 10.2803 10.229 9.35032 10.9146 8.66464C11.6003 7.97896 12.5303 7.59375 13.5 7.59375C14.4697 7.59375 15.3997 7.97896 16.0854 8.66464C16.771 9.35032 17.1562 10.2803 17.1562 11.25C17.1562 12.2197 16.771 13.1497 16.0854 13.8354C15.3997 14.521 14.4697 14.9063 13.5 14.9062C12.5303 14.9063 11.6003 14.521 10.9146 13.8354C10.229 13.1497 9.84375 12.2197 9.84375 11.25Z"
-            fill={fillColor}
-          />
-        </G>
+    <View style={styles.wrapper} collapsable={false}>
+      {date && (
+        <View style={[styles.dateBadge, selected && styles.dateBadgeSelected]}>
+          <Text style={styles.dateText}>{date}</Text>
+        </View>
+      )}
+      <Svg width={w} height={h} viewBox="0 0 35 42" fill="none">
         <Defs>
-          <Filter
-            id={filterId}
-            x={4.84375}
-            y={2.59375}
-            width={17.3125}
-            height={17.3125}
-            filterUnits="userSpaceOnUse"
+          <LinearGradient
+            id={gradId}
+            x1="17.4873"
+            y1="0"
+            x2="17.4873"
+            y2="29.8506"
+            gradientUnits="userSpaceOnUse"
           >
-            <FeFlood floodOpacity="0" result="BackgroundImageFix" />
-            <FeBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-            <FeGaussianBlur stdDeviation="2.5" result="effect1_foregroundBlur" />
-          </Filter>
+            <Stop offset="0" stopColor="#FFFFFF" />
+            <Stop offset="0.4" stopColor={statusColor} />
+          </LinearGradient>
         </Defs>
+
+        {/* Bottom shadow ellipse */}
+        <Ellipse cx={17.502} cy={32} rx={4.5} ry={2} fill={statusColor} opacity={0.6} />
+
+        {/* Pin body */}
+        <Path
+          d="M17.4785 0C22.9997 5.05028e-05 27.901 2.6556 30.9746 6.75879C23.761 12.1809 18.7954 20.4245 17.7207 29.8477C17.6474 29.8485 17.5735 29.8506 17.5 29.8506C17.427 29.8506 17.3541 29.8485 17.2812 29.8477C16.2051 20.4121 11.229 12.1591 4 6.7373C7.07459 2.6466 11.9672 0.000143226 17.4785 0Z"
+          fill={`url(#${gradId})`}
+        />
       </Svg>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  dateBadge: {
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginBottom: 2,
+  },
+  dateBadgeSelected: {
+    backgroundColor: '#000000',
+  },
+  dateText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
+    color: '#FFFFFF',
   },
 });

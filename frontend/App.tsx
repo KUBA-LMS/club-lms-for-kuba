@@ -8,9 +8,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
-  OpenSans_400Regular,
-  OpenSans_700Bold,
-} from '@expo-google-fonts/open-sans';
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { Gafata_400Regular } from '@expo-google-fonts/gafata';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -63,8 +65,10 @@ export default function App() {
       try {
         await Font.loadAsync({
           'PorterSansBlock': require('./src/assets/fonts/porter-sans-inline-block.ttf'),
-          'OpenSans-Regular': OpenSans_400Regular,
-          'OpenSans-Bold': OpenSans_700Bold,
+          'Inter-Regular': Inter_400Regular,
+          'Inter-Medium': Inter_500Medium,
+          'Inter-SemiBold': Inter_600SemiBold,
+          'Inter-Bold': Inter_700Bold,
           'Gafata-Regular': Gafata_400Regular,
         });
         console.log('>>> Fonts loaded successfully');

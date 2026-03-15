@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   doneButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -294,12 +294,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pickerText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#8E8E93',
   },
   pickerTextSelected: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     color: '#000000',
   },
 });

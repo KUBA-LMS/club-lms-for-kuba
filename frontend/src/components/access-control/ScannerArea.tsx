@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inactiveText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: 'rgba(255,255,255,0.5)',
   },
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scannedText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -205,8 +205,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   manualHintText: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: 'rgba(255,255,255,0.6)',
   },
   cameraFallback: {
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fallbackText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#FFFFFF',
   },
   tapHint: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: 'rgba(255,255,255,0.5)',
     marginTop: 4,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   permissionButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#FFFFFF',
   },

@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     maxWidth: '70%',
   },
   ownText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#FFFFFF',
     lineHeight: 20,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     maxWidth: '75%',
   },
   senderName: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#8E8E93',
     marginBottom: 3,
@@ -185,26 +185,26 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   otherText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#000000',
     lineHeight: 20,
   },
   time: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#8E8E93',
     marginHorizontal: 4,
     marginBottom: 2,
   },
   failedText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#FF3B30',
     marginRight: 4,
   },
   sendingText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#8E8E93',
     marginRight: 4,
@@ -219,12 +219,12 @@ const styles = StyleSheet.create({
     borderColor: '#C8E6C9',
   },
   eventShareTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#2E7D32',
   },
   eventShareSub: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#4CAF50',
     marginTop: 2,

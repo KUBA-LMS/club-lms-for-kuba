@@ -1,17 +1,21 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_
 from sqlalchemy.orm import selectinload
 from typing import Optional, List
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User
 from app.models.chat import Chat, ChatMember, Message
+from app.models.club import Club
 from app.models.ticket import Ticket
 from app.models.registration import Registration
+from app.models.event import Event
 from app.schemas.chat import (
     ChatCreate,
     ChatResponse,
@@ -33,6 +37,7 @@ from app.services.notifications import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def build_chat_response(
@@ -66,6 +71,7 @@ def build_chat_response(
         type=chat.type,
         name=chat.name,
         event_id=chat.event_id,
+        club_id=chat.club_id,
         members=members,
         last_message=last_msg,
         unread_count=unread_count,
@@ -108,7 +114,7 @@ async def _publish_message_notifications(
     sender: User,
 ):
     """Publish WebSocket notifications after sending a message."""
-    created_at_str = message.created_at.isoformat() if message.created_at else datetime.utcnow().isoformat()
+    created_at_str = message.created_at.isoformat() if message.created_at else datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
 
     # Publish to chat channel (for users in the chat room)
     await notify_new_message(
@@ -144,10 +150,11 @@ async def _publish_message_notifications(
 async def list_chats(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    club_id: Optional[UUID] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """List current user's chats."""
+    """List current user's chats. Optionally filter by club_id (includes subgroups)."""
     offset = (page - 1) * limit
 
     # Get chat IDs for current user
@@ -160,13 +167,27 @@ async def list_chats(
     if not chat_ids:
         return ChatListResponse(data=[], total=0)
 
-    total = len(chat_ids)
+    # Build base filter
+    filters = [Chat.id.in_(chat_ids)]
+
+    # Apply club_id filter (includes subgroups of the given club)
+    if club_id:
+        subgroup_query = select(Club.id).where(Club.parent_id == club_id)
+        subgroup_result = await db.execute(subgroup_query)
+        subgroup_ids = [row[0] for row in subgroup_result.fetchall()]
+        allowed_club_ids = [club_id] + subgroup_ids
+        filters.append(Chat.club_id.in_(allowed_club_ids))
+
+    # Count total matching
+    count_query = select(func.count(Chat.id)).where(and_(*filters))
+    count_result = await db.execute(count_query)
+    total = count_result.scalar() or 0
 
     # Get chats with members
     chats_query = (
         select(Chat)
         .options(selectinload(Chat.members).selectinload(ChatMember.user))
-        .where(Chat.id.in_(chat_ids))
+        .where(and_(*filters))
         .order_by(Chat.updated_at.desc())
         .offset(offset)
         .limit(limit)
@@ -245,11 +266,21 @@ async def create_chat(
             chat = chat_result.scalar_one()
             return build_chat_response(chat)
 
+    # Resolve club_id: explicit or inferred from event
+    resolved_club_id = chat_data.club_id
+    if not resolved_club_id and chat_data.event_id:
+        event_query = select(Event.club_id).where(Event.id == chat_data.event_id)
+        event_result = await db.execute(event_query)
+        event_row = event_result.first()
+        if event_row:
+            resolved_club_id = event_row[0]
+
     # Create chat
     new_chat = Chat(
         type=chat_data.type,
         name=chat_data.name,
         event_id=chat_data.event_id,
+        club_id=resolved_club_id,
     )
     db.add(new_chat)
     await db.flush()
@@ -393,6 +424,13 @@ async def send_message(
     current_user: User = Depends(get_current_user),
 ):
     """Send a message to a chat."""
+    # Validate message length
+    if message_data.content and len(message_data.content) > 2000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message content exceeds maximum length of 2000 characters",
+        )
+
     # Verify membership
     member_check = await db.execute(
         select(ChatMember).where(
@@ -420,7 +458,7 @@ async def send_message(
     chat_query = select(Chat).where(Chat.id == chat_id)
     chat_result = await db.execute(chat_query)
     chat = chat_result.scalar_one()
-    chat.updated_at = datetime.utcnow()
+    chat.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Mark sender's messages as read (they just sent one)
     sender_member_query = select(ChatMember).where(
@@ -428,7 +466,7 @@ async def send_message(
     )
     sender_member_result = await db.execute(sender_member_query)
     sender_member = sender_member_result.scalar_one()
-    sender_member.last_read_at = datetime.utcnow()
+    sender_member.last_read_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     await db.commit()
     await db.refresh(new_message)
@@ -436,8 +474,8 @@ async def send_message(
     # Publish WebSocket notifications (fire-and-forget)
     try:
         await _publish_message_notifications(db, chat_id, new_message, current_user)
-    except Exception:
-        pass  # WS failure should not block message delivery
+    except Exception as e:
+        logger.warning("WS notification failed for chat=%s: %s", chat_id, e)
 
     return MessageResponse(
         id=new_message.id,
@@ -474,7 +512,7 @@ async def mark_chat_read(
             detail="Not a member of this chat",
         )
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     member.last_read_at = now
     await db.commit()
 
@@ -569,7 +607,7 @@ async def transfer_ticket(
     chat_query = select(Chat).where(Chat.id == chat_id)
     chat_result = await db.execute(chat_query)
     chat = chat_result.scalar_one()
-    chat.updated_at = datetime.utcnow()
+    chat.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     await db.commit()
     await db.refresh(new_message)
@@ -603,7 +641,7 @@ async def add_chat_members(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Add members to a group chat."""
+    """Add members to a group chat. Requires admin role or club lead."""
     # Verify membership
     member_check = await db.execute(
         select(ChatMember).where(
@@ -632,6 +670,28 @@ async def add_chat_members(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot add members to a direct chat",
         )
+
+    # Only admin users or club leads can add members
+    if current_user.role not in ("admin", "superadmin"):
+        from app.models.user import user_club
+        if chat.club_id:
+            lead_check = await db.execute(
+                select(user_club.c.role).where(
+                    user_club.c.user_id == current_user.id,
+                    user_club.c.club_id == chat.club_id,
+                )
+            )
+            row = lead_check.first()
+            if not row or row[0] != "lead":
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only admins or club leads can add members to a chat",
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only admins can add members to this chat",
+            )
 
     # Add new members
     for user_id in member_data.user_ids:

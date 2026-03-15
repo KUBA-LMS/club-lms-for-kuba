@@ -24,24 +24,32 @@ export function useWebSocketConnection(): void {
   const { accessToken, isAuthenticated } = useAuth();
   const prevTokenRef = useRef<string | null>(null);
 
+  // Handle connect/disconnect based on auth state changes
   useEffect(() => {
     if (isAuthenticated && accessToken) {
-      // Only reconnect if token actually changed
       if (prevTokenRef.current !== accessToken) {
-        wsService.disconnect();
+        // connect() internally cleans up the old WS connection while
+        // preserving channels/listeners, so _resubscribe() restores them.
         wsService.connect(config.WS_URL, accessToken);
         prevTokenRef.current = accessToken;
       }
     } else {
+      // Logout: full disconnect (clears channels + listeners)
       wsService.disconnect();
       prevTokenRef.current = null;
     }
+    // No cleanup here - disconnect on unmount is handled by the separate effect below.
+    // If we put disconnect() in cleanup, it fires on every token change and
+    // clears channels/listeners before connect() can preserve them.
+  }, [isAuthenticated, accessToken]);
 
+  // Disconnect only on actual component unmount
+  useEffect(() => {
     return () => {
       wsService.disconnect();
       prevTokenRef.current = null;
     };
-  }, [isAuthenticated, accessToken]);
+  }, []);
 
   // Reconnect on foreground return
   useEffect(() => {

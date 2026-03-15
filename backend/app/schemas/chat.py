@@ -34,6 +34,7 @@ class ChatCreate(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     member_ids: List[UUID]  # Initial members
     event_id: Optional[UUID] = None
+    club_id: Optional[UUID] = None
 
 
 class ChatResponse(BaseModel):
@@ -41,6 +42,7 @@ class ChatResponse(BaseModel):
     type: ChatTypeEnum
     name: Optional[str] = None
     event_id: Optional[UUID] = None
+    club_id: Optional[UUID] = None
     members: List[ChatMemberResponse]
     last_message: Optional["MessageBriefResponse"] = None
     unread_count: int = 0

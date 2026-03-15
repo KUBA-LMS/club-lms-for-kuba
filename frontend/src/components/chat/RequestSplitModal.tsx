@@ -9,6 +9,10 @@ import {
   Image,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { TrashIcon } from '../icons';
 import { ChatMember } from '../../types/chat';
@@ -92,7 +96,11 @@ export default function RequestSplitModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <View style={styles.dialog}>
           <Text style={styles.title}>Request 1/N</Text>
 
@@ -141,7 +149,8 @@ export default function RequestSplitModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
@@ -162,7 +171,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#000000',
     textAlign: 'center',
@@ -176,7 +185,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   amountInput: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 32,
     color: '#000000',
     textAlign: 'right',
@@ -186,12 +195,12 @@ const styles = StyleSheet.create({
     borderBottomColor: '#000000',
   },
   currencyLabel: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#8E8E93',
   },
   toLabel: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#8E8E93',
     marginBottom: 10,
@@ -223,7 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9500',
   },
   memberName: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 15,
     color: '#000000',
   },
@@ -236,7 +245,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   splitAmountText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#000000',
   },
@@ -258,7 +267,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
@@ -273,7 +282,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5EA',
   },
   proceedText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },

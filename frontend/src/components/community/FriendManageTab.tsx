@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#000000',
     paddingVertical: 0,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: colors.gray400,
   },
@@ -286,14 +286,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   username: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 17,
     color: '#000000',
     marginBottom: 2,
   },
   groupsLabel: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#000000',
     marginBottom: 4,
   },
@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   clubBadgeText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 8,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     color: '#333',
   },
   separator: {

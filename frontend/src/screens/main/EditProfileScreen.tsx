@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 17,
     color: '#000000',
   },
   saveText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#007AFF',
   },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#595959',
     textTransform: 'uppercase',
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#000000',
     borderWidth: StyleSheet.hairlineWidth,

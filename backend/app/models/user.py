@@ -35,7 +35,7 @@ class User(Base, TimestampMixin):
     profile_image = Column(String(500), nullable=True)
     nationality = Column(String(50), nullable=True)
     gender = Column(SQLEnum("male", "female", "other", name="gender_enum"), nullable=True)
-    role = Column(SQLEnum("member", "admin", name="role_enum"), default="member", nullable=False)
+    role = Column(SQLEnum("member", "admin", "superadmin", name="role_enum"), default="member", nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     bank_name = Column(String(50), nullable=True)
     bank_account_number = Column(String(50), nullable=True)

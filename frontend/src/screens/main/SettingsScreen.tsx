@@ -11,6 +11,7 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -19,14 +20,16 @@ import { useAuth } from '../../context/AuthContext';
 import { MainStackParamList } from '../../navigation/types';
 import { ArrowBackIcon } from '../../components/icons';
 import * as userApi from '../../services/user';
+import { colors } from '../../constants/colors';
+import { shadows } from '../../constants/shadows';
 
 type Nav = NativeStackNavigationProp<MainStackParamList>;
 
 const KOREAN_BANKS = [
-  'KB국민', '신한', '우리', '하나', 'NH농협',
-  '카카오뱅크', '토스뱅크', 'SC제일', 'IBK기업',
-  '새마을금고', '수협', '대구', '부산', '경남',
-  '광주', '전북', '제주', '우체국', '신협', '씨티',
+  'KB Kookmin', 'Shinhan', 'Woori', 'Hana', 'NH NongHyup',
+  'KakaoBank', 'Toss Bank', 'SC First', 'IBK Industrial',
+  'MG Saemaul', 'Suhyup', 'Daegu', 'Busan', 'Gyeongnam',
+  'Gwangju', 'Jeonbuk', 'Jeju', 'Post Office', 'Shinhyup', 'Citi',
 ];
 
 export default function SettingsScreen() {
@@ -193,7 +196,7 @@ export default function SettingsScreen() {
               </TouchableOpacity>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.row} onPress={handleDeleteBankAccount}>
-                <Text style={[styles.rowText, { color: '#FF3B30' }]}>Remove Account</Text>
+                <Text style={[styles.rowText, { color: colors.error }]}>Remove Account</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -229,7 +232,10 @@ export default function SettingsScreen() {
 
       {/* Bank account modal */}
       <Modal visible={showBankModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
             <Text style={styles.modalTitle}>
               {bankAccount?.bank_name ? 'Edit Bank Account' : 'Register Bank Account'}
@@ -297,7 +303,7 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -324,7 +330,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 17,
     color: '#000000',
   },
@@ -337,7 +343,7 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   groupLabel: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#8E8E93',
     textTransform: 'uppercase',
@@ -350,15 +356,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 3,
-      },
-      android: { elevation: 1 },
-    }),
+    ...shadows.sm,
   },
   row: {
     flexDirection: 'row',
@@ -368,19 +366,19 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   rowText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#000000',
   },
   rowValue: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#8E8E93',
   },
   arrow: {
-    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+    fontFamily: 'Inter-Regular',
     fontSize: 18,
-    color: '#C5C5C5',
+    color: colors.gray300,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
@@ -388,19 +386,19 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   logoutBtn: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: 'center',
     marginTop: 24,
   },
   logoutText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
   bankDetail: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#8E8E93',
     marginTop: 2,
@@ -417,13 +415,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#000000',
     marginBottom: 16,
   },
   inputLabel: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#8E8E93',
     marginBottom: 6,
@@ -442,23 +440,23 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   bankChipSelected: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
   },
   bankChipText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#000000',
   },
   bankChipTextSelected: {
     color: '#FFFFFF',
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
   },
   input: {
     backgroundColor: '#F2F2F7',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#000000',
   },
@@ -475,19 +473,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCancelText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#000000',
   },
   modalSaveBtn: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   modalSaveText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },

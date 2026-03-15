@@ -98,7 +98,11 @@ export function useChatRoom(chatId: string) {
     try {
       const nextPage = page + 1;
       const msgData = await chatApi.getChatMessages(chatId, { page: nextPage, limit: 30 });
-      setMessages((prev) => [...msgData.data.reverse(), ...prev]);
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const newMsgs = msgData.data.reverse().filter((m) => !existingIds.has(m.id));
+        return [...newMsgs, ...prev];
+      });
       setPage(nextPage);
       setHasMore(msgData.data.length >= 30);
     } catch {
@@ -188,7 +192,10 @@ export function useChatRoom(chatId: string) {
         status: 'sent',
       };
 
-      setMessages((prev) => [...prev, incoming]);
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === incoming.id)) return prev;
+        return [...prev, incoming];
+      });
       // Auto mark read when receiving in the room
       debouncedMarkRead();
     }
@@ -247,7 +254,7 @@ export function useChatRoom(chatId: string) {
 
 // ---- useChatList ----
 
-export function useChatList() {
+export function useChatList(clubId?: string | null) {
   const { user } = useAuth();
   const currentUserId = (user as { id?: string } | null)?.id;
 
@@ -257,14 +264,14 @@ export function useChatList() {
   const fetchChats = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await chatApi.listChats();
+      const data = await chatApi.listChats(clubId || undefined);
       setChats(data.data);
     } catch {
       // Silently fail
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [clubId]);
 
   useEffect(() => {
     fetchChats();

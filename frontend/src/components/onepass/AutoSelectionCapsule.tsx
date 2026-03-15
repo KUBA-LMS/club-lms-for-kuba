@@ -114,14 +114,14 @@ const styles = StyleSheet.create({
   },
   oneText: {
     fontFamily: 'Gafata-Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: '#FFFFFF',
     position: 'absolute',
     left: 4,
   },
   passText: {
     fontFamily: 'Gafata-Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: '#FFFFFF',
     position: 'absolute',
     right: 3,

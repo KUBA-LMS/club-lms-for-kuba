@@ -34,3 +34,5 @@ alembic==1.15.2
 httpx==0.28.1
 # Redis
 redis[hiredis]==5.2.1
+slowapi==0.1.9
+limits==3.6.0

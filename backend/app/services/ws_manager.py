@@ -20,6 +20,9 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+_BACKOFF_BASE = 2
+_BACKOFF_MAX = 60
+
 
 class ConnectionManager:
     def __init__(self):
@@ -33,7 +36,7 @@ class ConnectionManager:
     async def start(self):
         self._running = True
         self._subscriber_task = asyncio.create_task(self._redis_subscriber())
-        print("[WS] WebSocket manager started")
+        logger.info("WebSocket manager started")
 
     async def stop(self):
         self._running = False
@@ -50,6 +53,7 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
         if user_id in self.active_connections:
+            logger.info("Replacing existing connection for user %s", user_id)
             try:
                 await self.active_connections[user_id].close(code=4001)
             except Exception:
@@ -59,7 +63,7 @@ class ConnectionManager:
         self.active_connections[user_id] = websocket
         self.user_channels[user_id] = set()
         await self._subscribe_channel(user_id, f"user:{user_id}")
-        logger.info(f"WS connected: {user_id} (total: {len(self.active_connections)})")
+        logger.info("WS connected: user=%s total=%d", user_id, len(self.active_connections))
 
     async def disconnect(self, user_id: str):
         channels = list(self.user_channels.get(user_id, []))
@@ -67,12 +71,14 @@ class ConnectionManager:
             await self._unsubscribe_channel(user_id, ch)
         self.active_connections.pop(user_id, None)
         self.user_channels.pop(user_id, None)
-        logger.info(f"WS disconnected: {user_id} (total: {len(self.active_connections)})")
+        logger.info("WS disconnected: user=%s total=%d", user_id, len(self.active_connections))
 
     async def subscribe(self, user_id: str, channel: str):
+        logger.debug("WS subscribe: user=%s channel=%s", user_id, channel)
         await self._subscribe_channel(user_id, channel)
 
     async def unsubscribe(self, user_id: str, channel: str):
+        logger.debug("WS unsubscribe: user=%s channel=%s", user_id, channel)
         await self._unsubscribe_channel(user_id, channel)
 
     async def send_to_user(self, user_id: str, message: dict):
@@ -80,19 +86,25 @@ class ConnectionManager:
         if ws:
             try:
                 await ws.send_json(message)
-            except Exception:
+            except Exception as e:
+                logger.warning("send_to_user failed: user=%s error=%s — disconnecting", user_id, e)
                 await self.disconnect(user_id)
+        else:
+            msg_type = message.get("type", "unknown")
+            if msg_type not in ("pong",):
+                logger.debug("send_to_user: no connection for user=%s type=%s", user_id, msg_type)
 
     async def publish(self, channel: str, message: dict):
         """Publish via Redis so all processes receive the message."""
+        msg_type = message.get("type", "unknown")
+        logger.debug("WS publish: channel=%s type=%s", channel, msg_type)
         try:
             from app.core.redis import get_redis
             r = await get_redis()
             payload = json.dumps({"channel": channel, "message": message})
             await r.publish(f"ws:{channel}", payload)
         except Exception as e:
-            logger.error(f"Redis publish error: {e}")
-            # Fallback: broadcast locally only
+            logger.warning("Redis publish failed (%s), falling back to local broadcast", e)
             await self._broadcast_local(channel, message)
 
     # -- Internal --
@@ -104,7 +116,7 @@ class ConnectionManager:
                 try:
                     await self._pubsub.subscribe(f"ws:{channel}")
                 except Exception as e:
-                    logger.warning(f"Redis subscribe error: {e}")
+                    logger.warning("Redis subscribe error: %s", e)
         self.channel_subscriptions[channel].add(user_id)
         self.user_channels.setdefault(user_id, set()).add(channel)
 
@@ -129,13 +141,18 @@ class ConnectionManager:
 
     async def _broadcast_local(self, channel: str, message: dict):
         user_ids = list(self.channel_subscriptions.get(channel, set()))
+        msg_type = message.get("type", "unknown")
+        logger.debug(
+            "WS local broadcast: channel=%s type=%s recipients=%s",
+            channel, msg_type, user_ids,
+        )
         for uid in user_ids:
             await self.send_to_user(uid, message)
 
     async def _redis_subscriber(self):
         """Background task: listen to Redis pub/sub and forward to local clients."""
-        # Small delay to let the server finish startup
         await asyncio.sleep(1)
+        attempt = 0
 
         while self._running:
             try:
@@ -146,16 +163,15 @@ class ConnectionManager:
                 )
                 self._pubsub = r.pubsub()
 
-                # Subscribe to existing channels (or a dummy to keep connection alive)
                 channels = list(self.channel_subscriptions.keys())
                 if channels:
                     for channel in channels:
                         await self._pubsub.subscribe(f"ws:{channel}")
                 else:
-                    # Need at least one subscription for listen() to work
                     await self._pubsub.subscribe("ws:__heartbeat__")
 
-                print("[WS] Redis subscriber connected")
+                logger.info("Redis subscriber connected")
+                attempt = 0  # reset backoff on successful connection
 
                 while self._running:
                     msg = await self._pubsub.get_message(
@@ -176,9 +192,14 @@ class ConnectionManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                print(f"[WS] Redis subscriber error: {e}, reconnecting in 2s...")
                 self._pubsub = None
-                await asyncio.sleep(2)
+                delay = min(_BACKOFF_BASE ** attempt, _BACKOFF_MAX)
+                attempt += 1
+                logger.warning(
+                    "Redis subscriber error: %s — reconnecting in %.0fs (attempt %d)",
+                    e, delay, attempt,
+                )
+                await asyncio.sleep(delay)
 
 
 manager = ConnectionManager()

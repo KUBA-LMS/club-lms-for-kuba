@@ -29,6 +29,7 @@ export interface Chat {
   type: ChatType;
   name: string | null;
   event_id: string | null;
+  club_id: string | null;
   members: ChatMember[];
   last_message: MessageBrief | null;
   unread_count: number;

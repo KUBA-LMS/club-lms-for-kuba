@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #FAF8F5;
+  --card: #FFFFFF;
+  --card-border: #F0EDE8;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-active: #FFF0EB;
+  --sidebar-hover: #FAF5F2;
+  --accent: #E8573A;
+  --accent-hover: #D14A30;
+  --text-primary: #1A1A1A;
+  --text-secondary: #8C8C8C;
+  --text-muted: #B5B5B5;
+  --border: #E8E5E0;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --badge-coral: #FFE8E0;
+  --badge-blue: #E0F2FE;
+  --badge-green: #ECFDF5;
+  --badge-yellow: #FEF9C3;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-badge-coral: var(--badge-coral);
+  --color-badge-blue: var(--badge-blue);
+  --color-badge-green: var(--badge-green);
+  --color-badge-yellow: var(--badge-yellow);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}

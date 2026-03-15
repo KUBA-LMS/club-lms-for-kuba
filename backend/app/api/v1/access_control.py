@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -137,7 +137,7 @@ async def scan_barcode(
 
     # Confirmed -> approve entry
     if registration.status == "confirmed":
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         ticket.is_used = True
         ticket.used_at = now
         registration.status = RegistrationStatusEnum.checked_in
@@ -354,7 +354,7 @@ async def walk_in_register(
         )
 
     # Create registration (checked_in directly)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     registration = Registration(
         user_id=data.user_id,
         event_id=event_id,

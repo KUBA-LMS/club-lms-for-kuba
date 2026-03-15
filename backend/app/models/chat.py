@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, String, Text, DateTime, Enum as SQLEnum, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import UUID
@@ -15,8 +15,9 @@ class Chat(Base, TimestampMixin):
     type = Column(SQLEnum("direct", "group", "event", name="chat_type_enum"), nullable=False)
     name = Column(String(100), nullable=True)
 
-    # Foreign Keys (optional for event chats)
+    # Foreign Keys
     event_id = Column(UUID(as_uuid=True), ForeignKey("events.id"), nullable=True)
+    club_id = Column(UUID(as_uuid=True), ForeignKey("clubs.id"), nullable=True, index=True)
 
     # Relationships
     members = relationship("ChatMember", back_populates="chat")
@@ -27,7 +28,7 @@ class ChatMember(Base):
     __tablename__ = "chat_members"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    joined_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    joined_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     last_read_at = Column(DateTime, nullable=True)
 
     # Foreign Keys

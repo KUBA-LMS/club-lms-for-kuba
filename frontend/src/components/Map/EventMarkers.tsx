@@ -28,6 +28,7 @@ export default function EventMarkers({ events, selectedEventId, onMarkerPress }:
             <MapPin
               status={event.user_status as UserRegistrationStatus}
               selected={isSelected}
+              date={new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             />
           </NaverMapMarkerOverlay>
         );

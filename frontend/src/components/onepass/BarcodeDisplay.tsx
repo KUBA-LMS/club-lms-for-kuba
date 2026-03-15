@@ -135,8 +135,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userName: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#FFFFFF',
   },
   timerContainer: {
@@ -151,8 +151,8 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   timerText: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#FFFFFF',
   },
   barcodeContainer: {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     height: 80,
   },
   digits: {
-    fontFamily: 'Inter',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -169,8 +169,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
   },
   statusText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     textAlign: 'center',
     marginTop: 2,
   },

@@ -1,6 +1,6 @@
 """
 Database seed script for development/testing.
-Creates admin user, clubs, and (in DEV_MODE) test users, mock events,
+Creates superadmin, clubs, and (in DEV_MODE) test users, mock events,
 registrations, and tickets covering all UserRegistrationStatus cases.
 """
 
@@ -28,9 +28,12 @@ from app.models.chat import Chat, ChatMember, Message
 # --- Fixed UUIDs ---
 
 # Core (always seeded)
-ADMIN_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+SUPERADMIN_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000000")
 KUBA_CLUB_ID = uuid.UUID("00000000-0000-0000-0000-000000000101")
 KUBA_GROUP_8_CLUB_ID = uuid.UUID("00000000-0000-0000-0000-000000000102")
+
+# DEV_MODE only
+ADMIN_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 # DEV_MODE only
 TEST_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000002")
@@ -64,27 +67,31 @@ async def seed_database():
 
     async with async_session() as session:
         # Check if already seeded
-        result = await session.execute(select(User).where(User.id == ADMIN_USER_ID))
+        result = await session.execute(select(User).where(User.id == SUPERADMIN_USER_ID))
         if result.scalar_one_or_none():
             print("Database already seeded. Skipping...")
             return
 
         print("Seeding database...")
 
-        # ---- Always seeded: admin user & clubs ----
+        # ---- Always seeded: superadmin & clubs ----
 
-        admin_user = User(
-            id=ADMIN_USER_ID,
-            username="admin",
-            email="admin@kuba.kr",
-            hashed_password=get_password_hash("admin123!"),
-            legal_name="Admin User",
-            student_id="2023000000",
-            role="admin",
+        sa_password = settings.SUPERADMIN_PASSWORD
+        if not sa_password:
+            sa_password = secrets.token_urlsafe(16)
+            print(f"[SUPERADMIN] Generated password (save this!): {sa_password}")
+
+        superadmin = User(
+            id=SUPERADMIN_USER_ID,
+            username="superadmin",
+            email="superadmin@system.local",
+            hashed_password=get_password_hash(sa_password),
+            legal_name="System Administrator",
+            role="superadmin",
             is_active=True,
         )
-        session.add(admin_user)
-        print("Created admin user (username: admin, password: admin123!)")
+        session.add(superadmin)
+        print(f"Created superadmin (username: superadmin)")
 
         kuba_club = Club(
             id=KUBA_CLUB_ID,
@@ -118,6 +125,19 @@ async def seed_database():
         now = datetime.utcnow()
 
         # -- Users --
+
+        admin_user = User(
+            id=ADMIN_USER_ID,
+            username="admin",
+            email="admin@kuba.kr",
+            hashed_password=get_password_hash("admin123!"),
+            legal_name="Admin User",
+            student_id="2023000000",
+            role="admin",
+            is_active=True,
+        )
+        session.add(admin_user)
+        print("Created test admin (username: admin, password: admin123!)")
 
         test_user = User(
             id=TEST_USER_ID,

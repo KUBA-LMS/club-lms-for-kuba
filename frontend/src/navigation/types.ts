@@ -62,6 +62,9 @@ export type MainStackParamList = {
   AdminCreateEvent: undefined;
   AdminUploadPoster: { eventData: Partial<EventFormData> };
   AccessControl: undefined;
+  AdminHub: undefined;
+  AdminHubSubgroupDetail: { clubId: string; subgroupId: string; subgroupName: string };
+  AdminHubMemberDetail: { clubId: string; adminUserId: string; adminUsername: string };
 };
 
 export type RootStackParamList = {

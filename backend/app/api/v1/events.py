@@ -1,10 +1,14 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+logger = logging.getLogger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.security import get_current_user, get_current_admin_user
@@ -107,7 +111,7 @@ async def list_events(
 ):
     """List events with filtering and pagination, including user's registration status."""
     offset = (page - 1) * limit
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Build base query
     base_query = select(Event).options(
@@ -176,7 +180,7 @@ async def list_events(
             .where(
                 and_(
                     Registration.event_id.in_(event_ids),
-                    Registration.status.in_(["confirmed", "checked_in"]),
+                    Registration.status.in_(["confirmed", "checked_in", "pending"]),
                 )
             )
             .order_by(Registration.created_at.asc())
@@ -272,7 +276,7 @@ async def get_event(
         .where(
             and_(
                 Registration.event_id == event_id,
-                Registration.status.in_(["confirmed", "checked_in"]),
+                Registration.status.in_(["confirmed", "checked_in", "pending"]),
             )
         )
         .order_by(Registration.created_at.asc())
@@ -298,7 +302,7 @@ async def get_event(
     )
     is_bookmarked = bk_result.scalar_one_or_none() is not None
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     status_val, reg_id = calculate_user_status(event, user_reg, now)
 
     event_response = build_event_response(event)

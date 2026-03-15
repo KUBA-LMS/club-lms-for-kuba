@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 30,
     color: '#000000',
     letterSpacing: -0.08,
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
   },
   nameInputLabel: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#1E1E1E',
     marginTop: 2,
   },
   nameInput: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 17,
     color: '#000000',
     padding: 0,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: 'NotoSansKR-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#000000',
     padding: 0,
@@ -321,12 +321,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   chipText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
   },
   chipRemove: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#8E8E93',
   },
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: colors.gray500,
   },
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
   },
   createButtonText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#FFFFFF',
     textAlign: 'center',

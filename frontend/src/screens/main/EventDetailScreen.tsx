@@ -101,7 +101,7 @@ export default function EventDetailScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>{event.title}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleToggleBookmark} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <StarsIcon size={20} color={event.is_bookmarked ? '#FFD700' : '#212121'} />
+            <StarsIcon size={20} color={event.is_bookmarked ? '#FFD700' : '#212121'} filled={event.is_bookmarked} />
           </TouchableOpacity>
         </View>
       </View>
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   headerTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#000000',
     flex: 1,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#8E8E93',
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   imagePlaceholderText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#8E8E93',
   },
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#A855F7',
   },
   badgeText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 11,
     color: '#FFFFFF',
   },
@@ -309,12 +309,12 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   eventTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#000000',
   },
   eventDate: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#595959',
     marginTop: 4,
@@ -329,18 +329,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   infoLabel: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
   },
   infoValue: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
     textAlign: 'right',
   },
   infoValueBold: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#000000',
   },
@@ -373,13 +373,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#000000',
     marginBottom: 8,
   },
   cardText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#000000',
     lineHeight: 20,
@@ -408,19 +408,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   participantInitial: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
   participantName: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#595959',
     marginTop: 4,
     textAlign: 'center',
   },
   moreParticipants: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#8E8E93',
   },

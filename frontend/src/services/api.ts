@@ -14,6 +14,13 @@ let failedQueue: Array<{
   reject: (error: Error) => void;
 }> = [];
 
+// Callback for notifying AuthContext when token is refreshed
+let tokenRefreshCallback: ((token: string) => void) | null = null;
+
+export function setTokenRefreshCallback(cb: ((token: string) => void) | null) {
+  tokenRefreshCallback = cb;
+}
+
 const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
@@ -91,6 +98,11 @@ api.interceptors.response.use(
 
         await storage.setAccessToken(access_token);
         await storage.setRefreshToken(newRefreshToken);
+
+        // Notify AuthContext so WS can reconnect with new token
+        if (tokenRefreshCallback) {
+          tokenRefreshCallback(access_token);
+        }
 
         processQueue(null, access_token);
 

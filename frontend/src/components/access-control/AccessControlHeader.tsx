@@ -29,13 +29,13 @@ const styles = StyleSheet.create({
     width: 40,
   },
   backText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#000000',
   },
   title: {
     fontFamily: 'Gafata-Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: '#000000',
     textAlign: 'center',
     letterSpacing: 2,

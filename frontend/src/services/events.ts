@@ -56,6 +56,48 @@ export async function cancelRegistration(registrationId: string): Promise<Regist
   return response.data;
 }
 
+export interface EventSearchResult {
+  type: 'event';
+  id: string;
+  title: string;
+  date: string;
+  provider: string;
+}
+
+export interface ProviderSearchResult {
+  type: 'provider';
+  id: string;
+  name: string;
+}
+
+export type SearchResult = EventSearchResult | ProviderSearchResult;
+
+/**
+ * Search events and providers by keyword
+ */
+export async function searchEventsAndProviders(query: string): Promise<SearchResult[]> {
+  const results: SearchResult[] = [];
+
+  try {
+    const eventsRes = await api.get<EventListResponse>('/events/', {
+      params: { search: query, filter: 'all', limit: 5 },
+    });
+    eventsRes.data.data.forEach((e) => {
+      results.push({
+        type: 'event',
+        id: e.id,
+        title: e.title,
+        date: e.event_date,
+        provider: e.club.name,
+      });
+    });
+  } catch {
+    // silent
+  }
+
+  return results;
+}
+
 /**
  * List user's registrations
  */

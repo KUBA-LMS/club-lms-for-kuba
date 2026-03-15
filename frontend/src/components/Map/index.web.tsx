@@ -16,7 +16,7 @@ export const NaverMapView = (props: any) => {
         },
       ]}
     >
-      <Text style={{ color: "#666", fontFamily: "OpenSans-Regular" }}>
+      <Text style={{ color: "#666", fontFamily: "Inter-Regular" }}>
         Naver Map is only available on iOS/Android.
       </Text>
     </View>

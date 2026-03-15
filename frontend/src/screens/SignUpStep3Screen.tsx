@@ -176,8 +176,8 @@ const pickerStyles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
   },
@@ -214,8 +214,8 @@ const pickerStyles = StyleSheet.create({
   optionText: {
     color: '#000000',
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
   },
@@ -518,11 +518,11 @@ const styles = StyleSheet.create({
   },
   stepText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
-    fontSize: 10,
+    fontSize: 11,
     color: colors.black,
     textAlign: 'center',
     marginTop: spacing.xs,
@@ -537,11 +537,11 @@ const styles = StyleSheet.create({
   },
   startOverText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
-    fontSize: 8,
+    fontSize: 11,
     color: colors.black,
     textAlign: 'center',
   },
@@ -564,8 +564,8 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Bold',
-      android: 'OpenSans-Bold',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
     fontWeight: '700',
@@ -579,8 +579,8 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 12,
@@ -588,8 +588,8 @@ const styles = StyleSheet.create({
   },
   guideLink: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Bold',
-      android: 'OpenSans-Bold',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
     fontSize: 12,
@@ -620,11 +620,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     left: spacing.md,
-    fontSize: 10,
+    fontSize: 11,
     color: colors.gray900,
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
   },
@@ -633,8 +633,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.black,
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
   },
@@ -645,8 +645,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.gray900,
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
   },
@@ -669,8 +669,8 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     fontFamily: Platform.select({
-      ios: 'OpenSans-Regular',
-      android: 'OpenSans-Regular',
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
       default: 'System',
     }),
     fontSize: 16,

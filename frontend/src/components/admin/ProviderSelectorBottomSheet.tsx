@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   doneButtonText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#FFFFFF',
   },
@@ -407,13 +407,13 @@ const styles = StyleSheet.create({
     }),
   },
   segmentText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#000000',
     letterSpacing: -0.08,
   },
   segmentTextActive: {
-    fontFamily: 'OpenSans-SemiBold',
+    fontFamily: 'Inter-SemiBold',
   },
 
   // Content
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#8E8E93',
   },
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   clubAvatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#8E8E93',
   },
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   },
   viewSubgroupsText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: '#8E8E93',
   },
 
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   subgroupAvatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#8E8E93',
   },
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   searchInput: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#1E1E1E',
     padding: 0,
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   userAvatarText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#8E8E93',
   },
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   userName: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 17,
     color: '#000000',
   },

@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#000000',
     marginBottom: 16,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   searchInput: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#1E1E1E',
     backgroundColor: '#F5F5F5',
@@ -247,18 +247,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
   },
   placeName: {
-    fontFamily: 'OpenSans-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#1E1E1E',
     marginBottom: 2,
   },
   addressSubtext: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#8E8E93',
   },
   emptyText: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#8E8E93',
     textAlign: 'center',
@@ -274,18 +274,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   selectedLabel: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 11,
     color: '#8E8E93',
     marginBottom: 4,
   },
   selectedText: {
-    fontFamily: 'OpenSans-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#1E1E1E',
   },
   detailInput: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#1E1E1E',
     backgroundColor: '#F5F5F5',
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backButtonText: {
-    fontFamily: 'OpenSans-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 15,
     color: '#1E1E1E',
   },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   confirmButtonText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 15,
     color: '#FFFFFF',
   },

@@ -66,13 +66,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#000000',
     marginBottom: 8,
   },
   subtitle: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#595959',
     textAlign: 'center',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF383C',
   },
   cancelText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   confirmText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     color: '#FFFFFF',
   },

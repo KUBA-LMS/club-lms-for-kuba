@@ -312,13 +312,13 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   loadingText: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#FFFFFF',
     marginTop: 24,
   },
   loadingSubtext: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 20,
     color: '#FFFFFF',
     marginTop: 4,
@@ -338,13 +338,13 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   dialogTitle: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: colors.black,
     textAlign: 'center',
   },
   dialogSubtitle: {
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: colors.black,
     marginTop: 8,
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelBackButtonText: {
-    fontFamily: 'Inter',
+    fontFamily: 'Inter-Regular',
     fontSize: 11.2,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   proceedButtonText: {
-    fontFamily: 'Inter',
+    fontFamily: 'Inter-Regular',
     fontSize: 11.2,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   doneButtonText: {
-    fontFamily: 'NotoSansKR-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     minWidth: 140,
   },
   backButtonText: {
-    fontFamily: 'OpenSans-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
     textAlign: 'center',
@@ -444,15 +444,15 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   paymentDeadlineButtonText: {
-    fontFamily: 'NotoSansKR-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 11,
     color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: -0.33,
   },
   countdownText: {
-    fontFamily: 'Inter',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#FFFFFF',
     textAlign: 'center',
     marginTop: 2,

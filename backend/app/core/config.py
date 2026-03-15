@@ -39,8 +39,23 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
+    # Superadmin (set in .env for production; if empty, auto-generated on seed)
+    SUPERADMIN_PASSWORD: str = ""
+
+    # Admin dashboard IP whitelist (comma-separated; empty = allow all)
+    ADMIN_IP_WHITELIST: str = ""
+
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
+
+    # Email (SMTP)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = "noreply@kuba.kr"
+    EMAIL_FROM_NAME: str = "KUBA LMS"
+    FRONTEND_BASE_URL: str = "https://kuba.kr"
 
     # Naver Cloud Platform (Map SDK + Geocoding)
     NAVER_MAP_CLIENT_ID: str = ""

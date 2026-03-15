@@ -9,17 +9,17 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { ClockIcon, CloseIcon, MapPinIcon } from '../icons';
+import { ClockIcon, CloseIcon, SearchIcon } from '../icons';
 import { colors } from '../../constants';
-import { GeocodingResult } from '../../services/geocoding';
+import { SearchResult } from '../../services/events';
 import { SearchHistoryItem } from '../../services/storage';
 
 interface SearchDropdownProps {
   mode: 'history' | 'results';
-  results: GeocodingResult[];
+  results: SearchResult[];
   history: SearchHistoryItem[];
   isLoading: boolean;
-  onSelectResult: (item: GeocodingResult) => void;
+  onSelectResult: (item: SearchResult) => void;
   onSelectHistory: (item: SearchHistoryItem) => void;
   onRemoveHistory: (timestamp: number) => void;
   onClearHistory: () => void;
@@ -101,18 +101,22 @@ export default function SearchDropdown({
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           {results.map((item, index) => (
             <TouchableOpacity
-              key={`${item.latitude}-${item.longitude}-${index}`}
+              key={`${item.id}-${index}`}
               style={styles.row}
               onPress={() => onSelectResult(item)}
               activeOpacity={0.6}
             >
               <View style={styles.iconContainer}>
-                <MapPinIcon size={18} color={colors.gray500} />
+                <SearchIcon size={16} color={colors.gray500} />
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.name} numberOfLines={1}>{item.name || item.road_address}</Text>
-                {item.road_address && item.name && (
-                  <Text style={styles.address} numberOfLines={1}>{item.road_address}</Text>
+                <Text style={styles.name} numberOfLines={1}>
+                  {item.type === 'event' ? item.title : item.name}
+                </Text>
+                {item.type === 'event' && (
+                  <Text style={styles.address} numberOfLines={1}>
+                    {item.provider} · {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
                 )}
               </View>
             </TouchableOpacity>
@@ -149,12 +153,12 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   headerTitle: {
-    fontFamily: 'NotoSansKR-Medium',
+    fontFamily: 'Inter-Medium',
     fontSize: 12,
     color: colors.gray500,
   },
   clearButton: {
-    fontFamily: 'NotoSansKR-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: colors.primary,
   },
@@ -174,12 +178,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    fontFamily: 'NotoSansKR-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: colors.text.primary,
   },
   address: {
-    fontFamily: 'NotoSansKR-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: colors.text.secondary,
   },
@@ -192,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontFamily: 'NotoSansKR-Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: colors.gray400,
   },

@@ -97,14 +97,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   username: {
-    fontFamily: 'OpenSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 17,
     color: '#000000',
     marginBottom: 4,
   },
   groupsLabel: {
-    fontFamily: 'OpenSans-Regular',
-    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
     color: '#000000',
     marginBottom: 4,
   },
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxNumber: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     color: '#FFFFFF',
   },
   separator: {

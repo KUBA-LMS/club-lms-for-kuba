@@ -15,13 +15,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Keyboard,
-  Platform,
 } from "react-native";
 import { NaverMapView, NaverMapViewRef, NaverMapMarkerOverlay } from "../../components/Map";
 import EventMarkers from "../../components/Map/EventMarkers";
 import { LocationMarkerIcon } from "../../components/Map/LocationMarkerIcon";
 import MyLocationButton from "../../components/Map/MyLocationButton";
-import SearchPin from "../../components/Map/SearchPin";
 import * as Location from "expo-location";
 import BottomSheet, {
   BottomSheetScrollView,
@@ -39,7 +37,7 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from "react-native-reanimated";
-import { screenPadding, shadows, layout } from "../../constants";
+import { screenPadding, shadows, layout, colors, typography } from "../../constants";
 import { getSafeTop } from "../../utils/safeArea";
 import SearchBar from "../../components/home/SearchBar";
 import GroupsButton from "../../components/home/GroupsButton";
@@ -63,9 +61,9 @@ import {
   registerForEvent,
   cancelRegistration,
   listEvents,
+  searchEventsAndProviders,
 } from "../../services/events";
 import { toggleBookmark } from "../../services/bookmarks";
-import { searchAddress, GeocodingResult } from "../../services/geocoding";
 import { storage, SearchHistoryItem } from "../../services/storage";
 import { useSearchDebounce } from "../../hooks/useSearchDebounce";
 import { EventWithStatus } from "../../types/event";
@@ -76,7 +74,7 @@ import { MainStackParamList } from "../../navigation/types";
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-type FilterMode = 'upcoming' | 'date' | 'distance' | 'recommended';
+type FilterMode = 'date' | 'distance' | 'recommended';
 
 function haversineDistance(
   lat1: number, lon1: number,
@@ -151,13 +149,12 @@ export default function HomeScreen() {
   // Search
   const searchInputRef = useRef<TextInput>(null);
   const [searchText, setSearchText] = useState("");
-  const [searchPin, setSearchPin] = useState<{ latitude: number; longitude: number; name: string } | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
 
   const { results: searchResults, isLoading: isSearchLoading } = useSearchDebounce(
     isSearchFocused ? searchText : "",
-    searchAddress,
+    searchEventsAndProviders,
     300,
   );
 
@@ -177,6 +174,7 @@ export default function HomeScreen() {
 
   const handleSearchTextChange = useCallback((text: string) => {
     setSearchText(text);
+    if (!text.trim()) setSearchMatches(null);
     if (!isSearchFocused) activateSearch();
   }, [isSearchFocused, activateSearch]);
 
@@ -186,32 +184,10 @@ export default function HomeScreen() {
     Keyboard.dismiss();
   }, []);
 
-  const selectPlace = useCallback(async (
-    lat: number,
-    lon: number,
-    name: string,
-    address: string | null,
-  ) => {
-    setSearchPin({ latitude: lat, longitude: lon, name });
-    setSearchText(name);
-    dismissSearch();
-    mapRef.current?.animateCameraTo({ latitude: lat, longitude: lon, zoom: 16, duration: 500 });
-    const updated = await storage.addSearchHistory({ name, address, latitude: lat, longitude: lon });
-    setSearchHistory(updated);
-  }, [dismissSearch]);
-
-  const handleSelectResult = useCallback((item: GeocodingResult) => {
-    selectPlace(
-      item.latitude,
-      item.longitude,
-      item.name || item.road_address || "",
-      item.road_address,
-    );
-  }, [selectPlace]);
-
   const handleSelectHistory = useCallback((item: SearchHistoryItem) => {
-    selectPlace(item.latitude, item.longitude, item.name, item.address);
-  }, [selectPlace]);
+    setSearchText(item.name);
+    dismissSearch();
+  }, [dismissSearch]);
 
   const handleRemoveHistory = useCallback(async (timestamp: number) => {
     const updated = await storage.removeSearchHistory(timestamp);
@@ -223,16 +199,15 @@ export default function HomeScreen() {
     setSearchHistory([]);
   }, []);
 
-  const handleSearch = useCallback(() => {
-    if (searchResults.length > 0) {
-      handleSelectResult(searchResults[0]);
-    }
-  }, [searchResults, handleSelectResult]);
-
   const [events, setEvents] = useState<EventWithStatus[]>([]);
+  const [pastEvents, setPastEvents] = useState<EventWithStatus[]>([]);
+  const [showPastEvents, setShowPastEvents] = useState(false);
+  const [isLoadingPast, setIsLoadingPast] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<FilterMode>('upcoming');
+  const [activeFilter, setActiveFilter] = useState<FilterMode>('date');
   const [bookmarkFilterActive, setBookmarkFilterActive] = useState(false);
+  // null = no search filter active, array = show only these events
+  const [searchMatches, setSearchMatches] = useState<EventWithStatus[] | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventDetailData | null>(
     null,
   );
@@ -286,7 +261,7 @@ export default function HomeScreen() {
   const fetchEvents = useCallback(async (mode: FilterMode = activeFilter) => {
     try {
       setIsLoading(true);
-      const apiFilter = mode === 'date' ? 'all' : 'upcoming';
+      const apiFilter = 'upcoming';
       const response = await listEvents({ filter: apiFilter as 'upcoming' | 'past' | 'all' });
       let sorted = [...response.data];
 
@@ -334,6 +309,23 @@ export default function HomeScreen() {
     fetchEvents(mode);
   }, [fetchEvents]);
 
+  const fetchPastEvents = useCallback(async () => {
+    setIsLoadingPast(true);
+    try {
+      const response = await listEvents({ filter: 'past' });
+      setPastEvents(response.data);
+    } catch (error) {
+      console.error("Failed to fetch past events:", error);
+    } finally {
+      setIsLoadingPast(false);
+    }
+  }, []);
+
+  const handleShowPastEvents = useCallback(() => {
+    setShowPastEvents(true);
+    fetchPastEvents();
+  }, [fetchPastEvents]);
+
   // Fetch events on mount
   useEffect(() => {
     fetchEvents();
@@ -355,12 +347,43 @@ export default function HomeScreen() {
   );
 
   const filteredEvents = useMemo(() => {
+    if (searchMatches !== null) return searchMatches;
     if (!bookmarkFilterActive) return events;
     return events.filter((e) => e.is_bookmarked);
-  }, [events, bookmarkFilterActive]);
+  }, [searchMatches, events, bookmarkFilterActive]);
+
+  // Events rendered as map pins — always in sync with bottom sheet
+  const mapEvents = useMemo(() => {
+    if (searchMatches !== null) return searchMatches;
+    const base = bookmarkFilterActive ? events.filter((e) => e.is_bookmarked) : events;
+    if (showPastEvents && pastEvents.length > 0) return [...base, ...pastEvents];
+    return base;
+  }, [searchMatches, events, bookmarkFilterActive, showPastEvents, pastEvents]);
 
   const handleToggleBookmarkFilter = useCallback(() => {
     setBookmarkFilterActive((prev) => !prev);
+  }, []);
+
+  // Commit a search: fetch matching events, sync bottom sheet + map
+  const commitSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchMatches(null);
+      return;
+    }
+    try {
+      const response = await listEvents({ search: query.trim(), filter: 'all', limit: 20 });
+      const matched = response.data;
+      setSearchMatches(matched);
+      // Auto-move map to centroid of matched geo events
+      const geoEvents = matched.filter((e) => e.latitude != null && e.longitude != null);
+      if (geoEvents.length > 0) {
+        const avgLat = geoEvents.reduce((s, e) => s + e.latitude!, 0) / geoEvents.length;
+        const avgLng = geoEvents.reduce((s, e) => s + e.longitude!, 0) / geoEvents.length;
+        mapRef.current?.animateCameraTo({ latitude: avgLat, longitude: avgLng, duration: 500 });
+      }
+    } catch {
+      setSearchMatches(null);
+    }
   }, []);
 
   // Animation for top section visibility
@@ -435,6 +458,33 @@ export default function HomeScreen() {
       });
     }
   }, [toEventDetail]);
+
+  const handleSelectResult = useCallback((item: { type: string; id: string; title?: string }) => {
+    if (item.type === 'event') {
+      const title = item.title || '';
+      setSearchText(title);
+      dismissSearch();
+      commitSearch(title);
+      // Also focus the specific tapped event on the map
+      const found = [...events, ...pastEvents].find((e) => e.id === item.id);
+      if (found?.latitude != null && found?.longitude != null) {
+        mapRef.current?.animateCameraTo({
+          latitude: found.latitude,
+          longitude: found.longitude,
+          duration: 500,
+        });
+      }
+    }
+  }, [dismissSearch, events, pastEvents, commitSearch]);
+
+  const handleSearch = useCallback(() => {
+    if (searchText.trim()) {
+      commitSearch(searchText);
+      dismissSearch();
+    } else if (searchResults.length > 0) {
+      handleSelectResult(searchResults[0]);
+    }
+  }, [searchText, searchResults, commitSearch, dismissSearch, handleSelectResult]);
 
   const handleCloseEventDetail = useCallback(() => {
     eventDetailRef.current?.close();
@@ -571,13 +621,22 @@ export default function HomeScreen() {
   const animatedPosition = useSharedValue(0);
 
   // 바텀시트가 멈추는 지점들
-  const snapPoints = useMemo(() => ["15%", "27%", "40%", "60%", "70%"], []);
+  const snapPoints = useMemo(() => ["15%", "27%", "40%", "60%", "70%", "92%"], []);
 
   // 탭바 높이(80) + bottom safe area
   const bottomPadding = layout.tabBarHeight + insets.bottom;
 
   // 지도 translateY 계산 (바텀시트가 올라갈수록 지도도 위로)
   const mapAnimatedStyle = useAnimatedStyle(() => {
+    const sheetHeight = screenHeight - animatedPosition.value;
+    const baseHeight = screenHeight * 0.09;
+    const maxOffset = screenHeight * 0.3;
+    const translateY = -Math.min((sheetHeight - baseHeight) * 0.3, maxOffset);
+    return { transform: [{ translateY }] };
+  });
+
+  // Admin FAB: 지도와 동일한 translateY 적용
+  const adminFabAnimatedStyle = useAnimatedStyle(() => {
     const sheetHeight = screenHeight - animatedPosition.value;
     const baseHeight = screenHeight * 0.09;
     const maxOffset = screenHeight * 0.3;
@@ -602,9 +661,10 @@ export default function HomeScreen() {
             isShowZoomControls={false}
             isShowCompass={false}
             isShowScaleBar={false}
+            locale="en"
           >
             <EventMarkers
-              events={filteredEvents}
+              events={mapEvents}
               selectedEventId={selectedEvent?.id as string | undefined}
               onMarkerPress={handleEventPress}
             />
@@ -618,21 +678,7 @@ export default function HomeScreen() {
                 <LocationMarkerIcon />
               </NaverMapMarkerOverlay>
             )}
-            {searchPin && (
-              <NaverMapMarkerOverlay
-                latitude={searchPin.latitude}
-                longitude={searchPin.longitude}
-                anchor={{ x: 0.5, y: 0.9 }}
-                zIndex={30}
-              >
-                <SearchPin />
-              </NaverMapMarkerOverlay>
-            )}
           </NaverMapView>
-          {/* My Location button - on map, right side, behind bottom sheet */}
-          <View style={styles.myLocationContainer}>
-            <MyLocationButton onPress={handleMyLocation} />
-          </View>
         </Animated.View>
         {/* Top Section - slides up when detail opens */}
         <Animated.View
@@ -655,13 +701,11 @@ export default function HomeScreen() {
               />
             </View>
             <GroupsButton onPress={() => navigation.navigate('Community')} />
-            {isAdmin && (
-              <AdminFaceFab
-                isOpen={adminMenuOpen}
-                onToggle={() => setAdminMenuOpen((v) => !v)}
-              />
-            )}
-            <MyBadge onPress={() => navigation.navigate('Profile')} />
+            <MyBadge
+              onPress={() => navigation.navigate('Profile')}
+              userImage={(user as User | null)?.profile_image ?? undefined}
+              username={(user as User | null)?.username ?? undefined}
+            />
           </View>
           {showDropdown ? (
             <View style={styles.dropdownContainer}>
@@ -700,6 +744,11 @@ export default function HomeScreen() {
           )}
         </Animated.View>
 
+        {/* My Location button - below top section, right side */}
+        <View style={[styles.myLocationBtn, { top: getSafeTop(insets) + 96 }]}>
+          <MyLocationButton onPress={handleMyLocation} size="small" />
+        </View>
+
         {/* Transit Card - appears when detail opens */}
         <Animated.View
           style={[
@@ -725,20 +774,11 @@ export default function HomeScreen() {
           animatedPosition={animatedPosition}
         >
           <View style={styles.sheetHeader}>
-            <View style={styles.onePassContainer}>
-              <OnePassButton onPress={() => navigation.navigate('OnePass', {})} />
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.sheetFilterContent}
-              style={styles.sheetFilterScroll}
-            >
+            <View style={styles.sheetFilterContent}>
               {([
-                { key: 'upcoming', label: 'Upcoming' },
-                { key: 'date', label: 'Date' },
-                { key: 'distance', label: 'Distance' },
                 { key: 'recommended', label: 'Recommended' },
+                { key: 'date', label: 'Date: Earliest' },
+                { key: 'distance', label: 'Distance' },
               ] as const).map((f) => (
                 <TouchableOpacity
                   key={f.key}
@@ -758,7 +798,7 @@ export default function HomeScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
+            </View>
           </View>
           <BottomSheetScrollView
             contentContainerStyle={[
@@ -766,6 +806,44 @@ export default function HomeScreen() {
               { paddingBottom: bottomPadding },
             ]}
           >
+            {/* Past Events Section — hidden when search filter is active */}
+            {showPastEvents && searchMatches === null && (
+              <View style={styles.pastEventsSection}>
+                {isLoadingPast ? (
+                  <ActivityIndicator size="small" color="#8E8E93" />
+                ) : pastEvents.length === 0 ? (
+                  <Text style={styles.emptyText}>No past events</Text>
+                ) : (
+                  pastEvents.map((event) => (
+                    <EventCard
+                      key={`past-${event.id}`}
+                      title={event.title}
+                      date={formatEventDate(event.event_date)}
+                      provider={event.club.name}
+                      providerLogo={event.club.logo_image || undefined}
+                      status={event.user_status}
+                      participants={event.participants_preview}
+                      participantCount={event.current_slots}
+                      isBookmarked={event.is_bookmarked}
+                      onPress={() => handleEventPress(event)}
+                      onBookmark={() => handleToggleBookmark(event.id)}
+                      onShare={() => handleShare(event)}
+                    />
+                  ))
+                )}
+                <View style={styles.pastEventsDivider}>
+                  <View style={styles.pastEventsDividerLine} />
+                  <Text style={styles.pastEventsDividerText}>Upcoming</Text>
+                  <View style={styles.pastEventsDividerLine} />
+                </View>
+              </View>
+            )}
+            {!showPastEvents && searchMatches === null && (
+              <TouchableOpacity style={styles.showPastButton} onPress={handleShowPastEvents}>
+                <Text style={styles.showPastButtonText}>Show Past Events</Text>
+              </TouchableOpacity>
+            )}
+
             {isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#03CA5B" />
@@ -782,6 +860,7 @@ export default function HomeScreen() {
                   title={event.title}
                   date={formatEventDate(event.event_date)}
                   provider={event.club.name}
+                  providerLogo={event.club.logo_image || undefined}
                   status={event.user_status}
                   opensAt={
                     event.user_status === "upcoming"
@@ -838,6 +917,17 @@ export default function HomeScreen() {
           />
         )}
 
+        {/* Floating OnePass Button */}
+        <View
+          style={[
+            styles.floatingOnePass,
+            { bottom: bottomPadding + 10 },
+          ]}
+          pointerEvents="box-none"
+        >
+          <OnePassButton onPress={() => navigation.navigate('OnePass', {})} />
+        </View>
+
         {/* Search dropdown backdrop */}
         {isSearchFocused && (
           <TouchableOpacity
@@ -849,41 +939,67 @@ export default function HomeScreen() {
 
         {/* Admin FAB backdrop */}
         {isAdmin && adminMenuOpen && (
-          <>
-            <TouchableOpacity
-              style={[StyleSheet.absoluteFill, { zIndex: 99 }]}
-              activeOpacity={1}
-              onPress={() => setAdminMenuOpen(false)}
+          <TouchableOpacity
+            style={[StyleSheet.absoluteFill, { zIndex: 99 }]}
+            activeOpacity={1}
+            onPress={() => setAdminMenuOpen(false)}
+          />
+        )}
+
+        {/* Admin FAB + menu column — centered on map, moves with sheet */}
+        {isAdmin && (
+          <Animated.View
+            style={[styles.adminColumn, { top: screenHeight * 0.55 }, adminFabAnimatedStyle]}
+            pointerEvents="box-none"
+          >
+            {adminMenuOpen && (
+              <>
+                <TouchableOpacity
+                  style={styles.adminMenuItem}
+                  onPress={() => {
+                    setAdminMenuOpen(false);
+                    navigation.navigate("AdminCreateEvent");
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.adminMenuIcon}>
+                    <Text style={styles.adminMenuIconText}>+</Text>
+                  </View>
+                  <Text style={styles.adminMenuLabel}>Create Event</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.adminMenuItem}
+                  onPress={() => {
+                    setAdminMenuOpen(false);
+                    navigation.navigate("AccessControl");
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.adminMenuIcon}>
+                    <Text style={styles.adminMenuIconText}>A</Text>
+                  </View>
+                  <Text style={styles.adminMenuLabel}>Access Control</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.adminMenuItem}
+                  onPress={() => {
+                    setAdminMenuOpen(false);
+                    navigation.navigate("AdminHub");
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.adminMenuIcon}>
+                    <Text style={styles.adminMenuIconText}>H</Text>
+                  </View>
+                  <Text style={styles.adminMenuLabel}>Admin Hub</Text>
+                </TouchableOpacity>
+              </>
+            )}
+            <AdminFaceFab
+              isOpen={adminMenuOpen}
+              onToggle={() => setAdminMenuOpen((v) => !v)}
             />
-            <View style={[styles.adminMenuOverlay, { top: getSafeTop(insets) }]} pointerEvents="box-none">
-              <TouchableOpacity
-                style={styles.adminMenuItem}
-                onPress={() => {
-                  setAdminMenuOpen(false);
-                  navigation.navigate("AdminCreateEvent");
-                }}
-                activeOpacity={0.8}
-              >
-                <View style={styles.adminMenuIcon}>
-                  <Text style={styles.adminMenuIconText}>+</Text>
-                </View>
-                <Text style={styles.adminMenuLabel}>Create Event</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.adminMenuItem}
-                onPress={() => {
-                  setAdminMenuOpen(false);
-                  navigation.navigate("AccessControl");
-                }}
-                activeOpacity={0.8}
-              >
-                <View style={styles.adminMenuIcon}>
-                  <Text style={styles.adminMenuIconText}>A</Text>
-                </View>
-                <Text style={styles.adminMenuLabel}>Access Control</Text>
-              </TouchableOpacity>
-            </View>
-          </>
+          </Animated.View>
         )}
 
       </View>
@@ -929,55 +1045,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding.horizontal,
   },
   bottomSheetBackground: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.background.primary,
     ...shadows.xl,
   },
   handleIndicator: {
-    backgroundColor: "#CCCCCC",
-    width: 40,
+    backgroundColor: colors.gray200,
+    width: 36,
+    height: 4,
+    borderRadius: 2,
   },
   sheetHeader: {
     paddingTop: screenPadding.vertical,
     paddingBottom: 12,
-    gap: 12,
-  },
-  onePassContainer: {
-    paddingHorizontal: screenPadding.horizontal,
-  },
-  sheetFilterScroll: {
-    flexGrow: 0,
   },
   sheetFilterContent: {
     flexDirection: "row",
-    gap: 5,
     justifyContent: "center",
-    flex: 1,
+    gap: 8,
+    paddingHorizontal: screenPadding.horizontal,
   },
   sheetFilterChip: {
-    width: 70,
-    height: 23,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 10.5,
-    borderWidth: 0.7,
-    borderColor: "#C5C5C5",
-    backgroundColor: "#E5E5EA",
+    borderRadius: layout.borderRadius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.gray100,
+    ...shadows.sm,
   },
   sheetFilterChipActive: {
-    backgroundColor: "#8E8E93",
-    borderColor: "#8E8E93",
+    backgroundColor: colors.gray900,
+    ...shadows.md,
   },
   sheetFilterText: {
-    fontFamily: "OpenSans-Regular",
-    fontSize: 9,
-    color: "#000000",
-    textAlign: "center",
+    ...typography.labelSmall,
+    color: colors.text.primary,
+    letterSpacing: 0.2,
   },
   sheetFilterTextActive: {
-    color: "#FFFFFF",
+    color: colors.text.inverse,
   },
   scrollContent: {
-    paddingHorizontal: screenPadding.horizontal,
+    paddingHorizontal: 0,
   },
   loadingContainer: {
     flex: 1,
@@ -986,9 +1095,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    fontFamily: "OpenSans-Regular",
-    fontSize: 14,
-    color: "#8E8E93",
+    ...typography.body,
+    color: colors.text.tertiary,
     marginTop: 12,
   },
   emptyContainer: {
@@ -998,70 +1106,87 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontFamily: "OpenSans-Regular",
-    fontSize: 14,
-    color: "#8E8E93",
+    ...typography.body,
+    color: colors.text.tertiary,
   },
   dropdownContainer: {
     paddingHorizontal: screenPadding.horizontal,
   },
-  adminMenu: {
+  adminColumn: {
     position: "absolute" as const,
-    top: 52,
-    right: screenPadding.horizontal + 51 + 8,
-    gap: 8,
+    right: 16,
     alignItems: "flex-end" as const,
-    zIndex: 200,
-  },
-  adminMenuOverlay: {
-    position: "absolute" as const,
-    right: screenPadding.horizontal + 51 + 8,
-    gap: 8,
-    alignItems: "flex-end" as const,
+    gap: 10,
     zIndex: 100,
-    paddingTop: 52,
   },
   adminMenuItem: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.background.primary,
     borderRadius: 22,
     paddingVertical: 10,
     paddingHorizontal: 16,
     gap: 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.18,
-        shadowRadius: 6,
-      },
-      android: { elevation: 8 },
-    }),
+    ...shadows.lg,
   },
   adminMenuIcon: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#000000",
+    backgroundColor: colors.black,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   adminMenuIconText: {
-    fontFamily: "OpenSans-Bold",
-    fontSize: 16,
-    color: "#FFFFFF",
+    ...typography.label,
+    color: colors.text.inverse,
     lineHeight: 20,
   },
   adminMenuLabel: {
-    fontFamily: "OpenSans-Bold",
-    fontSize: 14,
-    color: "#212121",
+    ...typography.label,
+    color: colors.text.primary,
     flexShrink: 0,
   },
-  myLocationContainer: {
+  myLocationBtn: {
     position: "absolute",
     right: 16,
-    bottom: "30%",
+  },
+  showPastButton: {
+    alignSelf: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: layout.borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    marginBottom: 16,
+  },
+  showPastButtonText: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+  },
+  pastEventsSection: {
+    marginBottom: 8,
+  },
+  pastEventsDivider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  pastEventsDividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border.light,
+  },
+  pastEventsDividerText: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+    paddingHorizontal: 10,
+  },
+  floatingOnePass: {
+    position: "absolute",
+    left: screenPadding.horizontal,
+    right: screenPadding.horizontal,
+    zIndex: 50,
   },
 });

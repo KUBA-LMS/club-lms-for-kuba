@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   tabText: {
-    fontFamily: 'OpenSans-Bold',
-    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
     textAlign: 'center',
   },
   tabTextActive: {

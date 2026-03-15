@@ -8,7 +8,7 @@ Also cleans up associated payment_requests and payment_splits.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import delete, select
 
@@ -25,7 +25,7 @@ BATCH_SIZE = 500  # Delete in batches to avoid long locks
 
 async def cleanup_old_messages() -> int:
     """Delete messages older than RETENTION_DAYS. Returns count deleted."""
-    cutoff = datetime.utcnow() - timedelta(days=RETENTION_DAYS)
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=RETENTION_DAYS)
     total_deleted = 0
 
     async with AsyncSessionLocal() as db:
