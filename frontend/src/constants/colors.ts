@@ -35,10 +35,14 @@ export const colors = {
     inverse: '#FFFFFF',
   },
 
+  // Surface / Card
+  surface: '#F8F9FA',
+  card: '#FFFFFF',
+
   // Background
   background: {
     primary: '#FFFFFF',
-    secondary: '#F5F5F5',
+    secondary: '#F8F9FA',
     tertiary: '#E5E5EA',
   },
 

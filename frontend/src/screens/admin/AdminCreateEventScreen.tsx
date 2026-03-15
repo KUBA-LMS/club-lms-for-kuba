@@ -92,7 +92,7 @@ function FormInput({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder || label}
-          placeholderTextColor="#1E1E1E"
+          placeholderTextColor="#AEAEB2"
           editable={editable}
           keyboardType={keyboardType}
           multiline={multiline}
@@ -472,7 +472,7 @@ export default function AdminCreateEventScreen() {
                     setTimeout(() => setShowRelatedDropdown(false), 200);
                   }}
                   placeholder="Link Related Events"
-                  placeholderTextColor="#1E1E1E"
+                  placeholderTextColor="#AEAEB2"
                 />
                 {selectedRelatedEvent ? (
                   <TouchableOpacity onPress={handleClearRelatedEvent} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -680,8 +680,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   backButtonText: {
-    fontSize: 28,
-    color: "#000000",
+    fontSize: 26,
+    color: "#1C1C1E",
     fontWeight: "300",
   },
   headerBox: {
@@ -774,21 +774,20 @@ const styles = StyleSheet.create({
   },
   formContent: {
     paddingHorizontal: screenPadding.horizontal,
-    gap: 10,
+    gap: 12,
   },
   inputContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#C5C5C5",
-    paddingHorizontal: 14,
-    height: 42,
+    backgroundColor: "#F2F2F7",
+    borderRadius: 14,
+    borderWidth: 0,
+    paddingHorizontal: 16,
+    height: 52,
     justifyContent: "center",
   },
   multilineContainer: {
-    minHeight: 100,
+    minHeight: 110,
     alignItems: "flex-start",
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   inputRow: {
     flexDirection: "row",
@@ -798,16 +797,16 @@ const styles = StyleSheet.create({
   inputText: {
     fontFamily: "Inter-Regular",
     fontSize: 15,
-    color: "#1E1E1E",
+    color: "#1C1C1E",
     flex: 1,
   },
   placeholderText: {
-    color: "#1E1E1E",
+    color: "#AEAEB2",
   },
   textInput: {
     fontFamily: "Inter-Regular",
     fontSize: 15,
-    color: "#1E1E1E",
+    color: "#1C1C1E",
     flex: 1,
     padding: 0,
   },
@@ -824,17 +823,18 @@ const styles = StyleSheet.create({
     color: "#8E8E93",
   },
   nextButton: {
-    backgroundColor: "#000000",
-    height: 48,
-    borderRadius: 10,
+    backgroundColor: "#1C1C1E",
+    height: 54,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    marginTop: 20,
   },
   nextButtonText: {
     fontFamily: "Inter-SemiBold",
     fontSize: 16,
     color: "#FFFFFF",
+    letterSpacing: 0.2,
   },
   relatedContainer: {
     zIndex: 10,

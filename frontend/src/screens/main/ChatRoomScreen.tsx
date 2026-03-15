@@ -280,8 +280,10 @@ const styles = StyleSheet.create({
   },
   messageList: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
   },
   messageListContent: {
-    paddingVertical: 10,
+    paddingVertical: 16,
+    paddingBottom: 8,
   },
 });

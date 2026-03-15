@@ -94,26 +94,27 @@ function SubTabBar({
 const subTabStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: '#E5E5EA',
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 13,
     position: 'relative',
   },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   badge: {
     backgroundColor: '#FF3B30',
     borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 4,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -125,20 +126,20 @@ const subTabStyles = StyleSheet.create({
   label: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: colors.gray400,
+    color: '#AEAEB2',
   },
   labelActive: {
     fontFamily: 'Inter-SemiBold',
-    color: '#000000',
+    color: '#1C1C1E',
   },
   underline: {
     position: 'absolute',
     bottom: 0,
-    left: '20%',
-    right: '20%',
-    height: 2,
-    backgroundColor: '#000000',
-    borderRadius: 1,
+    left: '30%',
+    right: '30%',
+    height: 2.5,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 2,
   },
 });
 
@@ -305,34 +306,35 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: screenPadding.horizontal,
-    height: 50,
+    paddingHorizontal: 16,
+    height: 60,
   },
   headerButton: {
-    width: 35,
-    height: 35,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 20,
   },
   title: {
     fontFamily: Platform.select({
       ios: 'PorterSansBlock',
       android: 'porter-sans-inline-block',
     }),
-    fontSize: 20,
-    color: '#000000',
+    fontSize: 18,
+    color: '#1C1C1E',
     letterSpacing: -0.08,
     textAlign: 'center',
   },
   segmentContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   chatList: {
     flex: 1,

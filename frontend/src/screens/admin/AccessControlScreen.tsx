@@ -321,6 +321,7 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
   },
   bannerSection: {
     marginTop: 8,

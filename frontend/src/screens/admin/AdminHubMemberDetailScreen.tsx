@@ -107,20 +107,22 @@ export default function AdminHubMemberDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    height: 60,
     backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
   headerTitle: {
     fontFamily: 'Inter_700Bold',
     fontSize: 18,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   centered: {
     flex: 1,
@@ -132,23 +134,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 40,
+    backgroundColor: '#F8F9FA',
   },
   memberCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    borderRadius: 16,
+    paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 8,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.04,
         shadowRadius: 4,
       },
-      android: { elevation: 2 },
+      android: { elevation: 1 },
     }),
   },
   avatar: {
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   avatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -173,12 +176,12 @@ const styles = StyleSheet.create({
   memberUsername: {
     fontFamily: 'Inter_700Bold',
     fontSize: 15,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   separator: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     height: 36,
-    backgroundColor: '#C5C5C5',
+    backgroundColor: '#E5E5EA',
     marginHorizontal: 10,
   },
   depositCol: {
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
   depositAmount: {
     fontFamily: 'Inter_700Bold',
     fontSize: 18,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   emptyText: {
     fontFamily: 'Inter_400Regular',

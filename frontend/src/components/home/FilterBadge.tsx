@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   containerActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#1C1C1E',
   },
   iconWrapper: {
     width: 16,

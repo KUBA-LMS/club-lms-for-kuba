@@ -98,7 +98,11 @@ export default function MessageBubble({
         message.sender.profile_image ? (
           <Image source={{ uri: message.sender.profile_image }} style={styles.avatar} />
         ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]} />
+          <View style={[styles.avatar, styles.avatarPlaceholder]}>
+            <Text style={styles.avatarInitial}>
+              {message.sender.username.charAt(0).toUpperCase()}
+            </Text>
+          </View>
         )
       ) : (
         <View style={styles.avatarSpacer} />
@@ -131,24 +135,24 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   ownBubble: {
-    backgroundColor: '#000000',
-    borderRadius: 18,
-    borderBottomRightRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    maxWidth: '70%',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 20,
+    borderBottomRightRadius: 5,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    maxWidth: '72%',
   },
   ownText: {
     fontFamily: 'Inter-Regular',
     fontSize: 15,
     color: '#FFFFFF',
-    lineHeight: 20,
+    lineHeight: 21,
   },
   otherRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 16,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   avatar: {
     width: 32,
@@ -157,44 +161,51 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   avatarPlaceholder: {
-    backgroundColor: '#FF9500',
+    backgroundColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    color: '#6E6E73',
   },
   avatarSpacer: {
     width: 32,
     marginRight: 8,
   },
   otherContent: {
-    maxWidth: '75%',
+    maxWidth: '72%',
   },
   senderName: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#8E8E93',
-    marginBottom: 3,
-    marginLeft: 4,
+    marginBottom: 4,
+    marginLeft: 2,
   },
   otherBubbleRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
   otherBubble: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 18,
-    borderBottomLeftRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    backgroundColor: '#EFEFEF',
+    borderRadius: 20,
+    borderBottomLeftRadius: 5,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   otherText: {
     fontFamily: 'Inter-Regular',
     fontSize: 15,
-    color: '#000000',
-    lineHeight: 20,
+    color: '#1C1C1E',
+    lineHeight: 21,
   },
   time: {
     fontFamily: 'Inter-Regular',
     fontSize: 11,
-    color: '#8E8E93',
-    marginHorizontal: 4,
+    color: '#AEAEB2',
+    marginHorizontal: 5,
     marginBottom: 2,
   },
   failedText: {
@@ -206,27 +217,27 @@ const styles = StyleSheet.create({
   sendingText: {
     fontFamily: 'Inter-Regular',
     fontSize: 11,
-    color: '#8E8E93',
+    color: '#AEAEB2',
     marginRight: 4,
   },
   eventShareCard: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 14,
+    backgroundColor: '#F0F7FF',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    maxWidth: '70%',
+    maxWidth: '72%',
     borderWidth: 1,
-    borderColor: '#C8E6C9',
+    borderColor: '#D0E8FF',
   },
   eventShareTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 14,
-    color: '#2E7D32',
+    color: '#0056B3',
   },
   eventShareSub: {
     fontFamily: 'Inter-Regular',
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#4DA3FF',
     marginTop: 2,
   },
 });

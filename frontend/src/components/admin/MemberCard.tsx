@@ -197,12 +197,10 @@ export default function MemberCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    backgroundColor: '#FFFFFF',
   },
   topRow: {
     flexDirection: 'row',
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
   },
   avatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -235,12 +233,12 @@ const styles = StyleSheet.create({
   username: {
     fontFamily: 'Inter_700Bold',
     fontSize: 21,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   separator: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     height: 30,
-    backgroundColor: '#C5C5C5',
+    backgroundColor: '#E5E5EA',
     marginHorizontal: 12,
   },
   legalSection: {
@@ -249,7 +247,7 @@ const styles = StyleSheet.create({
   legalName: {
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   studentId: {
     fontFamily: 'Inter_400Regular',
@@ -263,9 +261,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   infoBox: {
-    borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -277,7 +274,7 @@ const styles = StyleSheet.create({
   infoValue: {
     fontFamily: 'Inter_700Bold',
     fontSize: 12,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   toggleRow: {
     flexDirection: 'row',
@@ -293,7 +290,7 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontFamily: 'Inter_700Bold',
     fontSize: 14,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   depositRow: {
     flexDirection: 'row',
@@ -303,8 +300,8 @@ const styles = StyleSheet.create({
   },
   depositBox: {
     flex: 1,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
@@ -319,17 +316,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   deductCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   topUpCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#FF383C',
     alignItems: 'center',
     justifyContent: 'center',
@@ -360,7 +357,7 @@ const styles = StyleSheet.create({
   historyItem: {
     paddingVertical: 6,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: '#F0F0F5',
   },
   historyRow1: {
     flexDirection: 'row',
@@ -376,7 +373,7 @@ const styles = StyleSheet.create({
   historyDesc: {
     fontFamily: 'Inter_700Bold',
     fontSize: 12,
-    color: '#000000',
+    color: '#1C1C1E',
     flex: 1,
     marginRight: 8,
   },

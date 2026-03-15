@@ -24,47 +24,59 @@ export default function ChatHeader({
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.6}>
-        <ArrowBackIcon size={24} color="#000000" />
+        <ArrowBackIcon size={22} color="#1C1C1E" />
       </TouchableOpacity>
 
-      <View style={styles.avatarSection}>
-        {isGroup ? (
-          <View style={styles.groupAvatars}>
-            {otherMembers.slice(0, 3).map((member, i) => (
-              <View
-                key={member.id}
-                style={[
-                  styles.groupAvatarWrapper,
-                  { marginLeft: i > 0 ? -10 : 0, zIndex: 3 - i },
-                ]}
-              >
-                {member.profile_image ? (
-                  <Image source={{ uri: member.profile_image }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, styles.avatarPlaceholder]} />
-                )}
-              </View>
-            ))}
-          </View>
-        ) : (
-          <>
-            {otherMembers[0]?.profile_image ? (
-              <Image source={{ uri: otherMembers[0].profile_image }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]} />
-            )}
-          </>
-        )}
+      <View style={styles.centerSection}>
+        <View style={styles.avatarSection}>
+          {isGroup ? (
+            <View style={styles.groupAvatars}>
+              {otherMembers.slice(0, 2).map((member, i) => (
+                <View
+                  key={member.id}
+                  style={[
+                    styles.groupAvatarWrapper,
+                    { marginLeft: i > 0 ? -10 : 0, zIndex: 2 - i },
+                  ]}
+                >
+                  {member.profile_image ? (
+                    <Image source={{ uri: member.profile_image }} style={styles.avatar} />
+                  ) : (
+                    <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                      <Text style={styles.avatarInitial}>
+                        {member.username.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <>
+              {otherMembers[0]?.profile_image ? (
+                <Image source={{ uri: otherMembers[0].profile_image }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                  <Text style={styles.avatarInitial}>
+                    {otherMembers[0]?.username?.charAt(0).toUpperCase() || '?'}
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
+        </View>
+
+        <View style={styles.nameSection}>
+          <Text style={styles.name} numberOfLines={1}>
+            {displayName}
+          </Text>
+          {isGroup && (
+            <Text style={styles.memberCount}>{otherMembers.length} members</Text>
+          )}
+        </View>
       </View>
 
-      <View style={styles.nameSection}>
-        <Text style={styles.name} numberOfLines={1}>
-          {displayName}
-        </Text>
-        {isGroup && otherMembers.length > 2 && (
-          <Text style={styles.memberCount}>+{otherMembers.length - 2} friends</Text>
-        )}
-      </View>
+      <View style={styles.rightPlaceholder} />
     </View>
   );
 }
@@ -73,18 +85,24 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    height: 56,
+    paddingHorizontal: 12,
+    height: 60,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E5E5EA',
-    zIndex: 0,
   },
   backButton: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    borderRadius: 20,
+  },
+  centerSection: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
   avatarSection: {
     marginRight: 10,
@@ -104,20 +122,30 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   avatarPlaceholder: {
-    backgroundColor: '#FF9500',
+    backgroundColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    color: '#6E6E73',
   },
   nameSection: {
     flex: 1,
   },
   name: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 17,
-    color: '#000000',
+    fontSize: 16,
+    color: '#1C1C1E',
   },
   memberCount: {
     fontFamily: 'Inter-Regular',
     fontSize: 12,
     color: '#8E8E93',
     marginTop: 1,
+  },
+  rightPlaceholder: {
+    width: 40,
   },
 });

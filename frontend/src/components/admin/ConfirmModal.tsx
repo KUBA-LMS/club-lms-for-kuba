@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Inter_700Bold',
     fontSize: 18,
-    color: '#000000',
+    color: '#1C1C1E',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -100,9 +100,9 @@ const styles = StyleSheet.create({
   },
   backButton: {
     flex: 1,
-    height: 48,
+    height: 50,
     backgroundColor: '#FF383C',
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -113,9 +113,9 @@ const styles = StyleSheet.create({
   },
   proceedButton: {
     flex: 1,
-    height: 48,
-    backgroundColor: '#000000',
-    borderRadius: 10,
+    height: 50,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },

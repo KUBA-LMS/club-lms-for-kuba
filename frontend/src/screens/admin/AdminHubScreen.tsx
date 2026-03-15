@@ -1083,17 +1083,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  contentArea: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
   headerTitle: {
     fontFamily: 'Gafata-Regular',
     fontSize: 11,
-    color: '#000000',
+    color: '#1C1C1E',
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
@@ -1110,16 +1117,16 @@ const styles = StyleSheet.create({
   clubLogo: {
     width: 50,
     height: 50,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#000000',
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
   },
   clubLogoSelected: {
-    borderWidth: 3,
-    borderColor: '#00C0E8',
+    borderWidth: 2.5,
+    borderColor: '#1C1C1E',
   },
   clubLogoPlaceholder: {
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1137,7 +1144,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(118,118,128,0.12)',
     borderRadius: 100,
     padding: 4,
-    height: 36,
+    height: 40,
   },
   segment: {
     flex: 1,
@@ -1160,7 +1167,7 @@ const styles = StyleSheet.create({
   segmentText: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#000000',
+    color: '#1C1C1E',
     letterSpacing: -0.08,
   },
   segmentTextActive: {
@@ -1176,28 +1183,30 @@ const styles = StyleSheet.create({
   },
   secondaryTab: {
     paddingBottom: 8,
-    borderBottomWidth: 2,
+    borderBottomWidth: 2.5,
     borderBottomColor: 'transparent',
   },
   secondaryTabActive: {
-    borderBottomColor: '#000000',
+    borderBottomColor: '#1C1C1E',
   },
   secondaryTabText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: '#C5C5C5',
+    color: '#8E8E93',
   },
   secondaryTabTextActive: {
     fontFamily: 'Inter_700Bold',
-    color: '#000000',
+    color: '#1C1C1E',
   },
 
   // Scroll
   scrollView: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
   },
   scrollContent: {
     paddingHorizontal: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   centered: {
@@ -1214,22 +1223,20 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 14,
     paddingHorizontal: 12,
-    height: 44,
+    height: 48,
     gap: 8,
     marginBottom: 16,
   },
   taskSearchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 14,
     paddingHorizontal: 12,
-    height: 44,
+    height: 48,
     gap: 8,
     marginBottom: 16,
   },
@@ -1237,15 +1244,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: 'Inter_400Regular',
     fontSize: 15,
-    color: '#000000',
+    color: '#1C1C1E',
     padding: 0,
   },
 
   // Search Results
   searchResultCard: {
-    borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 14,
     marginBottom: 10,
   },
@@ -1259,7 +1265,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
   },
   searchAvatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1275,7 +1281,7 @@ const styles = StyleSheet.create({
   searchUsername: {
     fontFamily: 'Inter_700Bold',
     fontSize: 16,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   searchLegalName: {
     fontFamily: 'Inter_400Regular',
@@ -1302,11 +1308,11 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 4,
-    borderWidth: 0.5,
-    borderColor: '#C5C5C5',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
   },
   commonGroupLogoPlaceholder: {
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1316,8 +1322,8 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
   addButton: {
-    backgroundColor: '#000000',
-    borderRadius: 8,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
@@ -1329,9 +1335,8 @@ const styles = StyleSheet.create({
 
   // Organization
   orgProfileCard: {
-    borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 14,
     marginBottom: 12,
   },
@@ -1351,7 +1356,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   orgBadge: {
-    backgroundColor: '#00C0E8',
+    backgroundColor: '#007AFF',
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1377,7 +1382,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   orgAvatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1389,13 +1394,13 @@ const styles = StyleSheet.create({
   orgUsername: {
     fontFamily: 'Inter_700Bold',
     fontSize: 17,
-    color: '#000000',
+    color: '#1C1C1E',
     marginLeft: 10,
   },
   orgProfileSeparator: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     height: 36,
-    backgroundColor: '#C5C5C5',
+    backgroundColor: '#E5E5EA',
     marginHorizontal: 12,
   },
   orgLegalInfo: {
@@ -1404,7 +1409,7 @@ const styles = StyleSheet.create({
   orgLegalName: {
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   orgStudentId: {
     fontFamily: 'Inter_400Regular',
@@ -1421,16 +1426,15 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     paddingVertical: 10,
     alignItems: 'center',
   },
   statNumber: {
     fontFamily: 'Inter_700Bold',
     fontSize: 20,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   statLabel: {
     fontFamily: 'Inter_400Regular',
@@ -1442,7 +1446,7 @@ const styles = StyleSheet.create({
   // Subgroup Cards
   subgroupCard: {
     position: 'relative',
-    borderRadius: 10,
+    borderRadius: 16,
     padding: 14,
     marginBottom: 10,
     backgroundColor: '#FFFFFF',
@@ -1450,10 +1454,10 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.06,
         shadowRadius: 8,
       },
-      android: { elevation: 3 },
+      android: { elevation: 2 },
     }),
   },
   subgroupArrowWrap: {
@@ -1468,12 +1472,12 @@ const styles = StyleSheet.create({
   subgroupLogo: {
     width: 50,
     height: 50,
-    borderRadius: 10,
-    borderWidth: 0.5,
-    borderColor: '#000000',
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
   },
   subgroupLogoPlaceholder: {
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1488,7 +1492,7 @@ const styles = StyleSheet.create({
   subgroupCardName: {
     fontFamily: 'Inter_700Bold',
     fontSize: 20,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   subgroupCardMembers: {
     fontFamily: 'Inter_400Regular',
@@ -1497,9 +1501,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   subgroupCardSeparator: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     height: 40,
-    backgroundColor: '#C5C5C5',
+    backgroundColor: '#E5E5EA',
     marginHorizontal: 12,
   },
   subgroupLeadCol: {
@@ -1518,7 +1522,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   leadAvatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#E8E8ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1530,10 +1534,10 @@ const styles = StyleSheet.create({
   leadNames: {
     fontFamily: 'Inter_400Regular',
     fontSize: 11,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   leadBadge: {
-    backgroundColor: '#00C0E8',
+    backgroundColor: '#007AFF',
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -1546,9 +1550,11 @@ const styles = StyleSheet.create({
 
   // Event Cards (horizontal layout matching Figma)
   eventCard: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: '#F0F0F5',
+    paddingHorizontal: 0,
+    marginLeft: 0,
   },
   eventRow: {
     flexDirection: 'row',
@@ -1562,10 +1568,10 @@ const styles = StyleSheet.create({
   eventThumb: {
     width: 64,
     height: 64,
-    borderRadius: 10,
+    borderRadius: 14,
   },
   eventThumbPlaceholder: {
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#E8E8ED',
   },
   editOverlay: {
     position: 'absolute',
@@ -1588,7 +1594,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontFamily: 'Inter_700Bold',
     fontSize: 14,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   eventBadgeRow: {
     flexDirection: 'row',
@@ -1601,7 +1607,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   badgeOfficial: {
-    backgroundColor: '#000000',
+    backgroundColor: '#1C1C1E',
   },
   badgePrivate: {
     backgroundColor: '#34C759',
@@ -1632,9 +1638,9 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
   eventSeparator: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     height: 50,
-    backgroundColor: '#C5C5C5',
+    backgroundColor: '#E5E5EA',
     marginHorizontal: 10,
   },
   eventRightCol: {
@@ -1645,28 +1651,31 @@ const styles = StyleSheet.create({
   eventDate: {
     fontFamily: 'Inter_400Regular',
     fontSize: 11,
-    color: '#000000',
+    color: '#1C1C1E',
     marginBottom: 8,
   },
   csvButton: {
     borderWidth: 1,
-    borderColor: '#C5C5C5',
-    borderRadius: 6,
+    borderColor: '#E5E5EA',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 8,
     paddingVertical: 5,
   },
   csvButtonText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 11,
-    color: '#000000',
+    color: '#1C1C1E',
   },
 
   // Section Title
   sectionTitle: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 18,
-    color: '#000000',
-    marginTop: 12,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: 16,
     marginBottom: 8,
   },
 
@@ -1674,7 +1683,7 @@ const styles = StyleSheet.create({
   taskCard: {
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: '#F0F0F5',
   },
   taskRow: {
     flexDirection: 'row',
@@ -1685,7 +1694,7 @@ const styles = StyleSheet.create({
   taskText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   taskUsername: {
     fontFamily: 'Inter_700Bold',
@@ -1693,7 +1702,7 @@ const styles = StyleSheet.create({
   taskEventTitle: {
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
-    color: '#000000',
+    color: '#1C1C1E',
     marginTop: 2,
   },
   taskBadgeRow: {
@@ -1708,9 +1717,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   taskSeparator: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     alignSelf: 'stretch',
-    backgroundColor: '#C5C5C5',
+    backgroundColor: '#E5E5EA',
     marginHorizontal: 10,
   },
   taskRightCol: {
@@ -1726,7 +1735,7 @@ const styles = StyleSheet.create({
   },
   approveButton: {
     backgroundColor: '#34C759',
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
@@ -1748,7 +1757,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#34C759',
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -1760,7 +1769,7 @@ const styles = StyleSheet.create({
   declinedBadge: {
     borderWidth: 1,
     borderColor: '#FF383C',
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -1775,7 +1784,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: '#000000',
+    color: '#1C1C1E',
     padding: 0,
   },
   clearButton: {
