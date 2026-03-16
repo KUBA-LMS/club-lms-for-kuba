@@ -19,6 +19,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PaymentRequest, PaymentSplit } from '../../types/chat';
 import * as chatApi from '../../services/chat';
+import { resolveImageUrl } from '../../utils/image';
 
 interface PaymentDetailSheetProps {
   paymentRequestId: string | null;
@@ -339,7 +340,7 @@ const PaymentDetailSheet = forwardRef<BottomSheetModal, PaymentDetailSheetProps>
               <View key={split.id} style={styles.participantRow}>
                 {split.user.profile_image ? (
                   <Image
-                    source={{ uri: split.user.profile_image }}
+                    source={{ uri: resolveImageUrl(split.user.profile_image) }}
                     style={styles.avatar}
                   />
                 ) : (

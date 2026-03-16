@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { listChats, sendMessage } from '../../services/chat';
 import { copyEventLink, shareEventViaSystem } from '../../utils/share';
 import { Chat } from '../../types/chat';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ShareBottomSheetProps {
   eventId: string;
@@ -128,7 +129,7 @@ const ShareBottomSheet = forwardRef<BottomSheetModal, ShareBottomSheetProps>(
                   activeOpacity={0.7}
                 >
                   {avatar ? (
-                    <Image source={{ uri: avatar }} style={styles.chatAvatar} />
+                    <Image source={{ uri: resolveImageUrl(avatar) }} style={styles.chatAvatar} />
                   ) : (
                     <View style={[styles.chatAvatar, styles.chatAvatarEmpty]}>
                       <Text style={styles.chatAvatarText}>

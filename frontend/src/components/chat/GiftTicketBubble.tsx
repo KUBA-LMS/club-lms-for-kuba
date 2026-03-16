@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { GiftIcon } from '../icons';
 import ReadReceipt from './ReadReceipt';
 import { Message } from '../../types/chat';
+import { resolveImageUrl } from '../../utils/image';
 
 interface GiftTicketBubbleProps {
   message: Message;
@@ -40,7 +41,7 @@ export default function GiftTicketBubble({
     <View style={[styles.row, isOwn && styles.ownRow]}>
       {!isOwn && showAvatar ? (
         message.sender.profile_image ? (
-          <Image source={{ uri: message.sender.profile_image }} style={styles.avatar} />
+          <Image source={{ uri: resolveImageUrl(message.sender.profile_image) }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )

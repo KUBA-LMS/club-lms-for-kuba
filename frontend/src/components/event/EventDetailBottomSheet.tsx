@@ -5,11 +5,17 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  Modal,
+  StatusBar,
+  useWindowDimensions,
+  Linking,
+  Clipboard,
 } from 'react-native';
 import { BottomSheetModal, BottomSheetScrollView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { colors, screenPadding, shadows } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 const MapPinIcon = ({ size = 28, color = '#34C759' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size * 1.2} viewBox="0 0 28 34" fill="none">
@@ -74,6 +80,9 @@ export interface EventDetailData {
   opensAt?: string;
   registrationId?: string;
   paymentDeadline?: Date;
+  bankName?: string;
+  bankAccountNumber?: string;
+  accountHolderName?: string;
 }
 
 interface EventDetailBottomSheetProps {
@@ -217,9 +226,26 @@ function useCountdown(targetDate?: Date) {
 const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomSheetProps>(
   ({ event, onClose, onRegister, onCancelRegistration, onOnePass, onFindWay }, ref) => {
     const insets = useSafeAreaInsets();
+    const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const countdown = useCountdown(event?.paymentDeadline);
 
     const snapPoints = useMemo(() => ['75%'], []);
+    const [descExpanded, setDescExpanded] = useState(false);
+    const [imageModalVisible, setImageModalVisible] = useState(false);
+    const [bankModalVisible, setBankModalVisible] = useState(false);
+    const [accountCopied, setAccountCopied] = useState(false);
+
+    const handleCopyAccount = useCallback(() => {
+      if (event?.bankAccountNumber) {
+        Clipboard.setString(event.bankAccountNumber);
+        setAccountCopied(true);
+        setTimeout(() => setAccountCopied(false), 2000);
+      }
+    }, [event?.bankAccountNumber]);
+
+    const handleOpenToss = useCallback(() => {
+      Linking.openURL('supertoss://').catch(() => Linking.openURL('https://toss.im'));
+    }, []);
 
     const buttonConfig = useMemo(
       () => getButtonConfig(event?.status, event?.opensAt),
@@ -262,9 +288,13 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
         {event && (
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
           {/* Event Image */}
-          <View style={styles.imageSection}>
+          <TouchableOpacity
+            style={styles.imageSection}
+            activeOpacity={event.imageUri ? 0.9 : 1}
+            onPress={() => { if (event.imageUri) setImageModalVisible(true); }}
+          >
             {event.imageUri ? (
-              <Image source={{ uri: event.imageUri }} style={styles.eventImage} />
+              <Image source={{ uri: resolveImageUrl(event.imageUri) }} style={styles.eventImage} />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Text style={styles.imagePlaceholderText}>Event Image</Text>
@@ -307,7 +337,7 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
                 </Text>
               </View>
             )}
-          </View>
+          </TouchableOpacity>
 
           {/* Content Section */}
           <View style={styles.contentSection}>
@@ -337,10 +367,12 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
                   ? onRegister
                   : buttonConfig.action === 'onepass'
                   ? onOnePass
+                  : event?.status === 'payment_pending' && event.bankAccountNumber
+                  ? () => setBankModalVisible(true)
                   : undefined
               }
-              disabled={buttonConfig.disabled}
-              activeOpacity={buttonConfig.disabled ? 1 : 0.8}
+              disabled={buttonConfig.disabled && event?.status !== 'payment_pending'}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
@@ -395,11 +427,19 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
             {/* Description Card */}
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Description</Text>
-              <Text style={styles.descriptionText} numberOfLines={8}>
-                {event.description || 'Korea University Cheering Orientation Notice\n\nDate: September 2\nEntrance Time: changed to 5:05 PM\nMeeting Point: in front of the Dongwon Global Leadership Hall by 4:35 PM\n\nIf you cannot enter with KUBA at this time, you may enter after 6:30 PM'}
+              <Text
+                style={styles.descriptionText}
+                numberOfLines={descExpanded ? undefined : 8}
+              >
+                {event.description || 'No description provided.'}
               </Text>
-              <TouchableOpacity style={styles.viewMoreButton}>
-                <Text style={styles.viewMoreText}>view more</Text>
+              <TouchableOpacity
+                style={styles.viewMoreButton}
+                onPress={() => setDescExpanded((v) => !v)}
+              >
+                <Text style={styles.viewMoreText}>
+                  {descExpanded ? 'view less' : 'view more'}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -407,16 +447,31 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
             <View style={styles.detailsSection}>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>EVENT TYPE:</Text>
-                <View style={styles.officialBadgeSmall}>
-                  <Text style={styles.badgeTextSmall}>Official</Text>
+                <View style={[styles.officialBadgeSmall, {
+                  backgroundColor: event.eventType === 'official' ? colors.black : '#D4A574',
+                }]}>
+                  <Text style={styles.badgeTextSmall}>
+                    {event.eventType === 'official' ? 'Official' : event.eventType === 'private' ? 'Private' : event.eventType || 'Official'}
+                  </Text>
                 </View>
               </View>
               <View style={styles.detailDivider} />
 
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>COST TYPE:</Text>
-                <View style={styles.freeBadgeSmall}>
-                  <Text style={styles.badgeTextSmall}>Free</Text>
+                <View style={[styles.freeBadgeSmall, {
+                  backgroundColor:
+                    event.costType === 'free' ? colors.success :
+                    event.costType === 'prepaid' ? '#A855F7' :
+                    event.costType === 'one_n' ? '#3B82F6' :
+                    colors.success,
+                }]}>
+                  <Text style={styles.badgeTextSmall}>
+                    {event.costType === 'free' ? 'Free' :
+                     event.costType === 'prepaid' ? 'Prepaid' :
+                     event.costType === 'one_n' ? '1/N' :
+                     event.costType || 'Free'}
+                  </Text>
                 </View>
               </View>
               <View style={styles.detailDivider} />
@@ -441,7 +496,7 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
                 <Text style={styles.detailLabel}>PROVIDED BY:</Text>
                 <View style={styles.providerRow}>
                   {event.providedBy?.logo && (
-                    <Image source={{ uri: event.providedBy.logo }} style={styles.providerLogo} />
+                    <Image source={{ uri: resolveImageUrl(event.providedBy.logo) }} style={styles.providerLogo} />
                   )}
                   <Text style={styles.detailValueBold}>
                     {event.providedBy?.name || '45th KUBA'}
@@ -454,7 +509,7 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
                 <Text style={styles.detailLabel}>POSTED BY:</Text>
                 <View style={styles.providerRow}>
                   {event.postedBy?.avatar && (
-                    <Image source={{ uri: event.postedBy.avatar }} style={styles.posterAvatar} />
+                    <Image source={{ uri: resolveImageUrl(event.postedBy.avatar) }} style={styles.posterAvatar} />
                   )}
                   <Text style={styles.detailValueBold}>
                     {event.postedBy?.name || 'minju5'}
@@ -476,6 +531,85 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
           </View>
         </BottomSheetScrollView>
         )}
+
+      {/* Photo Modal */}
+      <Modal
+        visible={imageModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setImageModalVisible(false)}
+      >
+        <View style={styles.photoModalOverlay}>
+          <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.95)" />
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setImageModalVisible(false)}
+          />
+          {event?.imageUri && (
+            <Image
+              source={{ uri: resolveImageUrl(event.imageUri) }}
+              style={{
+                width: screenWidth,
+                height: screenWidth * (4 / 3),
+                maxHeight: screenHeight * 0.88,
+              }}
+              resizeMode="contain"
+            />
+          )}
+          <TouchableOpacity
+            style={[styles.photoModalClose, { top: insets.top + 12 }]}
+            onPress={() => setImageModalVisible(false)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Text style={styles.photoModalCloseText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Bank Account Modal */}
+      <Modal
+        visible={bankModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBankModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.bankModalOverlay}
+          activeOpacity={1}
+          onPress={() => setBankModalVisible(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <View style={styles.bankModalCard}>
+              <Text style={styles.bankModalTitle}>Payment Account</Text>
+              {event?.bankName && (
+                <Text style={styles.bankModalBankName}>{event.bankName}</Text>
+              )}
+              {event?.accountHolderName && (
+                <Text style={styles.bankModalHolder}>{event.accountHolderName}</Text>
+              )}
+              {event?.bankAccountNumber && (
+                <TouchableOpacity style={styles.bankModalAccountRow} onPress={handleCopyAccount}>
+                  <Text style={styles.bankModalAccountNumber}>{event.bankAccountNumber}</Text>
+                  <Text style={styles.bankModalCopyLabel}>{accountCopied ? 'Copied!' : 'Copy'}</Text>
+                </TouchableOpacity>
+              )}
+              {event?.prepaidAmount && (
+                <Text style={styles.bankModalAmount}>
+                  {event.prepaidAmount.toLocaleString('en-US')} KRW
+                </Text>
+              )}
+              <TouchableOpacity style={styles.bankModalTossButton} onPress={handleOpenToss}>
+                <Text style={styles.bankModalTossText}>Open Toss</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.bankModalDoneButton} onPress={() => setBankModalVisible(false)}>
+                <Text style={styles.bankModalDoneText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
       </BottomSheetModal>
     );
   }
@@ -509,12 +643,14 @@ const styles = StyleSheet.create({
 
   // Image Section
   imageSection: {
-    height: 300,
+    width: '100%',
+    aspectRatio: 3 / 4,
     position: 'relative',
   },
   eventImage: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   imagePlaceholder: {
     flex: 1,
@@ -849,5 +985,107 @@ const styles = StyleSheet.create({
     width: 14.5,
     height: 14.5,
     borderRadius: 7.25,
+  },
+
+  // Photo Modal
+  photoModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoModalClose: {
+    position: 'absolute',
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoModalCloseText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+
+  // Bank Modal
+  bankModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  bankModalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    width: 300,
+    gap: 6,
+  },
+  bankModalTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    color: '#1C1C1E',
+    marginBottom: 8,
+  },
+  bankModalBankName: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    color: '#1C1C1E',
+  },
+  bankModalHolder: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 13,
+    color: '#8E8E93',
+  },
+  bankModalAccountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  bankModalAccountNumber: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    color: '#1C1C1E',
+    letterSpacing: 0.5,
+  },
+  bankModalCopyLabel: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: '#3B82F6',
+  },
+  bankModalAmount: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    color: '#000000',
+    marginTop: 4,
+  },
+  bankModalTossButton: {
+    marginTop: 12,
+    backgroundColor: '#3182F6',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 32,
+    width: '100%',
+    alignItems: 'center',
+  },
+  bankModalTossText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  bankModalDoneButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+  },
+  bankModalDoneText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 13,
+    color: '#8E8E93',
   },
 });

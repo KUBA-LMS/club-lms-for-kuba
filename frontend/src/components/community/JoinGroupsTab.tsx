@@ -18,6 +18,7 @@ import CreateGroupModal from './CreateGroupModal';
 import LeaveGroupModal from './LeaveGroupModal';
 import QRCodeModal from './QRCodeModal';
 import { colors } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 import {
   getMyGroups,
   createGroup,
@@ -88,7 +89,7 @@ function GroupItem({
           <View style={styles.logoWrapper}>
             {group.logo_image ? (
               <Image
-                source={{ uri: group.logo_image }}
+                source={{ uri: resolveImageUrl(group.logo_image) }}
                 style={styles.groupLogo}
               />
             ) : (
@@ -162,7 +163,7 @@ function GroupItem({
             {/* Subgroup logo */}
             {sub.logo_image ? (
               <Image
-                source={{ uri: sub.logo_image }}
+                source={{ uri: resolveImageUrl(sub.logo_image) }}
                 style={styles.subgroupLogo}
               />
             ) : (

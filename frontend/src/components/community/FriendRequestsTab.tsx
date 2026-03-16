@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { colors } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 import {
   getFriendRequests,
   acceptFriendRequest,
@@ -27,7 +28,7 @@ function ClubBadges({ clubs }: { clubs: ClubBrief[] }) {
         club.logo_image ? (
           <Image
             key={club.id}
-            source={{ uri: club.logo_image }}
+            source={{ uri: resolveImageUrl(club.logo_image) }}
             style={styles.clubBadge}
           />
         ) : (
@@ -80,7 +81,7 @@ function RequestItem({ request, onHandled }: RequestItemProps) {
     <View style={styles.itemContainer}>
       <View style={styles.avatarContainer}>
         {sender.profile_image ? (
-          <Image source={{ uri: sender.profile_image }} style={styles.avatar} />
+          <Image source={{ uri: resolveImageUrl(sender.profile_image) }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}

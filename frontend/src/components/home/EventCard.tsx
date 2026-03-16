@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, useWindowDimensions } 
 import { StarsIcon, ShareIcon } from '../icons';
 import Svg, { Path } from 'react-native-svg';
 import { UserBrief } from '../../types/auth';
+import { resolveImageUrl } from '../../utils/image';
 
 export type RegistrationStatus =
   | 'registered'
@@ -112,13 +113,15 @@ export default function EventCard({
       {/* Full-width image */}
       <View style={styles.imageWrapper}>
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+          <Image source={{ uri: resolveImageUrl(imageUri) }} style={styles.image} resizeMode="cover" />
         ) : (
           <View style={styles.imagePlaceholder} />
         )}
         {/* Bookmark overlay */}
         <TouchableOpacity style={styles.bookmarkOverlay} onPress={onBookmark} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <StarsIcon size={22} color={isBookmarked ? '#FFD700' : '#FFFFFF'} filled={isBookmarked} />
+          <View style={styles.bookmarkBg}>
+            <StarsIcon size={18} color={isBookmarked ? '#FFD700' : '#FFFFFF'} filled={isBookmarked} />
+          </View>
         </TouchableOpacity>
         {/* Page dots overlay */}
         <View style={styles.dotsRow}>
@@ -136,7 +139,7 @@ export default function EventCard({
                 p.profile_image ? (
                   <Image
                     key={p.id}
-                    source={{ uri: p.profile_image }}
+                    source={{ uri: resolveImageUrl(p.profile_image) }}
                     style={[styles.avatar, { marginLeft: index === 0 ? 0 : -8 }]}
                   />
                 ) : (
@@ -188,7 +191,7 @@ export default function EventCard({
       <View style={styles.providedByRow}>
         <Text style={styles.providedByLabel}>Provided by: </Text>
         {providerLogo && (
-          <Image source={{ uri: providerLogo }} style={styles.providerLogo} />
+          <Image source={{ uri: resolveImageUrl(providerLogo) }} style={styles.providerLogo} />
         )}
         <Text style={styles.providerName}>{provider}</Text>
       </View>
@@ -242,8 +245,16 @@ const styles = StyleSheet.create({
   },
   bookmarkOverlay: {
     position: 'absolute',
-    right: 8,
-    top: 8,
+    right: 10,
+    top: 10,
+  },
+  bookmarkBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dotsRow: {
     position: 'absolute',

@@ -42,6 +42,9 @@ export interface EventFormData {
   visibility_club_id?: string;
   poster_uri?: string;
   photo_uris?: string[];
+  bank_name?: string;
+  bank_account_number?: string;
+  account_holder_name?: string;
 }
 
 // Main Stack (contains tabs and detail screens)
@@ -59,8 +62,8 @@ export type MainStackParamList = {
   EditProfile: undefined;
   Settings: undefined;
   // Admin screens
-  AdminCreateEvent: undefined;
-  AdminUploadPoster: { eventData: Partial<EventFormData> };
+  AdminCreateEvent: { eventId?: string } | undefined;
+  AdminUploadPoster: { onPosterSelected: (uri: string | undefined) => void } | undefined;
   AccessControl: undefined;
   AdminHub: undefined;
   AdminHubSubgroupDetail: { clubId: string; subgroupId: string; subgroupName: string };

@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../../navigation/types';
 import { ArrowBackIcon, ChevronRightIcon } from '../../components/icons';
 import { SubgroupMember, getSubgroupMembers } from '../../services/adminHub';
+import { resolveImageUrl } from '../../utils/image';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type RouteType = RouteProp<MainStackParamList, 'AdminHubSubgroupDetail'>;
@@ -63,7 +64,7 @@ export default function AdminHubSubgroupDetailScreen() {
         {/* Avatar with badge overlay */}
         <View style={styles.avatarWrap}>
           {member.profile_image ? (
-            <Image source={{ uri: member.profile_image }} style={styles.avatar} />
+            <Image source={{ uri: resolveImageUrl(member.profile_image) }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Text style={styles.avatarText}>

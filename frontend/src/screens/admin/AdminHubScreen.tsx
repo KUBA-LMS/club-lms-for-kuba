@@ -19,6 +19,7 @@ import { MainStackParamList } from '../../navigation/types';
 import { getMyGroups, MyGroup } from '../../services/clubs';
 import { SearchIcon, ArrowBackIcon, ChevronRightIcon, CheckIcon } from '../../components/icons';
 import MemberCard from '../../components/admin/MemberCard';
+import { resolveImageUrl } from '../../utils/image';
 import DepositModal from '../../components/admin/DepositModal';
 import ConfirmModal from '../../components/admin/ConfirmModal';
 import { useSearchDebounce } from '../../hooks/useSearchDebounce';
@@ -368,7 +369,7 @@ export default function AdminHubScreen() {
         >
           {club.logo_image ? (
             <Image
-              source={{ uri: club.logo_image }}
+              source={{ uri: resolveImageUrl(club.logo_image) }}
               style={[
                 styles.clubLogo,
                 selectedClubId === club.id && styles.clubLogoSelected,
@@ -533,7 +534,7 @@ export default function AdminHubScreen() {
           <View key={user.id} style={styles.searchResultCard}>
             <View style={styles.searchResultRow}>
               {user.profile_image ? (
-                <Image source={{ uri: user.profile_image }} style={styles.searchAvatar} />
+                <Image source={{ uri: resolveImageUrl(user.profile_image) }} style={styles.searchAvatar} />
               ) : (
                 <View style={[styles.searchAvatar, styles.searchAvatarPlaceholder]}>
                   <Text style={styles.searchAvatarText}>
@@ -554,7 +555,7 @@ export default function AdminHubScreen() {
                         g.logo_image ? (
                           <Image
                             key={g.id}
-                            source={{ uri: g.logo_image }}
+                            source={{ uri: resolveImageUrl(g.logo_image) }}
                             style={styles.commonGroupLogo}
                           />
                         ) : (
@@ -617,7 +618,7 @@ export default function AdminHubScreen() {
           {/* Bottom row: avatar + username | separator | legal info */}
           <View style={styles.orgProfileRow}>
             {orgData.my_profile.profile_image ? (
-              <Image source={{ uri: orgData.my_profile.profile_image }} style={styles.orgAvatar} />
+              <Image source={{ uri: resolveImageUrl(orgData.my_profile.profile_image) }} style={styles.orgAvatar} />
             ) : (
               <View style={[styles.orgAvatar, styles.orgAvatarPlaceholder]}>
                 <Text style={styles.orgAvatarText}>
@@ -675,7 +676,7 @@ export default function AdminHubScreen() {
             <View style={styles.subgroupCardRow}>
               {/* Logo */}
               {sg.logo_image ? (
-                <Image source={{ uri: sg.logo_image }} style={styles.subgroupLogo} />
+                <Image source={{ uri: resolveImageUrl(sg.logo_image) }} style={styles.subgroupLogo} />
               ) : (
                 <View style={[styles.subgroupLogo, styles.subgroupLogoPlaceholder]}>
                   <Text style={styles.subgroupLogoText}>{sg.name.charAt(0)}</Text>
@@ -705,7 +706,7 @@ export default function AdminHubScreen() {
                         lead.profile_image ? (
                           <Image
                             key={lead.id}
-                            source={{ uri: lead.profile_image }}
+                            source={{ uri: resolveImageUrl(lead.profile_image) }}
                             style={styles.leadAvatar}
                           />
                         ) : (
@@ -737,13 +738,13 @@ export default function AdminHubScreen() {
         {/* Thumbnail with Edit overlay */}
         <View style={styles.eventThumbWrap}>
           {event.images.length > 0 ? (
-            <Image source={{ uri: event.images[0] }} style={styles.eventThumb} />
+            <Image source={{ uri: resolveImageUrl(event.images[0]) }} style={styles.eventThumb} />
           ) : (
             <View style={[styles.eventThumb, styles.eventThumbPlaceholder]} />
           )}
           <TouchableOpacity
             style={styles.editOverlay}
-            onPress={() => navigation.navigate('AdminCreateEvent')}
+            onPress={() => navigation.navigate('AdminCreateEvent', { eventId: event.id })}
             activeOpacity={0.7}
           >
             <Text style={styles.editOverlayText}>Edit</Text>

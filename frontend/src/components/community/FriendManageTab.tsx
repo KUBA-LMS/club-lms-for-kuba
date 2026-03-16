@@ -14,6 +14,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { SearchIcon, TrashIcon } from '../icons';
 import RemoveFriendModal from './RemoveFriendModal';
 import { colors } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 import {
   getFriends,
   removeFriend,
@@ -29,7 +30,7 @@ function ClubBadges({ clubs }: { clubs: ClubBrief[] }) {
         club.logo_image ? (
           <Image
             key={club.id}
-            source={{ uri: club.logo_image }}
+            source={{ uri: resolveImageUrl(club.logo_image) }}
             style={styles.clubBadge}
           />
         ) : (
@@ -87,7 +88,7 @@ function FriendManageItem({ friend, onDelete }: FriendManageItemProps) {
       <View style={styles.itemContainer}>
         <View style={styles.avatarContainer}>
           {friend.profile_image ? (
-            <Image source={{ uri: friend.profile_image }} style={styles.avatar} />
+            <Image source={{ uri: resolveImageUrl(friend.profile_image) }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]} />
           )}

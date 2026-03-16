@@ -35,6 +35,7 @@ import {
 } from '../../components/icons';
 import { colors } from '../../constants/colors';
 import { shadows } from '../../constants/shadows';
+import { resolveImageUrl } from '../../utils/image';
 
 if (
   Platform.OS === 'android' &&
@@ -224,7 +225,7 @@ export default function ProfileScreen() {
                   >
                     {club.logo_image ? (
                       <Image
-                        source={{ uri: club.logo_image }}
+                        source={{ uri: resolveImageUrl(club.logo_image) }}
                         style={styles.clubLogo}
                       />
                     ) : (
@@ -253,7 +254,7 @@ export default function ProfileScreen() {
             <View style={styles.avatar}>
               {typedUser?.profile_image ? (
                 <Image
-                  source={{ uri: typedUser.profile_image }}
+                  source={{ uri: resolveImageUrl(typedUser.profile_image) }}
                   style={styles.avatarImage}
                 />
               ) : (
@@ -404,7 +405,7 @@ export default function ProfileScreen() {
                       <View style={styles.ticketThumb}>
                         {poster ? (
                           <Image
-                            source={{ uri: poster }}
+                            source={{ uri: resolveImageUrl(poster) }}
                             style={styles.ticketThumbImg}
                           />
                         ) : (

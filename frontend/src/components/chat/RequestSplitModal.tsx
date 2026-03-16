@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { TrashIcon } from '../icons';
 import { ChatMember } from '../../types/chat';
+import { resolveImageUrl } from '../../utils/image';
 
 interface RequestSplitModalProps {
   visible: boolean;
@@ -68,7 +69,7 @@ export default function RequestSplitModal({
       <View style={styles.memberRow}>
         <View style={styles.memberLeft}>
           {item.profile_image ? (
-            <Image source={{ uri: item.profile_image }} style={styles.memberAvatar} />
+            <Image source={{ uri: resolveImageUrl(item.profile_image) }} style={styles.memberAvatar} />
           ) : (
             <View style={[styles.memberAvatar, styles.memberAvatarPlaceholder]} />
           )}

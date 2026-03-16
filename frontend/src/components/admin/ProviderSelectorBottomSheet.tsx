@@ -14,16 +14,23 @@ import {
   Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getMyGroups, MyGroup } from '../../services/clubs';
-import { searchUsers } from '../../services/chat';
 import api from '../../services/api';
+import { searchUsers } from '../../services/chat';
 import { CheckIcon, ChevronDownIcon } from '../icons';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ProviderSelectorBottomSheetProps {
   visible: boolean;
   onClose: () => void;
   onSelect: (clubId: string, clubName: string) => void;
   selectedClubId?: string;
+}
+
+interface ClubItem {
+  id: string;
+  name: string;
+  logo_image: string | null;
+  parent_id: string | null;
 }
 
 interface SearchUser {
@@ -42,7 +49,7 @@ export default function ProviderSelectorBottomSheet({
   const [activeTab, setActiveTab] = useState<'group' | 'individual'>('group');
 
   // Group tab
-  const [groups, setGroups] = useState<MyGroup[]>([]);
+  const [groups, setGroups] = useState<ClubItem[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,8 +76,8 @@ export default function ProviderSelectorBottomSheet({
   const fetchGroups = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getMyGroups();
-      setGroups(data);
+      const response = await api.get<{ data: ClubItem[] }>('/clubs/?limit=100');
+      setGroups(response.data.data);
     } catch (error) {
       console.error('Failed to fetch groups:', error);
       setGroups([]);
@@ -128,8 +135,11 @@ export default function ProviderSelectorBottomSheet({
           onPress={() => Keyboard.dismiss()}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={styles.handleRow}>
             <View style={styles.handle} />
+          </View>
+          <View style={styles.header}>
+            <View style={styles.headerSpacer} />
             <TouchableOpacity style={styles.doneButton} onPress={onClose}>
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
@@ -179,101 +189,32 @@ export default function ProviderSelectorBottomSheet({
                 </View>
               ) : (
                 groups.map((group) => (
-                  <React.Fragment key={group.id}>
-                    {/* Club row */}
-                    <View style={styles.clubRow}>
-                      <TouchableOpacity
-                        style={styles.clubItem}
-                        onPress={() => handleSelect(group.id, group.name)}
-                        activeOpacity={0.6}
-                      >
-                        {group.logo_image ? (
-                          <Image
-                            source={{ uri: group.logo_image }}
-                            style={styles.clubAvatar}
-                          />
-                        ) : (
-                          <View style={[styles.clubAvatar, styles.clubAvatarPlaceholder]}>
-                            <Text style={styles.clubAvatarText}>
-                              {group.name.charAt(0).toUpperCase()}
-                            </Text>
-                          </View>
-                        )}
-                        <View style={styles.clubInfo}>
-                          <Text style={styles.clubName}>{group.name}</Text>
-                          {group.subgroups.length > 0 && (
-                            <TouchableOpacity
-                              style={styles.viewSubgroupsBtn}
-                              onPress={() => toggleExpand(group.id)}
-                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            >
-                              <Text style={styles.viewSubgroupsText}>View Subgroups</Text>
-                              <View
-                                style={{
-                                  transform: [
-                                    { rotate: isExpanded(group.id) ? '180deg' : '0deg' },
-                                  ],
-                                }}
-                              >
-                                <ChevronDownIcon size={10} color="#8E8E93" />
-                              </View>
-                            </TouchableOpacity>
-                          )}
+                  <View key={group.id} style={[styles.clubRow, group.parent_id && styles.clubRowSub]}>
+                    <TouchableOpacity
+                      style={styles.clubItem}
+                      onPress={() => handleSelect(group.id, group.name)}
+                      activeOpacity={0.6}
+                    >
+                      {group.logo_image ? (
+                        <Image source={{ uri: resolveImageUrl(group.logo_image) }} style={styles.clubAvatar} />
+                      ) : (
+                        <View style={[styles.clubAvatar, styles.clubAvatarPlaceholder]}>
+                          <Text style={styles.clubAvatarText}>
+                            {group.name.charAt(0).toUpperCase()}
+                          </Text>
                         </View>
-                        {selectedClubId === group.id && (
-                          <CheckIcon size={16} color="#8E8E93" />
+                      )}
+                      <View style={styles.clubInfo}>
+                        <Text style={styles.clubName}>{group.name}</Text>
+                        {group.parent_id && (
+                          <Text style={styles.viewSubgroupsText}>Subgroup</Text>
                         )}
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Subgroups */}
-                    {isExpanded(group.id) &&
-                      group.subgroups.map((sub, index) => (
-                        <View key={sub.id} style={styles.subgroupRow}>
-                          {/* L-bracket connector */}
-                          <View style={styles.bracketContainer}>
-                            <View style={styles.bracketVertical} />
-                            <View style={styles.bracketHorizontal} />
-                          </View>
-                          <TouchableOpacity
-                            style={styles.subgroupItem}
-                            onPress={() => handleSelect(sub.id, sub.name)}
-                            activeOpacity={0.6}
-                          >
-                            {sub.logo_image ? (
-                              <Image
-                                source={{ uri: sub.logo_image }}
-                                style={styles.subgroupAvatar}
-                              />
-                            ) : (
-                              <View
-                                style={[
-                                  styles.subgroupAvatar,
-                                  styles.clubAvatarPlaceholder,
-                                ]}
-                              >
-                                <Text style={styles.subgroupAvatarText}>
-                                  {sub.name.charAt(0).toUpperCase()}
-                                </Text>
-                              </View>
-                            )}
-                            <Text style={styles.subgroupName} numberOfLines={1}>
-                              {sub.name}
-                            </Text>
-                            {sub.role && (
-                              <View style={styles.roleBadge}>
-                                <Text style={styles.roleBadgeText}>
-                                  {sub.role.charAt(0).toUpperCase()}
-                                </Text>
-                              </View>
-                            )}
-                            {selectedClubId === sub.id && (
-                              <CheckIcon size={16} color="#34C759" />
-                            )}
-                          </TouchableOpacity>
-                        </View>
-                      ))}
-                  </React.Fragment>
+                      </View>
+                      {selectedClubId === group.id && (
+                        <CheckIcon size={16} color="#1C1C1E" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 ))
               )
             ) : (
@@ -310,7 +251,7 @@ export default function ProviderSelectorBottomSheet({
                     >
                       {user.profile_image ? (
                         <Image
-                          source={{ uri: user.profile_image }}
+                          source={{ uri: resolveImageUrl(user.profile_image) }}
                           style={styles.userAvatar}
                         />
                       ) : (
@@ -345,36 +286,43 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: '#F2F2F2',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingTop: 12,
-    maxHeight: '70%',
+    minHeight: '45%',
+    maxHeight: '75%',
   },
-  header: {
+  handleRow: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingTop: 4,
+    marginBottom: 10,
   },
   handle: {
     width: 40,
     height: 4,
     backgroundColor: '#CCCCCC',
     borderRadius: 2,
-    marginBottom: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  headerSpacer: {
+    flex: 1,
   },
   doneButton: {
-    position: 'absolute',
-    right: 16,
-    top: 0,
-    backgroundColor: '#0088FF',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 10,
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    borderRadius: 20,
   },
   doneButtonText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 15,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
     color: '#FFFFFF',
   },
 
@@ -419,6 +367,7 @@ const styles = StyleSheet.create({
   // Content
   content: {
     flex: 1,
+    minHeight: 200,
   },
   contentContainer: {
     paddingBottom: 16,
@@ -441,7 +390,11 @@ const styles = StyleSheet.create({
   clubRow: {
     backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#E5E5EA',
+  },
+  clubRowSub: {
+    backgroundColor: '#FAFAFA',
+    paddingLeft: 16,
   },
   clubItem: {
     flexDirection: 'row',

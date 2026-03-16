@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { Participant } from '../../types/accessControl';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ParticipantDetailCardProps {
   participant: Participant;
@@ -31,7 +32,7 @@ export default function ParticipantDetailCard({
         <View style={styles.avatarContainer}>
           {participant.profile_image ? (
             <Image
-              source={{ uri: participant.profile_image }}
+              source={{ uri: resolveImageUrl(participant.profile_image) }}
               style={styles.avatar}
             />
           ) : (

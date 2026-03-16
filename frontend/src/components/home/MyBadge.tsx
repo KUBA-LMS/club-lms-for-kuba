@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { resolveImageUrl } from '../../utils/image';
 
 interface MyBadgeProps {
   onPress?: () => void;
@@ -15,7 +16,7 @@ export default function MyBadge({ onPress, userImage, username }: MyBadgeProps) 
       activeOpacity={0.7}
     >
       {userImage ? (
-        <Image source={{ uri: userImage }} style={styles.profileImage} />
+        <Image source={{ uri: resolveImageUrl(userImage) }} style={styles.profileImage} />
       ) : (
         <View style={styles.fallbackWrapper}>
           {username ? (

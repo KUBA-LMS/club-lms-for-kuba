@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { ArrowBackIcon } from '../icons';
 import { ChatMember } from '../../types/chat';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ChatHeaderProps {
   members: ChatMember[];
@@ -40,7 +41,7 @@ export default function ChatHeader({
                   ]}
                 >
                   {member.profile_image ? (
-                    <Image source={{ uri: member.profile_image }} style={styles.avatar} />
+                    <Image source={{ uri: resolveImageUrl(member.profile_image) }} style={styles.avatar} />
                   ) : (
                     <View style={[styles.avatar, styles.avatarPlaceholder]}>
                       <Text style={styles.avatarInitial}>
@@ -54,7 +55,7 @@ export default function ChatHeader({
           ) : (
             <>
               {otherMembers[0]?.profile_image ? (
-                <Image source={{ uri: otherMembers[0].profile_image }} style={styles.avatar} />
+                <Image source={{ uri: resolveImageUrl(otherMembers[0].profile_image) }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarPlaceholder]}>
                   <Text style={styles.avatarInitial}>

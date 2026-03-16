@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SearchIcon } from '../icons';
 import { colors } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 import {
   searchUsers,
   sendFriendRequest,
@@ -27,7 +28,7 @@ function ClubBadges({ clubs }: { clubs: ClubBrief[] }) {
         club.logo_image ? (
           <Image
             key={club.id}
-            source={{ uri: club.logo_image }}
+            source={{ uri: resolveImageUrl(club.logo_image) }}
             style={styles.clubBadge}
           />
         ) : (
@@ -134,7 +135,7 @@ function FriendSearchItem({ user, onStateChange }: FriendSearchItemProps) {
     <View style={styles.itemContainer}>
       <View style={styles.avatarContainer}>
         {user.profile_image ? (
-          <Image source={{ uri: user.profile_image }} style={styles.avatar} />
+          <Image source={{ uri: resolveImageUrl(user.profile_image) }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}

@@ -17,6 +17,7 @@ import { toggleBookmark } from '../../services/bookmarks';
 import { EventWithStatus } from '../../types/event';
 import { ArrowBackIcon, StarsIcon, ShareIcon } from '../../components/icons';
 import { colors, screenPadding } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 type ScreenRouteProp = RouteProp<MainStackParamList, 'EventDetail'>;
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
@@ -114,7 +115,7 @@ export default function EventDetailScreen() {
         {/* Event Image */}
         <View style={styles.imageSection}>
           {event.images?.[0] ? (
-            <Image source={{ uri: event.images[0] }} style={styles.eventImage} />
+            <Image source={{ uri: resolveImageUrl(event.images[0]) }} style={styles.eventImage} />
           ) : (
             <View style={styles.imagePlaceholder}>
               <Text style={styles.imagePlaceholderText}>Event Image</Text>
@@ -171,7 +172,7 @@ export default function EventDetailScreen() {
               <Text style={styles.infoLabel}>Provided by</Text>
               <View style={styles.providerRow}>
                 {event.club.logo_image && (
-                  <Image source={{ uri: event.club.logo_image }} style={styles.providerLogo} />
+                  <Image source={{ uri: resolveImageUrl(event.club.logo_image) }} style={styles.providerLogo} />
                 )}
                 <Text style={styles.infoValueBold}>{event.club.name}</Text>
               </View>
@@ -202,7 +203,7 @@ export default function EventDetailScreen() {
                 {event.participants_preview.map((p) => (
                   <View key={p.id} style={styles.participantItem}>
                     {p.profile_image ? (
-                      <Image source={{ uri: p.profile_image }} style={styles.participantAvatar} />
+                      <Image source={{ uri: resolveImageUrl(p.profile_image) }} style={styles.participantAvatar} />
                     ) : (
                       <View style={[styles.participantAvatar, styles.participantAvatarEmpty]}>
                         <Text style={styles.participantInitial}>

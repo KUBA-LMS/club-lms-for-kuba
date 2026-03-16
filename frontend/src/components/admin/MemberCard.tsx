@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { ChevronDownIcon, TrashIcon } from '../icons';
 import { AdminMember, DepositTransactionInfo } from '../../services/adminHub';
+import { resolveImageUrl } from '../../utils/image';
 
 interface MemberCardProps {
   member: AdminMember;
@@ -51,7 +52,7 @@ export default function MemberCard({
       <View style={styles.topRow}>
         <View style={styles.profileSection}>
           {member.profile_image ? (
-            <Image source={{ uri: member.profile_image }} style={styles.avatar} />
+            <Image source={{ uri: resolveImageUrl(member.profile_image) }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Text style={styles.avatarText}>

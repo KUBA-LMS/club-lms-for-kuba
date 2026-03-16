@@ -8,7 +8,7 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from uuid import UUID
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from app.core.database import get_db
 from app.core.security import get_current_user, get_current_admin_user
@@ -31,6 +31,7 @@ from app.schemas.event import (
 )
 from app.schemas.user import UserBriefResponse
 from app.schemas.club import ClubBriefResponse
+from app.models.user import user_club
 
 router = APIRouter()
 
@@ -39,25 +40,30 @@ def calculate_user_status(
     event: Event,
     user_registration: Optional[Registration],
     now: datetime,
-) -> tuple[UserRegistrationStatus, Optional[UUID]]:
-    """Calculate user's registration status for an event."""
+) -> tuple[UserRegistrationStatus, Optional[UUID], Optional[datetime]]:
+    """Calculate user's registration status for an event.
+    Returns (status, registration_id, payment_deadline).
+    """
     if user_registration:
         if user_registration.status == "checked_in":
-            return UserRegistrationStatus.visited, user_registration.id
+            return UserRegistrationStatus.visited, user_registration.id, None
         elif user_registration.status == "confirmed":
-            return UserRegistrationStatus.registered, user_registration.id
+            return UserRegistrationStatus.registered, user_registration.id, None
         elif user_registration.status == "pending":
-            return UserRegistrationStatus.requested, user_registration.id
+            deadline = None
+            if event.cost_type == "prepaid" and user_registration.created_at:
+                deadline = user_registration.created_at + timedelta(hours=24)
+            return UserRegistrationStatus.requested, user_registration.id, deadline
 
     # No active registration - check event timing
     if now < event.registration_start:
-        return UserRegistrationStatus.upcoming, None
+        return UserRegistrationStatus.upcoming, None, None
     elif now > event.registration_end:
-        return UserRegistrationStatus.closed, None
+        return UserRegistrationStatus.closed, None, None
     elif event.current_slots >= event.max_slots:
-        return UserRegistrationStatus.closed, None
+        return UserRegistrationStatus.closed, None, None
     else:
-        return UserRegistrationStatus.open, None
+        return UserRegistrationStatus.open, None, None
 
 
 def build_event_response(event: Event) -> EventResponse:
@@ -70,6 +76,9 @@ def build_event_response(event: Event) -> EventResponse:
         event_type=event.event_type,
         cost_type=event.cost_type,
         cost_amount=event.cost_amount,
+        bank_name=event.bank_name,
+        bank_account_number=event.bank_account_number,
+        account_holder_name=event.account_holder_name,
         registration_start=event.registration_start,
         registration_end=event.registration_end,
         event_date=event.event_date,
@@ -78,6 +87,9 @@ def build_event_response(event: Event) -> EventResponse:
         longitude=event.longitude,
         max_slots=event.max_slots,
         current_slots=event.current_slots,
+        visibility_type=event.visibility_type,
+        visibility_club_id=event.visibility_club_id,
+        related_event_id=event.related_event_id,
         provided_by=UserBriefResponse(
             id=event.provided_by.id,
             username=event.provided_by.username,
@@ -122,6 +134,15 @@ async def list_events(
     count_query = select(func.count(Event.id))
 
     conditions = []
+
+    # Filter by user's clubs (members only; admins see all events)
+    if current_user.role == "member":
+        user_club_subq = (
+            select(user_club.c.club_id)
+            .where(user_club.c.user_id == current_user.id)
+            .scalar_subquery()
+        )
+        conditions.append(Event.club_id.in_(user_club_subq))
 
     # Filter by time
     if filter == EventFilterEnum.upcoming:
@@ -212,7 +233,7 @@ async def list_events(
     events_with_status = []
     for event in events:
         user_reg = user_registrations.get(event.id)
-        status, reg_id = calculate_user_status(event, user_reg, now)
+        status, reg_id, payment_deadline = calculate_user_status(event, user_reg, now)
 
         event_response = build_event_response(event)
         events_with_status.append(
@@ -220,6 +241,7 @@ async def list_events(
                 **event_response.model_dump(),
                 user_status=status,
                 user_registration_id=reg_id,
+                payment_deadline=payment_deadline,
                 participants_preview=participants_map.get(event.id, []),
                 is_bookmarked=event.id in bookmarked_ids,
             )
@@ -303,13 +325,14 @@ async def get_event(
     is_bookmarked = bk_result.scalar_one_or_none() is not None
 
     now = datetime.now(timezone.utc).replace(tzinfo=None)
-    status_val, reg_id = calculate_user_status(event, user_reg, now)
+    status_val, reg_id, payment_deadline = calculate_user_status(event, user_reg, now)
 
     event_response = build_event_response(event)
     return EventWithStatusResponse(
         **event_response.model_dump(),
         user_status=status_val,
         user_registration_id=reg_id,
+        payment_deadline=payment_deadline,
         participants_preview=participants_preview,
         is_bookmarked=is_bookmarked,
     )
@@ -343,8 +366,22 @@ async def create_event(
             detail="Event date must be after registration end",
         )
 
+    def to_naive_utc(dt):
+        """Convert timezone-aware datetime to naive UTC for TIMESTAMP WITHOUT TIME ZONE columns."""
+        if dt is None:
+            return None
+        if dt.tzinfo is not None:
+            from datetime import timezone as tz
+            return dt.astimezone(tz.utc).replace(tzinfo=None)
+        return dt
+
+    data = event_data.model_dump()
+    data["registration_start"] = to_naive_utc(data["registration_start"])
+    data["registration_end"] = to_naive_utc(data["registration_end"])
+    data["event_date"] = to_naive_utc(data["event_date"])
+
     new_event = Event(
-        **event_data.model_dump(),
+        **data,
         provided_by_id=current_user.id,
         posted_by_id=current_user.id,
         current_slots=0,

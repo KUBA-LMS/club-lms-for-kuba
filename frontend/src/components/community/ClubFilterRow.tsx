@@ -10,6 +10,7 @@ import {
 import { ArrowBackIcon } from '../icons';
 import { ClubItem } from '../../hooks/useMyClubs';
 import { SubgroupBrief } from '../../services/clubs';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ClubFilterRowProps {
   clubs: ClubItem[];
@@ -48,7 +49,7 @@ export default function ClubFilterRow({
             >
               <View style={styles.clubImageWrapper}>
                 {club.logo_image ? (
-                  <Image source={{ uri: club.logo_image }} style={styles.clubImage} />
+                  <Image source={{ uri: resolveImageUrl(club.logo_image) }} style={styles.clubImage} />
                 ) : (
                   <View style={[styles.clubImage, styles.imagePlaceholder]}>
                     <Text style={styles.placeholderText}>
@@ -102,7 +103,7 @@ export default function ClubFilterRow({
             ]}
           >
             {selectedClub.logo_image ? (
-              <Image source={{ uri: selectedClub.logo_image }} style={styles.clubImage} />
+              <Image source={{ uri: resolveImageUrl(selectedClub.logo_image) }} style={styles.clubImage} />
             ) : (
               <View style={[styles.clubImage, styles.imagePlaceholder]}>
                 <Text style={styles.placeholderText}>
@@ -146,7 +147,7 @@ export default function ClubFilterRow({
                     ]}
                   >
                     {sg.logo_image ? (
-                      <Image source={{ uri: sg.logo_image }} style={styles.subgroupImage} />
+                      <Image source={{ uri: resolveImageUrl(sg.logo_image) }} style={styles.subgroupImage} />
                     ) : (
                       <View style={[styles.subgroupImage, styles.imagePlaceholder]}>
                         <Text style={styles.subPlaceholderText}>

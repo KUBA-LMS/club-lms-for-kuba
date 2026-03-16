@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -30,7 +31,7 @@ export default function ConfirmModal({
       <View style={styles.overlay}>
         <View style={styles.container}>
           {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.avatar} />
+            <Image source={{ uri: resolveImageUrl(profileImage) }} style={styles.avatar} />
           ) : null}
 
           <Text style={styles.title}>{title}</Text>

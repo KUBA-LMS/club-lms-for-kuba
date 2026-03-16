@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ReadReceipt from './ReadReceipt';
 import { Message } from '../../types/chat';
 import { MainStackParamList } from '../../navigation/types';
+import { resolveImageUrl } from '../../utils/image';
 
 interface MessageBubbleProps {
   message: Message;
@@ -58,7 +59,7 @@ export default function MessageBubble({
       <View style={styles.otherRow}>
         {showAvatar ? (
           message.sender.profile_image ? (
-            <Image source={{ uri: message.sender.profile_image }} style={styles.avatar} />
+            <Image source={{ uri: resolveImageUrl(message.sender.profile_image) }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]} />
           )
@@ -96,7 +97,7 @@ export default function MessageBubble({
     <View style={styles.otherRow}>
       {showAvatar ? (
         message.sender.profile_image ? (
-          <Image source={{ uri: message.sender.profile_image }} style={styles.avatar} />
+          <Image source={{ uri: resolveImageUrl(message.sender.profile_image) }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]}>
             <Text style={styles.avatarInitial}>

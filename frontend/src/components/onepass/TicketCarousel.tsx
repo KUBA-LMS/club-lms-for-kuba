@@ -8,19 +8,21 @@ import Animated, {
 } from 'react-native-reanimated';
 import TicketCard from './TicketCard';
 import { OnePassTicket } from '../../types/onepass';
+import { resolveImageUrl } from '../../utils/image';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const MAIN_CARD_WIDTH = 255;
-const MAIN_CARD_HEIGHT = 340;
-const SIDE_CARD_WIDTH = 172;
-const SIDE_CARD_HEIGHT = 233;
-const CARD_SPACING = 8;
+const POSTER_RATIO = 3 / 4; // width / height  (portrait poster, closer to A4)
+const MAX_CARD_WIDTH = 248;
+const MAX_CARD_HEIGHT = Math.round(MAX_CARD_WIDTH / POSTER_RATIO); // 330
+const CAROUSEL_EXTRA = 40; // vertical breathing room in carousel container
+const MIN_CARD_HEIGHT = 180;
 
 interface TicketCarouselProps {
   tickets: OnePassTicket[];
   activeIndex: number;
   onIndexChange: (index: number) => void;
   scrollX: SharedValue<number>;
+  maxHeight?: number; // max height for the entire carousel container
 }
 
 function AnimatedCard({
@@ -28,11 +30,15 @@ function AnimatedCard({
   index,
   scrollX,
   totalTickets,
+  cardWidth,
+  cardHeight,
 }: {
   ticket: OnePassTicket;
   index: number;
   scrollX: SharedValue<number>;
   totalTickets: number;
+  cardWidth: number;
+  cardHeight: number;
 }) {
   const inputRange = [
     (index - 1) * SCREEN_WIDTH,
@@ -77,15 +83,15 @@ function AnimatedCard({
     };
   });
 
-  const imageUri = ticket.event.images?.[0];
+  const imageUri = resolveImageUrl(ticket.event.images?.[0]);
 
   return (
     <View style={styles.cardWrapper}>
       <Animated.View style={[styles.cardContainer, animatedStyle]}>
         <TicketCard
           imageUri={imageUri}
-          width={MAIN_CARD_WIDTH}
-          height={MAIN_CARD_HEIGHT}
+          width={cardWidth}
+          height={cardHeight}
         />
       </Animated.View>
     </View>
@@ -97,7 +103,15 @@ export default function TicketCarousel({
   activeIndex,
   onIndexChange,
   scrollX,
+  maxHeight,
 }: TicketCarouselProps) {
+  const cardHeight = Math.max(
+    MIN_CARD_HEIGHT,
+    maxHeight ? Math.min(MAX_CARD_HEIGHT, maxHeight - CAROUSEL_EXTRA) : MAX_CARD_HEIGHT,
+  );
+  const cardWidth = Math.round(cardHeight * POSTER_RATIO);
+  const containerHeight = cardHeight + CAROUSEL_EXTRA;
+
   const onScroll = useCallback(
     (event: any) => {
       scrollX.value = event.nativeEvent.contentOffset.x;
@@ -124,17 +138,19 @@ export default function TicketCarousel({
         index={index}
         scrollX={scrollX}
         totalTickets={tickets.length}
+        cardWidth={cardWidth}
+        cardHeight={cardHeight}
       />
     ),
-    [scrollX, tickets.length]
+    [scrollX, tickets.length, cardWidth, cardHeight]
   );
 
   if (tickets.length === 0) {
-    return <View style={styles.emptyContainer} />;
+    return <View style={[styles.emptyContainer, { height: containerHeight }]} />;
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { height: containerHeight }]}>
       <Animated.FlatList
         data={tickets}
         renderItem={renderItem}
@@ -161,12 +177,9 @@ export default function TicketCarousel({
 
 const styles = StyleSheet.create({
   container: {
-    height: MAIN_CARD_HEIGHT + 40,
     justifyContent: 'center',
   },
-  emptyContainer: {
-    height: MAIN_CARD_HEIGHT + 40,
-  },
+  emptyContainer: {},
   cardWrapper: {
     width: SCREEN_WIDTH,
     alignItems: 'center',

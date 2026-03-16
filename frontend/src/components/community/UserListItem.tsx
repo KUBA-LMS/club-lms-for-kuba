@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { colors } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 interface CommonGroup {
   name: string;
@@ -38,7 +39,7 @@ export default function UserListItem({
     >
       <View style={styles.avatarContainer}>
         {avatar ? (
-          <Image source={{ uri: avatar }} style={styles.avatar} />
+          <Image source={{ uri: resolveImageUrl(avatar) }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}
@@ -50,7 +51,7 @@ export default function UserListItem({
           {commonGroups.map((group) => (
             <Image
               key={group.name}
-              source={{ uri: group.imageUri }}
+              source={{ uri: resolveImageUrl(group.imageUri) }}
               style={styles.groupBadge}
             />
           ))}

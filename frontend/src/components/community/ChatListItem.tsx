@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { colors } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ChatListItemProps {
   avatar?: string;
@@ -51,7 +52,7 @@ export default function ChatListItem({
         {isGroup ? (
           <GroupAvatar />
         ) : avatar ? (
-          <Image source={{ uri: avatar }} style={styles.avatar} />
+          <Image source={{ uri: resolveImageUrl(avatar) }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}
