@@ -3,13 +3,12 @@ from pydantic import BaseModel
 from typing import List, Optional
 import httpx
 
-from app.core.config import settings
 from app.core.security import get_current_user
 from app.models.user import User
 
 router = APIRouter()
 
-NAVER_LOCAL_SEARCH_URL = "https://openapi.naver.com/v1/search/local.json"
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 
 
 class GeocodingResult(BaseModel):
@@ -29,56 +28,70 @@ async def search_place(
     query: str = Query(..., min_length=1, max_length=200),
     current_user: User = Depends(get_current_user),
 ):
-    """Search for places using Naver Local Search API.
-
-    mapx/mapy from the API are WGS84 coordinates scaled by 1e7.
-    """
-    if not settings.NAVER_SEARCH_CLIENT_ID or not settings.NAVER_SEARCH_CLIENT_SECRET:
-        raise HTTPException(status_code=503, detail="Search service not configured")
-
-    results: List[GeocodingResult] = []
-
+    """Search for places using OpenStreetMap Nominatim (English results)."""
     async with httpx.AsyncClient() as client:
         resp = await client.get(
-            NAVER_LOCAL_SEARCH_URL,
-            params={"query": query, "display": 5},
+            NOMINATIM_URL,
+            params={
+                "q": query,
+                "format": "json",
+                "countrycodes": "kr",
+                "limit": 8,
+                "addressdetails": 1,
+            },
             headers={
-                "X-Naver-Client-Id": settings.NAVER_SEARCH_CLIENT_ID,
-                "X-Naver-Client-Secret": settings.NAVER_SEARCH_CLIENT_SECRET,
+                "Accept-Language": "en",
+                "User-Agent": "KUBA-LMS/1.0 (club-lms)",
             },
             timeout=10.0,
         )
 
-        if resp.status_code != 200:
-            raise HTTPException(status_code=502, detail="Place search failed")
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Place search failed")
 
-        for item in resp.json().get("items", []):
-            try:
-                mapx = int(item.get("mapx", 0))
-                mapy = int(item.get("mapy", 0))
-            except (ValueError, TypeError):
-                continue
+    results: List[GeocodingResult] = []
 
-            if mapx == 0 or mapy == 0:
-                continue
+    for item in resp.json():
+        try:
+            lat = float(item["lat"])
+            lon = float(item["lon"])
+        except (KeyError, ValueError, TypeError):
+            continue
 
-            # mapx/mapy are WGS84 coordinates scaled by 1e7
-            lon = mapx / 10_000_000
-            lat = mapy / 10_000_000
+        if not (33.0 <= lat <= 43.0 and 124.0 <= lon <= 132.0):
+            continue
 
-            if not (33.0 <= lat <= 43.0 and 124.0 <= lon <= 132.0):
-                continue
+        addr = item.get("address", {})
+        display_name: str = item.get("display_name", "")
 
-            title = item.get("title", "").replace("<b>", "").replace("</b>", "")
+        # Extract a clean short name from address components
+        name = None
+        for key in ("amenity", "building", "tourism", "shop", "office", "university", "school", "leisure"):
+            if addr.get(key):
+                name = addr[key]
+                break
+        if not name:
+            name = display_name.split(",")[0].strip()
 
-            results.append(
-                GeocodingResult(
-                    name=title,
-                    road_address=item.get("roadAddress") or None,
-                    jibun_address=item.get("address") or None,
-                    latitude=round(lat, 7),
-                    longitude=round(lon, 7),
-                )
+        # Build road address: house_number + road + city
+        road_parts = []
+        if addr.get("house_number"):
+            road_parts.append(addr["house_number"])
+        if addr.get("road"):
+            road_parts.append(addr["road"])
+        city = addr.get("city") or addr.get("county") or addr.get("state_district") or ""
+        if city:
+            road_parts.append(city)
+        road_address = ", ".join(road_parts) if road_parts else None
+
+        results.append(
+            GeocodingResult(
+                name=name,
+                road_address=road_address,
+                jibun_address=display_name,
+                latitude=round(lat, 7),
+                longitude=round(lon, 7),
             )
+        )
 
     return GeocodingResponse(results=results)

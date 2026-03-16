@@ -1,6 +1,8 @@
 import React from 'react';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
+export { default as OnePassLogo } from './OnePassLogo';
+
 // Search Icon - Figma exact SVG
 export function SearchIcon({ size = 20, color = '#212121' }: { size?: number; color?: string }) {
   return (

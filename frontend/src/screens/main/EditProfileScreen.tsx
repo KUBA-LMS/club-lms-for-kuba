@@ -5,16 +5,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Platform,
   ActivityIndicator,
   TextInput,
   Alert,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../context/AuthContext';
 import { User } from '../../types/auth';
 import { updateProfile, UserUpdateData } from '../../services/user';
+import { uploadImage } from '../../services/upload';
 import { ArrowBackIcon } from '../../components/icons';
 
 export default function EditProfileScreen() {
@@ -30,12 +32,37 @@ export default function EditProfileScreen() {
     student_id: typedUser?.student_id || undefined,
     nationality: typedUser?.nationality || undefined,
   });
+  const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  const handlePickProfileImage = useCallback(async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setProfileImageUri(result.assets[0].uri);
+    }
+  }, []);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
     try {
-      await updateProfile(editData);
+      const updatePayload: UserUpdateData & { profile_image?: string } = { ...editData };
+
+      if (profileImageUri) {
+        const uploadedUrl = await uploadImage(profileImageUri);
+        updatePayload.profile_image = uploadedUrl;
+      }
+
+      await updateProfile(updatePayload);
       await refreshUser();
       navigation.goBack();
     } catch {
@@ -43,7 +70,9 @@ export default function EditProfileScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [editData, refreshUser, navigation]);
+  }, [editData, profileImageUri, refreshUser, navigation]);
+
+  const currentAvatar = profileImageUri || typedUser?.profile_image || null;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -76,6 +105,24 @@ export default function EditProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Profile Image */}
+        <View style={styles.avatarSection}>
+          <TouchableOpacity onPress={handlePickProfileImage} activeOpacity={0.8}>
+            {currentAvatar ? (
+              <Image source={{ uri: currentAvatar }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarInitial}>
+                  {typedUser?.username?.[0]?.toUpperCase() || '?'}
+                </Text>
+              </View>
+            )}
+            <View style={styles.avatarBadge}>
+              <Text style={styles.avatarBadgeText}>Edit</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.field}>
           <Text style={styles.label}>Username</Text>
           <TextInput
@@ -172,6 +219,42 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 16,
     paddingBottom: 120,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+  avatarPlaceholder: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: '#E5E5EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 32,
+    color: '#8E8E93',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#000000',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  avatarBadgeText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
+    color: '#FFFFFF',
   },
   field: {
     gap: 6,

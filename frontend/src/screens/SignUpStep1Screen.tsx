@@ -9,16 +9,15 @@ import {
   Platform,
   ScrollView,
   useWindowDimensions,
-  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, spacing, layout, screenPadding } from '../constants';
+import { colors, spacing, screenPadding } from '../constants';
 
 // Check icon component
-function CheckIcon({ size = 16, color = '#4CAF50' }: { size?: number; color?: string }) {
+function CheckIcon({ size = 16, color = '#1C1C1E' }: { size?: number; color?: string }) {
   return (
     <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
       <View style={[checkStyles.check, { borderColor: color }]} />
@@ -53,19 +52,19 @@ function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: n
 
 const progressStyles = StyleSheet.create({
   container: {
-    width: 250,
-    height: 8,
+    width: 180,
+    height: 4,
   },
   bar: {
     flex: 1,
-    backgroundColor: '#e6dfd4',
-    borderRadius: 8,
+    backgroundColor: '#EBEBF0',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: '#00c0e8',
-    borderRadius: 8,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 4,
   },
 });
 
@@ -150,7 +149,7 @@ export default function SignUpStep1Screen() {
 
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={[styles.title, { fontSize: Math.max(24, 30 * scale) }]}>
+          <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
             CLUB.{'\n'}LMS
           </Text>
         </View>
@@ -189,7 +188,7 @@ export default function SignUpStep1Screen() {
                     (focusedField === 'username' || username) && styles.inputWithLabel,
                   ]}
                   placeholder={focusedField === 'username' || username ? '' : 'Enter Username'}
-                  placeholderTextColor="#1e1e1e"
+                  placeholderTextColor="#AEAEB2"
                   value={username}
                   onChangeText={handleUsernameChange}
                   onFocus={() => setFocusedField('username')}
@@ -199,7 +198,7 @@ export default function SignUpStep1Screen() {
                 />
                 {usernameValid && (
                   <View style={styles.validIcon}>
-                    <CheckIcon size={16} color="#4CAF50" />
+                    <CheckIcon size={16} color="#1C1C1E" />
                   </View>
                 )}
               </View>
@@ -222,7 +221,7 @@ export default function SignUpStep1Screen() {
                     (focusedField === 'legalName' || legalName) && styles.inputWithLabel,
                   ]}
                   placeholder={focusedField === 'legalName' || legalName ? '' : 'Enter Legal Name(Full name)'}
-                  placeholderTextColor="#1e1e1e"
+                  placeholderTextColor="#AEAEB2"
                   value={legalName}
                   onChangeText={setLegalName}
                   onFocus={() => setFocusedField('legalName')}
@@ -276,13 +275,14 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   backArrow: {
-    fontSize: 24,
+    fontSize: 22,
     color: colors.black,
     fontWeight: '300',
   },
   progressSection: {
     alignItems: 'center',
     flex: 1,
+    gap: 6,
   },
   stepText: {
     fontFamily: Platform.select({
@@ -291,17 +291,18 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 11,
-    color: colors.black,
+    color: '#8E8E93',
     textAlign: 'center',
-    marginTop: spacing.xs,
+    letterSpacing: 0.2,
   },
   startOverButton: {
     alignItems: 'center',
     padding: spacing.xs,
+    gap: 3,
   },
   startOverIcon: {
-    fontSize: 20,
-    color: colors.black,
+    fontSize: 17,
+    color: '#8E8E93',
   },
   startOverText: {
     fontFamily: Platform.select({
@@ -309,13 +310,13 @@ const styles = StyleSheet.create({
       android: 'Inter-Regular',
       default: 'System',
     }),
-    fontSize: 11,
-    color: colors.black,
+    fontSize: 10,
+    color: '#8E8E93',
     textAlign: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg + spacing.sm,
+    marginBottom: spacing.lg,
   },
   title: {
     fontFamily: Platform.select({
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
     }),
     color: colors.black,
     textAlign: 'center',
-    lineHeight: 36,
+    lineHeight: 30,
   },
   contentContainer: {
     alignItems: 'flex-start',
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
     }),
     fontSize: 12,
     fontWeight: '700',
-    color: colors.status.requested,
+    color: '#1C1C1E',
     textDecorationLine: 'underline',
   },
   inputContainer: {
@@ -374,22 +375,21 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm + spacing.xxs,
   },
   inputField: {
-    height: layout.inputHeight,
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-    borderRadius: layout.borderRadius.sm,
+    height: 54,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
   },
   inputFieldFocused: {
-    borderColor: colors.black,
+    backgroundColor: '#EBEBF0',
   },
   inputLabel: {
     position: 'absolute',
     top: 6,
     left: spacing.md,
     fontSize: 11,
-    color: colors.gray900,
+    color: '#8E8E93',
     fontFamily: Platform.select({
       ios: 'Inter-Regular',
       android: 'Inter-Regular',
@@ -417,8 +417,8 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   nextButton: {
-    height: 40,
-    borderRadius: layout.borderRadius.sm,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray400,
   },
   nextButtonActive: {
-    backgroundColor: colors.success,
+    backgroundColor: '#1C1C1E',
   },
   nextButtonText: {
     fontFamily: Platform.select({

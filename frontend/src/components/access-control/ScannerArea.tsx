@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,37 +6,51 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
-  Platform,
+  Animated,
 } from 'react-native';
-
-let CameraView: any = null;
-let useCameraPermissions: any = null;
-
-try {
-  const expoCamera = require('expo-camera');
-  CameraView = expoCamera.CameraView;
-  useCameraPermissions = expoCamera.useCameraPermissions;
-} catch {
-  // expo-camera not available (e.g. on web)
-}
+import {
+  Camera,
+  useCameraDevice,
+  useCodeScanner,
+  useCameraPermission,
+} from 'react-native-vision-camera';
+import { Vibration } from 'react-native';
 
 interface ScannerAreaProps {
   isActive: boolean;
   onBarcodeScanned: (barcode: string) => void;
 }
 
-function InlineCamera({ onBarcodeScanned }: { onBarcodeScanned: (barcode: string) => void }) {
-  const [scanned, setScanned] = useState(false);
+function InlineCameraInner({ onBarcodeScanned }: { onBarcodeScanned: (barcode: string) => void }) {
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const device = useCameraDevice('back');
+  const scannedRef = useRef(false);
+  const flashOpacity = useRef(new Animated.Value(0)).current;
 
-  const handleScan = useCallback(
-    (result: { data: string }) => {
-      if (scanned) return;
-      setScanned(true);
-      onBarcodeScanned(result.data);
-      setTimeout(() => setScanned(false), 2000);
+  const triggerFlash = useCallback(() => {
+    flashOpacity.setValue(1);
+    Animated.timing(flashOpacity, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [flashOpacity]);
+
+  const codeScanner = useCodeScanner({
+    codeTypes: ['code-128'],
+    onCodeScanned: (codes) => {
+      if (scannedRef.current) return;
+      const value = codes[0]?.value;
+      if (!value) return;
+      scannedRef.current = true;
+      Vibration.vibrate(40);
+      triggerFlash();
+      onBarcodeScanned(value);
+      setTimeout(() => {
+        scannedRef.current = false;
+      }, 1500);
     },
-    [scanned, onBarcodeScanned],
-  );
+  });
 
   const handleManualInput = useCallback(() => {
     Alert.prompt(
@@ -51,44 +65,7 @@ function InlineCamera({ onBarcodeScanned }: { onBarcodeScanned: (barcode: string
     );
   }, [onBarcodeScanned]);
 
-  if (!CameraView || !useCameraPermissions) {
-    return (
-      <TouchableOpacity style={styles.cameraFallback} onPress={handleManualInput}>
-        <Text style={styles.fallbackText}>Camera not available</Text>
-        <Text style={styles.tapHint}>Tap to enter barcode manually</Text>
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <InlineCameraInner
-      onBarcodeScanned={handleScan}
-      onManualInput={handleManualInput}
-      scanned={scanned}
-    />
-  );
-}
-
-function InlineCameraInner({
-  onBarcodeScanned,
-  onManualInput,
-  scanned,
-}: {
-  onBarcodeScanned: (result: { data: string }) => void;
-  onManualInput: () => void;
-  scanned: boolean;
-}) {
-  const [permission, requestPermission] = useCameraPermissions!();
-
-  if (!permission) {
-    return (
-      <View style={styles.cameraFallback}>
-        <ActivityIndicator size="small" color="#FFFFFF" />
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
+  if (!hasPermission) {
     return (
       <View style={styles.cameraFallback}>
         <Text style={styles.fallbackText}>Camera permission required</Text>
@@ -99,28 +76,33 @@ function InlineCameraInner({
     );
   }
 
+  if (!device) {
+    return (
+      <View style={styles.cameraFallback}>
+        <ActivityIndicator size="small" color="#FFFFFF" />
+      </View>
+    );
+  }
+
   return (
     <TouchableOpacity
       style={styles.cameraContainer}
-      onLongPress={onManualInput}
+      onLongPress={handleManualInput}
       activeOpacity={1}
     >
-      <CameraView
+      <Camera
         style={styles.camera}
-        facing="front"
-        barcodeScannerSettings={{
-          barcodeTypes: ['code128', 'code39', 'code93', 'ean13', 'ean8', 'qr'],
-        }}
-        onBarcodeScanned={onBarcodeScanned}
+        device={device}
+        isActive={true}
+        codeScanner={codeScanner}
       />
       <View style={styles.scanLineOverlay}>
         <View style={styles.redLine} />
       </View>
-      {scanned && (
-        <View style={styles.scannedOverlay}>
-          <Text style={styles.scannedText}>Processing...</Text>
-        </View>
-      )}
+      <Animated.View
+        style={[styles.flashOverlay, { opacity: flashOpacity }]}
+        pointerEvents="none"
+      />
       <View style={styles.manualHint}>
         <Text style={styles.manualHintText}>Long press to enter manually</Text>
       </View>
@@ -141,7 +123,7 @@ export default function ScannerArea({ isActive, onBarcodeScanned }: ScannerAreaP
 
   return (
     <View style={styles.container}>
-      <InlineCamera onBarcodeScanned={onBarcodeScanned} />
+      <InlineCameraInner onBarcodeScanned={onBarcodeScanned} />
     </View>
   );
 }
@@ -154,7 +136,7 @@ const styles = StyleSheet.create({
   },
   inactiveArea: {
     width: '100%',
-    height: 120,
+    height: 200,
     backgroundColor: '#1A1A1A',
     borderRadius: 12,
     alignItems: 'center',
@@ -167,7 +149,7 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     width: '100%',
-    height: 120,
+    height: 200,
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
@@ -186,16 +168,9 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: '#FF383C',
   },
-  scannedOverlay: {
+  flashOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scannedText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    color: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
   },
   manualHint: {
     position: 'absolute',
@@ -211,7 +186,7 @@ const styles = StyleSheet.create({
   },
   cameraFallback: {
     width: '100%',
-    height: 120,
+    height: 200,
     backgroundColor: '#1A1A1A',
     borderRadius: 12,
     alignItems: 'center',
@@ -221,12 +196,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 13,
     color: '#FFFFFF',
-  },
-  tapHint: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 4,
   },
   permissionButton: {
     marginTop: 8,

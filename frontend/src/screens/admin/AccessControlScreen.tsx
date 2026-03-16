@@ -6,6 +6,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Vibration,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -169,6 +170,15 @@ export default function AccessControlScreen({ navigation }: Props) {
       try {
         const res = await scanBarcode(selectedEvent.id, barcode);
         setScanResult(res.result);
+
+        if (res.result === 'entry_approved') {
+          Vibration.vibrate([0, 80, 60, 80]);
+        } else if (res.result === 'double_checked_in') {
+          Vibration.vibrate(200);
+        } else {
+          Vibration.vibrate([0, 100, 80, 100, 80, 100]);
+        }
+
         if (res.participant) {
           setSelectedParticipant(res.participant);
           setHighlightedId(res.participant.user_id);

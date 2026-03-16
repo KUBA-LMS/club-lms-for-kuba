@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { OnePassScreenState } from '../../types/onepass';
 
 interface ActionButtonsProps {
@@ -8,46 +7,10 @@ interface ActionButtonsProps {
   onAutoSelectionToggle: () => void;
 }
 
-function SmallPillButton({
-  label,
-  onPress,
-  color = '#FFFFFF',
-  width = 100,
-  dotColor,
-}: {
-  label: string;
-  onPress: () => void;
-  color?: string;
-  width?: number;
-  dotColor?: string;
-}) {
-  return (
-    <TouchableOpacity style={[styles.pill, { width }]} onPress={onPress}>
-      <Svg style={[styles.pillBorder, { width }]} viewBox={`0 0 ${width} 14`}>
-        <Rect
-          x={0.5}
-          y={0.5}
-          width={width - 1}
-          height={13}
-          rx={7}
-          stroke={color}
-          strokeWidth={0.5}
-          fill="none"
-        />
-      </Svg>
-      <View style={styles.pillContent}>
-        {dotColor && <View style={[styles.dot, { backgroundColor: dotColor }]} />}
-        <Text style={[styles.pillText, { color }]}>{label}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 export default function ActionButtons({
   screenState,
   onAutoSelectionToggle,
 }: ActionButtonsProps) {
-  // Auto selection state: no buttons needed
   if (screenState === 'auto_selection') {
     return null;
   }
@@ -56,13 +19,14 @@ export default function ActionButtons({
     <View style={styles.container}>
       <View style={styles.row}>
         <View style={styles.spacer} />
-        <SmallPillButton
-          label="AUTO SELECTION"
+        <TouchableOpacity
+          style={styles.pill}
           onPress={onAutoSelectionToggle}
-          color="#FFFFFF"
-          width={84}
-          dotColor="#FFFFFF"
-        />
+          activeOpacity={0.7}
+        >
+          <View style={styles.dot} />
+          <Text style={styles.pillText}>AUTO SELECTION</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -70,8 +34,8 @@ export default function ActionButtons({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   row: {
     flexDirection: 'row',
@@ -81,27 +45,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pill: {
-    height: 14,
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillBorder: {
-    position: 'absolute',
-    height: 14,
-  },
-  pillContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.6)',
+    paddingHorizontal: 10,
+    gap: 5,
   },
   dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
   },
   pillText: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    fontSize: 10,
+    color: '#FFFFFF',
+    letterSpacing: 0.8,
   },
 });

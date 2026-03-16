@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, spacing, layout, screenPadding } from '../constants';
+import { colors, spacing, screenPadding } from '../constants';
 
 // Progress Bar component
 function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
@@ -33,19 +33,19 @@ function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: n
 
 const progressStyles = StyleSheet.create({
   container: {
-    width: 250,
-    height: 8,
+    width: 180,
+    height: 4,
   },
   bar: {
     flex: 1,
-    backgroundColor: '#e6dfd4',
-    borderRadius: 8,
+    backgroundColor: '#EBEBF0',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: '#00c0e8',
-    borderRadius: 8,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 4,
   },
 });
 
@@ -153,74 +153,81 @@ const pickerStyles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   container: {
-    backgroundColor: '#f2f2f2',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
   doneButton: {
-    backgroundColor: '#0088ff',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 10,
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   doneText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
+    letterSpacing: 0.2,
   },
   listContainer: {
-    height: 200,
+    height: 220,
     position: 'relative',
   },
   separatorTop: {
     position: 'absolute',
     top: 80,
-    left: 80,
-    right: 80,
-    height: 1,
-    backgroundColor: '#c5c5c5',
+    left: 60,
+    right: 60,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#E5E5EA',
     zIndex: 1,
   },
   separatorBottom: {
     position: 'absolute',
-    top: 120,
-    left: 80,
-    right: 80,
-    height: 1,
-    backgroundColor: '#c5c5c5',
+    top: 124,
+    left: 60,
+    right: 60,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#E5E5EA',
     zIndex: 1,
   },
   listContent: {
-    paddingVertical: 60,
+    paddingVertical: 66,
   },
   option: {
-    height: 40,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   optionText: {
-    color: '#000000',
+    color: '#1C1C1E',
     fontFamily: Platform.select({
       ios: 'Inter-Regular',
       android: 'Inter-Regular',
       default: 'System',
     }),
+    letterSpacing: 0.1,
   },
   selectedText: {
-    fontWeight: '500',
+    fontFamily: Platform.select({
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
+      default: 'System',
+    }),
   },
 });
 
@@ -341,7 +348,7 @@ export default function SignUpStep3Screen() {
 
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={[styles.title, { fontSize: Math.max(24, 30 * scale) }]}>
+          <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
             CLUB.{'\n'}LMS
           </Text>
         </View>
@@ -380,7 +387,7 @@ export default function SignUpStep3Screen() {
                     (focusedField === 'studentId' || studentId) && styles.inputWithLabel,
                   ]}
                   placeholder={focusedField === 'studentId' || studentId ? '' : 'Enter student ID(KU)'}
-                  placeholderTextColor="#1e1e1e"
+                  placeholderTextColor="#AEAEB2"
                   value={studentId}
                   onChangeText={setStudentId}
                   onFocus={() => setFocusedField('studentId')}
@@ -397,6 +404,7 @@ export default function SignUpStep3Screen() {
                 style={[
                   styles.inputField,
                   focusedField === 'nationality' && styles.inputFieldFocused,
+                  nationality ? styles.inputFieldSelected : null,
                 ]}
                 onPress={handleNationalityPress}
                 activeOpacity={0.7}
@@ -404,9 +412,7 @@ export default function SignUpStep3Screen() {
                 {nationality ? (
                   <>
                     <Text style={styles.inputLabel}>Select Nationality</Text>
-                    <Text style={[styles.input, styles.inputWithLabel, styles.pickerValue]}>
-                      {nationality}
-                    </Text>
+                    <Text style={styles.pickerValueText}>{nationality}</Text>
                   </>
                 ) : (
                   <Text style={styles.placeholderText}>Select Nationality</Text>
@@ -420,6 +426,7 @@ export default function SignUpStep3Screen() {
                 style={[
                   styles.inputField,
                   focusedField === 'gender' && styles.inputFieldFocused,
+                  gender ? styles.inputFieldSelected : null,
                 ]}
                 onPress={handleGenderPress}
                 activeOpacity={0.7}
@@ -427,9 +434,7 @@ export default function SignUpStep3Screen() {
                 {gender ? (
                   <>
                     <Text style={styles.inputLabel}>Select Gender</Text>
-                    <Text style={[styles.input, styles.inputWithLabel, styles.pickerValue]}>
-                      {gender}
-                    </Text>
+                    <Text style={styles.pickerValueText}>{gender}</Text>
                   </>
                 ) : (
                   <Text style={styles.placeholderText}>Select Gender</Text>
@@ -508,13 +513,14 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   backArrow: {
-    fontSize: 24,
+    fontSize: 22,
     color: colors.black,
     fontWeight: '300',
   },
   progressSection: {
     alignItems: 'center',
     flex: 1,
+    gap: 6,
   },
   stepText: {
     fontFamily: Platform.select({
@@ -523,17 +529,18 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 11,
-    color: colors.black,
+    color: '#8E8E93',
     textAlign: 'center',
-    marginTop: spacing.xs,
+    letterSpacing: 0.2,
   },
   startOverButton: {
     alignItems: 'center',
     padding: spacing.xs,
+    gap: 3,
   },
   startOverIcon: {
-    fontSize: 20,
-    color: colors.black,
+    fontSize: 17,
+    color: '#8E8E93',
   },
   startOverText: {
     fontFamily: Platform.select({
@@ -541,13 +548,13 @@ const styles = StyleSheet.create({
       android: 'Inter-Regular',
       default: 'System',
     }),
-    fontSize: 11,
-    color: colors.black,
+    fontSize: 10,
+    color: '#8E8E93',
     textAlign: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg + spacing.sm,
+    marginBottom: spacing.lg,
   },
   title: {
     fontFamily: Platform.select({
@@ -557,7 +564,7 @@ const styles = StyleSheet.create({
     }),
     color: colors.black,
     textAlign: 'center',
-    lineHeight: 36,
+    lineHeight: 30,
   },
   contentContainer: {
     alignItems: 'flex-start',
@@ -594,7 +601,7 @@ const styles = StyleSheet.create({
     }),
     fontSize: 12,
     fontWeight: '700',
-    color: colors.status.requested,
+    color: '#1C1C1E',
     textDecorationLine: 'underline',
   },
   inputContainer: {
@@ -606,22 +613,21 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm + spacing.xxs,
   },
   inputField: {
-    height: layout.inputHeight,
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-    borderRadius: layout.borderRadius.sm,
+    height: 54,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
   },
   inputFieldFocused: {
-    borderColor: colors.black,
+    backgroundColor: '#EBEBF0',
   },
   inputLabel: {
     position: 'absolute',
     top: 6,
     left: spacing.md,
     fontSize: 11,
-    color: colors.gray900,
+    color: '#8E8E93',
     fontFamily: Platform.select({
       ios: 'Inter-Regular',
       android: 'Inter-Regular',
@@ -643,19 +649,29 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 15,
-    color: colors.gray900,
+    color: '#AEAEB2',
     fontFamily: Platform.select({
       ios: 'Inter-Regular',
       android: 'Inter-Regular',
       default: 'System',
     }),
   },
-  pickerValue: {
-    paddingTop: spacing.sm + spacing.xxs,
+  inputFieldSelected: {
+    paddingTop: 20,
+    justifyContent: 'flex-start',
+  },
+  pickerValueText: {
+    fontSize: 15,
+    color: '#1C1C1E',
+    fontFamily: Platform.select({
+      ios: 'Inter-Regular',
+      android: 'Inter-Regular',
+      default: 'System',
+    }),
   },
   nextButton: {
-    height: 40,
-    borderRadius: layout.borderRadius.sm,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
@@ -665,7 +681,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray400,
   },
   nextButtonActive: {
-    backgroundColor: colors.success,
+    backgroundColor: '#1C1C1E',
   },
   nextButtonText: {
     fontFamily: Platform.select({

@@ -91,29 +91,75 @@ async def scan_barcode(
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
 
-    # Find ticket by barcode
+    # Find ticket by barcode (try as-is first, then with KUBA- prefix for legacy)
+    barcode_value = scan_data.barcode
     ticket_result = await db.execute(
         select(Ticket)
         .options(
             selectinload(Ticket.registration).selectinload(Registration.user).selectinload(User.clubs),
             selectinload(Ticket.registration).selectinload(Registration.event),
         )
-        .where(Ticket.barcode == scan_data.barcode)
+        .where(Ticket.barcode.in_([barcode_value, f"KUBA-{barcode_value}"]))
     )
     ticket = ticket_result.scalar_one_or_none()
 
     if not ticket:
-        return ScanResponse(
-            result=ScanResultEnum.entry_denied_no_ticket,
-            message="Ticket not found",
-        )
+        # Fallback: try interpreting barcode as user ID (auto_selection mode)
+        print(f"[SCAN DEBUG] barcode='{scan_data.barcode}' event_id={event_id}")
+        try:
+            user_id = UUID(scan_data.barcode)
+        except (ValueError, AttributeError) as e:
+            print(f"[SCAN DEBUG] UUID parse failed: {e}")
+            return ScanResponse(
+                result=ScanResultEnum.entry_denied_no_ticket,
+                message="Ticket not found",
+            )
 
-    # Verify ticket belongs to this event
-    if ticket.registration.event_id != event_id:
-        return ScanResponse(
-            result=ScanResultEnum.entry_denied_no_ticket,
-            message="Ticket does not belong to this event",
+        print(f"[SCAN DEBUG] parsed user_id={user_id}")
+        reg_result = await db.execute(
+            select(Registration)
+            .options(
+                selectinload(Registration.user).selectinload(User.clubs),
+                selectinload(Registration.ticket),
+            )
+            .where(
+                Registration.user_id == user_id,
+                Registration.event_id == event_id,
+                Registration.status != RegistrationStatusEnum.cancelled,
+            )
         )
+        registration = reg_result.scalar_one_or_none()
+        print(f"[SCAN DEBUG] registration={registration}, ticket={registration.ticket if registration else None}, status={registration.status if registration else None}")
+
+        if not registration:
+            return ScanResponse(
+                result=ScanResultEnum.entry_denied_no_ticket,
+                message="No registration found for this user at this event",
+            )
+
+        if not registration.ticket:
+            # Registration exists but no ticket (e.g. pending payment)
+            participant = _build_participant(registration.user, registration)
+            if registration.status == "pending":
+                return ScanResponse(
+                    result=ScanResultEnum.entry_denied_pending,
+                    message="Registration Requested - Not yet approved",
+                    participant=participant,
+                )
+            return ScanResponse(
+                result=ScanResultEnum.entry_denied_no_ticket,
+                message="No ticket for this registration",
+                participant=participant,
+            )
+
+        ticket = registration.ticket
+    else:
+        # Verify ticket belongs to this event
+        if ticket.registration.event_id != event_id:
+            return ScanResponse(
+                result=ScanResultEnum.entry_denied_no_ticket,
+                message="Ticket does not belong to this event",
+            )
 
     user = ticket.registration.user
     registration = ticket.registration
@@ -260,7 +306,7 @@ async def override_registration(
 
     # Create ticket
     await db.flush()
-    barcode = secrets.token_hex(16).upper()
+    barcode = str(secrets.randbelow(10**12 - 10**11) + 10**11)
     ticket = Ticket(
         registration_id=registration.id,
         barcode=barcode,
@@ -366,7 +412,7 @@ async def walk_in_register(
     await db.flush()
 
     # Create ticket (already used)
-    barcode = secrets.token_hex(16).upper()
+    barcode = str(secrets.randbelow(10**12 - 10**11) + 10**11)
     ticket = Ticket(
         registration_id=registration.id,
         barcode=barcode,

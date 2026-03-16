@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, clubs, events, registrations, tickets, chats, access_control, geocoding, ws, payments, deposits, bookmarks, admin, admin_auth
+from app.api.v1 import auth, users, clubs, events, registrations, tickets, chats, access_control, geocoding, ws, payments, deposits, bookmarks, admin, admin_auth, upload
 
 api_router = APIRouter()
 
@@ -19,3 +19,4 @@ api_router.include_router(deposits.router, prefix="/deposits", tags=["Deposits"]
 api_router.include_router(bookmarks.router, prefix="/bookmarks", tags=["Bookmarks"])
 api_router.include_router(ws.router, prefix="/ws", tags=["WebSocket"])
 api_router.include_router(admin.router, prefix="/admin", tags=["Admin Hub"])
+api_router.include_router(upload.router, prefix="/upload", tags=["Upload"])

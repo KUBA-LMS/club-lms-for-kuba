@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { UploadIcon } from '../icons';
+import { resolveImageUrl } from '../../utils/image';
 
 let ImagePicker: any = null;
 try {
@@ -117,7 +118,7 @@ export default function CreateGroupModal({
                   >
                     {club.logo_image ? (
                       <Image
-                        source={{ uri: club.logo_image }}
+                        source={{ uri: resolveImageUrl(club.logo_image) }}
                         style={styles.clubPickerImg}
                       />
                     ) : (

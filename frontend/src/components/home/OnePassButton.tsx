@@ -2,18 +2,21 @@ import React from 'react';
 import { TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
 import Svg, { Rect, Path, Defs, ClipPath } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface OnePassButtonProps {
   onPress?: () => void;
 }
 
-// SVG viewBox: button content is at x=4, y=0, width=360, height=50
-// We render as viewBox="4 0 360 50" to crop out the shadow region
-// and apply the shadow via RN styles
-
 export default function OnePassButton({ onPress }: OnePassButtonProps) {
   return (
     <View style={styles.shadowWrapper}>
+      <LinearGradient
+        colors={['rgba(255,255,255,0.88)', 'rgba(255,255,255,0.08)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBorder}
+      >
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.touchable}>
         {Platform.OS === 'ios' && (
           <BlurView intensity={40} tint="light" style={StyleSheet.absoluteFill} />
@@ -77,6 +80,7 @@ export default function OnePassButton({ onPress }: OnePassButtonProps) {
           />
         </Svg>
       </TouchableOpacity>
+      </LinearGradient>
     </View>
   );
 }
@@ -84,27 +88,29 @@ export default function OnePassButton({ onPress }: OnePassButtonProps) {
 const styles = StyleSheet.create({
   shadowWrapper: {
     borderRadius: 25,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.55)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.45,
+        shadowRadius: 16,
       },
-      android: { elevation: 10 },
+      android: { elevation: 14 },
     }),
+  },
+  gradientBorder: {
+    borderRadius: 25,
+    padding: 1,
   },
   touchable: {
     height: 50,
     width: '100%',
-    borderRadius: 25,
+    borderRadius: 24,
     overflow: 'hidden',
     backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(255,255,255,0.72)',
   },
   darkOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.10)',
+    backgroundColor: 'rgba(0,0,0,0.28)',
   },
 });

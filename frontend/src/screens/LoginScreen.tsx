@@ -149,7 +149,7 @@ export default function LoginScreen() {
                   (focusedField === 'email' || email) && styles.inputWithLabel,
                 ]}
                 placeholder={focusedField === 'email' || email ? '' : 'Enter ID or Email'}
-                placeholderTextColor="#1e1e1e"
+                placeholderTextColor="#AEAEB2"
                 value={email}
                 onChangeText={setEmail}
                 onFocus={() => setFocusedField('email')}
@@ -179,7 +179,7 @@ export default function LoginScreen() {
                   (focusedField === 'password' || password) && styles.inputWithLabel,
                 ]}
                 placeholder={focusedField === 'password' || password ? '' : 'Enter Password'}
-                placeholderTextColor="#1e1e1e"
+                placeholderTextColor="#AEAEB2"
                 value={password}
                 onChangeText={setPassword}
                 onFocus={() => setFocusedField('password')}
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     }),
     fontSize: 12,
     fontWeight: '700',
-    color: '#00c0e8',
+    color: '#1C1C1E',
     textDecorationLine: 'underline',
   },
   inputContainer: {
@@ -292,22 +292,21 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm + spacing.xxs,
   },
   inputField: {
-    height: layout.inputHeight,
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-    borderRadius: layout.borderRadius.sm,
+    height: 54,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
   },
   inputFieldFocused: {
-    borderColor: colors.black,
+    backgroundColor: '#EBEBF0',
   },
   inputLabel: {
     position: 'absolute',
-    top: 6,
+    top: 8,
     left: spacing.md,
     fontSize: 11,
-    color: colors.gray900,
+    color: '#8E8E93',
     fontFamily: Platform.select({
       ios: 'Inter-Regular',
       android: 'Inter-Regular',
@@ -317,7 +316,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: colors.black,
+    color: '#1C1C1E',
     fontFamily: Platform.select({
       ios: 'Inter-Regular',
       android: 'Inter-Regular',
@@ -345,13 +344,12 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 12,
-    color: colors.status.requested,
-    textDecorationLine: 'underline',
+    color: '#8E8E93',
   },
   signInButton: {
-    height: layout.buttonHeight,
-    backgroundColor: colors.black,
-    borderRadius: layout.borderRadius.sm,
+    height: 54,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sm + spacing.xxs,
@@ -361,11 +359,12 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: 'Inter-SemiBold',
+      android: 'Inter-SemiBold',
       default: 'System',
     }),
-    fontSize: 20,
+    fontSize: 16,
     color: colors.white,
+    letterSpacing: 0.2,
   },
 });

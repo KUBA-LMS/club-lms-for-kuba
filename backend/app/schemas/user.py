@@ -53,6 +53,7 @@ class UserUpdate(BaseModel):
     student_id: Optional[str] = Field(None, max_length=20)
     nationality: Optional[str] = Field(None, max_length=50)
     gender: Optional[GenderEnum] = None
+    profile_image: Optional[str] = None
 
 
 class UserProfileImageUpdate(BaseModel):

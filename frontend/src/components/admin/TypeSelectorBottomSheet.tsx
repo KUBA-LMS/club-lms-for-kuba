@@ -8,6 +8,8 @@ import {
   Pressable,
   TextInput,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -62,7 +64,11 @@ export default function TypeSelectorBottomSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <Pressable style={styles.overlay} onPress={handleOverlayPress}>
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleOverlayPress} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         <Pressable
           style={[styles.container, { paddingBottom: insets.bottom + 16 }]}
           onPress={() => Keyboard.dismiss()}
@@ -96,12 +102,13 @@ export default function TypeSelectorBottomSheet({
               <TextInput
                 ref={priceInputRef}
                 style={styles.priceInput}
-                value={costAmount?.toString() || ''}
+                value={costAmount != null ? costAmount.toLocaleString('en-US') : ''}
                 onChangeText={(text) => {
-                  const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
+                  const raw = text.replace(/[^0-9]/g, '');
+                  const num = parseInt(raw, 10);
                   onCostAmountChange?.(isNaN(num) ? undefined : num);
                 }}
-                placeholder="Enter amount"
+                placeholder="0"
                 placeholderTextColor="#8E8E93"
                 keyboardType="number-pad"
               />
@@ -109,7 +116,8 @@ export default function TypeSelectorBottomSheet({
             </View>
           )}
         </Pressable>
-      </Pressable>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
@@ -119,6 +127,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'flex-end',
+    pointerEvents: 'box-none',
   },
   container: {
     backgroundColor: '#FFFFFF',
@@ -142,10 +151,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     top: 0,
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 16,
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    borderRadius: 20,
   },
   doneButtonText: {
     fontFamily: 'Inter-SemiBold',

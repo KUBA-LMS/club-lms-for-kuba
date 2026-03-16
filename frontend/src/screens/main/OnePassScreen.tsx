@@ -6,6 +6,8 @@ import {
   Text,
   StatusBar,
   AppState,
+  useWindowDimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue } from 'react-native-reanimated';
@@ -33,6 +35,7 @@ type Props = NativeStackScreenProps<MainStackParamList, 'OnePass'>;
 export default function OnePassScreen({ navigation, route }: Props) {
   const { eventId } = route.params || {};
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
   const auth = useAuth();
   const user = auth.user;
 
@@ -202,6 +205,11 @@ export default function OnePassScreen({ navigation, route }: Props) {
   const showCheckedIn = screenState === 'checked_in';
   const showEventInfo = screenState === 'viewing_ticket' || screenState === 'checked_in';
 
+  // Estimated heights of all non-carousel elements (worst-case: viewing_ticket)
+  // Header(60) + UserProfile(68) + BarcodeDisplay(168) + ActionButtons(38) + EventInfoPanel(120)
+  const FIXED_UI_HEIGHT = 60 + 68 + 168 + 38 + 120;
+  const carouselMaxHeight = Math.max(200, screenHeight - insets.top - FIXED_UI_HEIGHT);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
@@ -219,18 +227,24 @@ export default function OnePassScreen({ navigation, route }: Props) {
         />
       )}
 
-      <View
-        style={styles.carouselSection}
-        onTouchEnd={handleSwipeDown}
-      >
+      <View style={styles.carouselSection}>
         <TicketCarousel
           tickets={tickets}
           activeIndex={activeIndex}
           onIndexChange={handleIndexChange}
           scrollX={scrollX}
+          maxHeight={carouselMaxHeight}
         />
 
-        {showAutoSelection && <AutoSelectionCapsule />}
+        {showAutoSelection && (
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={handleSwipeDown}
+            activeOpacity={1}
+          >
+            <AutoSelectionCapsule />
+          </TouchableOpacity>
+        )}
 
         {showCheckedIn && <CheckinOverlay type="success" />}
       </View>
@@ -244,14 +258,14 @@ export default function OnePassScreen({ navigation, route }: Props) {
       {showAutoSelection ? (
         <View style={styles.bottomPanel}>
           <View style={styles.scanInfoContainer}>
-            <Svg style={styles.scanInfoBorder} viewBox="0 0 316 32">
+            <Svg style={styles.scanInfoBorder} viewBox="0 0 316 28">
               <Rect
                 x={0.5}
                 y={0.5}
                 width={315}
-                height={31}
-                rx={16}
-                stroke="#FF383C"
+                height={27}
+                rx={14}
+                stroke="rgba(255,255,255,0.25)"
                 strokeWidth={1}
                 fill="none"
               />
@@ -281,6 +295,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFFFFF',
     marginTop: 12,
+    opacity: 0.6,
   },
   emptyContainer: {
     flex: 1,
@@ -297,24 +312,26 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: '#FFFFFF',
+    opacity: 0.5,
     textAlign: 'center',
   },
   carouselSection: {
-    flex: 1,
     position: 'relative',
     justifyContent: 'center',
   },
   bottomPanel: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    minHeight: 120,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.12)',
+    minHeight: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 30,
+    paddingVertical: 24,
   },
   scanInfoContainer: {
     width: 316,
-    height: 32,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -322,12 +339,14 @@ const styles = StyleSheet.create({
   scanInfoBorder: {
     position: 'absolute',
     width: 316,
-    height: 32,
+    height: 28,
   },
   scanInfoText: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 20,
-    color: '#FF383C',
+    fontFamily: 'Inter-Regular',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.65)',
     textAlign: 'center',
+    letterSpacing: 1.5,
+    opacity: 0.8,
   },
 });

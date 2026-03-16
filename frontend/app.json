@@ -51,6 +51,12 @@
         {
           "cameraPermission": "Camera is used to scan barcodes for event check-in"
         }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Camera is used to scan barcodes for event check-in"
+        }
       ]
     ]
   }
