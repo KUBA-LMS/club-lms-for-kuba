@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Keyboard,
+  Linking,
 } from "react-native";
 import { NaverMapView, NaverMapViewRef, NaverMapMarkerOverlay } from "../../components/Map";
 import EventMarkers from "../../components/Map/EventMarkers";
@@ -27,7 +28,7 @@ import BottomSheet, {
   BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Animated, {
   useAnimatedStyle,
@@ -45,10 +46,10 @@ import MyBadge from "../../components/home/MyBadge";
 import FilterBadge from "../../components/home/FilterBadge";
 import OnePassButton from "../../components/home/OnePassButton";
 import EventCard from "../../components/home/EventCard";
-import TransitCard from "../../components/home/TransitCard";
 import { StarsIcon } from "../../components/icons";
 import SearchDropdown from "../../components/home/SearchDropdown";
-import AdminFaceFab from "../../components/home/AdminFaceFab";
+import AdminFaceFab, { CalendarPlusIcon, KeyIcon, GridIcon } from "../../components/home/AdminFaceFab";
+import Svg, { Path } from "react-native-svg";
 import {
   EventDetailBottomSheet,
   EventDetailData,
@@ -66,6 +67,7 @@ import {
 import { toggleBookmark } from "../../services/bookmarks";
 import { storage, SearchHistoryItem } from "../../services/storage";
 import { useSearchDebounce } from "../../hooks/useSearchDebounce";
+import { useMyClubs } from "../../hooks/useMyClubs";
 import { EventWithStatus } from "../../types/event";
 import { ApiError, User } from "../../types/auth";
 import { useAuth } from "../../context/AuthContext";
@@ -75,6 +77,7 @@ import { MainStackParamList } from "../../navigation/types";
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
 type FilterMode = 'date' | 'distance' | 'recommended';
+type EventTimeFilter = 'all' | 'current' | 'past';
 
 function haversineDistance(
   lat1: number, lon1: number,
@@ -119,6 +122,25 @@ export default function HomeScreen() {
   const { height: screenHeight } = useWindowDimensions();
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
+  const { clubs: myClubs, refresh: refreshClubs } = useMyClubs();
+
+  // Flat list: parent clubs + their subgroups
+  const flatClubs = useMemo(() => {
+    const list: { id: string; name: string; logo_image: string | null }[] = [];
+    for (const club of myClubs) {
+      list.push({ id: club.id, name: club.name, logo_image: club.logo_image });
+      for (const sub of club.subgroups) {
+        list.push({ id: sub.id, name: sub.name, logo_image: sub.logo_image });
+      }
+    }
+    return list;
+  }, [myClubs]);
+
+  const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+
+  const handleToggleClubFilter = useCallback((clubId: string) => {
+    setSelectedClubId((prev) => (prev === clubId ? null : clubId));
+  }, []);
 
   // Check if user is admin
   const isAdmin = (user as User | null)?.role === "admin";
@@ -200,11 +222,10 @@ export default function HomeScreen() {
   }, []);
 
   const [events, setEvents] = useState<EventWithStatus[]>([]);
-  const [pastEvents, setPastEvents] = useState<EventWithStatus[]>([]);
-  const [showPastEvents, setShowPastEvents] = useState(false);
-  const [isLoadingPast, setIsLoadingPast] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterMode>('date');
+  const [eventTimeFilter, setEventTimeFilter] = useState<EventTimeFilter>('current');
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const [bookmarkFilterActive, setBookmarkFilterActive] = useState(false);
   // null = no search filter active, array = show only these events
   const [searchMatches, setSearchMatches] = useState<EventWithStatus[] | null>(null);
@@ -234,8 +255,11 @@ export default function HomeScreen() {
         : event.cost_amount
           ? `${Number(event.cost_amount).toLocaleString()} KRW`
           : undefined,
+    imageUri: event.images?.[0] || undefined,
     address: event.event_location || undefined,
     description: event.description || undefined,
+    eventType: event.event_type,
+    costType: event.cost_type,
     availableSlots: event.max_slots - event.current_slots,
     providedBy: {
       name: event.club.name,
@@ -245,23 +269,26 @@ export default function HomeScreen() {
       name: event.posted_by.username,
       avatar: event.posted_by.profile_image || undefined,
     },
-    transitTimes: {
-      publicTransit: "15 min",
-      car: "10 min",
-      walk: "25 min",
-    },
-    status: event.user_status as RegistrationStatus,
+    status: (
+      event.user_status === 'requested' && event.cost_type === 'prepaid'
+        ? 'payment_pending'
+        : event.user_status
+    ) as RegistrationStatus,
     opensAt:
       event.user_status === "upcoming"
         ? formatOpensAt(event.registration_start)
         : undefined,
     registrationId: event.user_registration_id || undefined,
+    paymentDeadline: event.payment_deadline ? new Date(event.payment_deadline) : undefined,
+    bankName: event.bank_name || undefined,
+    bankAccountNumber: event.bank_account_number || undefined,
+    accountHolderName: event.account_holder_name || undefined,
   }), []);
 
-  const fetchEvents = useCallback(async (mode: FilterMode = activeFilter) => {
+  const fetchEvents = useCallback(async (mode: FilterMode = activeFilter, timeFilter: EventTimeFilter = eventTimeFilter) => {
     try {
       setIsLoading(true);
-      const apiFilter = 'upcoming';
+      const apiFilter = timeFilter === 'all' ? 'all' : timeFilter === 'past' ? 'past' : 'upcoming';
       const response = await listEvents({ filter: apiFilter as 'upcoming' | 'past' | 'all' });
       let sorted = [...response.data];
 
@@ -302,34 +329,26 @@ export default function HomeScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeFilter, toEventDetail, userLocation]);
+  }, [activeFilter, eventTimeFilter, toEventDetail, userLocation]);
 
   const handleFilterChange = useCallback((mode: FilterMode) => {
     setActiveFilter(mode);
     fetchEvents(mode);
   }, [fetchEvents]);
 
-  const fetchPastEvents = useCallback(async () => {
-    setIsLoadingPast(true);
-    try {
-      const response = await listEvents({ filter: 'past' });
-      setPastEvents(response.data);
-    } catch (error) {
-      console.error("Failed to fetch past events:", error);
-    } finally {
-      setIsLoadingPast(false);
-    }
-  }, []);
+  const handleTimeFilterChange = useCallback((filter: EventTimeFilter) => {
+    setEventTimeFilter(filter);
+    setShowTimeDropdown(false);
+    fetchEvents(activeFilter, filter);
+  }, [activeFilter, fetchEvents]);
 
-  const handleShowPastEvents = useCallback(() => {
-    setShowPastEvents(true);
-    fetchPastEvents();
-  }, [fetchPastEvents]);
-
-  // Fetch events on mount
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  // Fetch events and clubs on mount and whenever the screen comes back into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+      refreshClubs();
+    }, [fetchEvents, refreshClubs]),
+  );
 
   // Real-time: refetch when user's registration status changes
   useUserChannel(
@@ -347,18 +366,19 @@ export default function HomeScreen() {
   );
 
   const filteredEvents = useMemo(() => {
-    if (searchMatches !== null) return searchMatches;
-    if (!bookmarkFilterActive) return events;
-    return events.filter((e) => e.is_bookmarked);
-  }, [searchMatches, events, bookmarkFilterActive]);
+    let base = searchMatches !== null ? searchMatches : events;
+    if (bookmarkFilterActive) base = base.filter((e) => e.is_bookmarked);
+    if (selectedClubId) base = base.filter((e) => e.club.id === selectedClubId);
+    return base;
+  }, [searchMatches, events, bookmarkFilterActive, selectedClubId]);
 
   // Events rendered as map pins — always in sync with bottom sheet
   const mapEvents = useMemo(() => {
-    if (searchMatches !== null) return searchMatches;
-    const base = bookmarkFilterActive ? events.filter((e) => e.is_bookmarked) : events;
-    if (showPastEvents && pastEvents.length > 0) return [...base, ...pastEvents];
+    let base = searchMatches !== null ? searchMatches : events;
+    if (bookmarkFilterActive) base = base.filter((e) => e.is_bookmarked);
+    if (selectedClubId) base = base.filter((e) => e.club.id === selectedClubId);
     return base;
-  }, [searchMatches, events, bookmarkFilterActive, showPastEvents, pastEvents]);
+  }, [searchMatches, events, bookmarkFilterActive, selectedClubId]);
 
   const handleToggleBookmarkFilter = useCallback(() => {
     setBookmarkFilterActive((prev) => !prev);
@@ -406,22 +426,6 @@ export default function HomeScreen() {
     };
   });
 
-  // Transit card fade in animation
-  const transitCardAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: isDetailOpen.value,
-      transform: [
-        {
-          translateY: interpolate(
-            isDetailOpen.value,
-            [0, 1],
-            [-20, 0],
-            Extrapolation.CLAMP,
-          ),
-        },
-      ],
-    };
-  });
 
   const handleToggleBookmark = useCallback(async (eventId: string) => {
     // Optimistic update
@@ -466,7 +470,7 @@ export default function HomeScreen() {
       dismissSearch();
       commitSearch(title);
       // Also focus the specific tapped event on the map
-      const found = [...events, ...pastEvents].find((e) => e.id === item.id);
+      const found = events.find((e) => e.id === item.id);
       if (found?.latitude != null && found?.longitude != null) {
         mapRef.current?.animateCameraTo({
           latitude: found.latitude,
@@ -475,7 +479,7 @@ export default function HomeScreen() {
         });
       }
     }
-  }, [dismissSearch, events, pastEvents, commitSearch]);
+  }, [dismissSearch, events, commitSearch]);
 
   const handleSearch = useCallback(() => {
     if (searchText.trim()) {
@@ -635,15 +639,6 @@ export default function HomeScreen() {
     return { transform: [{ translateY }] };
   });
 
-  // Admin FAB: 지도와 동일한 translateY 적용
-  const adminFabAnimatedStyle = useAnimatedStyle(() => {
-    const sheetHeight = screenHeight - animatedPosition.value;
-    const baseHeight = screenHeight * 0.09;
-    const maxOffset = screenHeight * 0.3;
-    const translateY = -Math.min((sheetHeight - baseHeight) * 0.3, maxOffset);
-    return { transform: [{ translateY }] };
-  });
-
 
   return (
     <BottomSheetModalProvider>
@@ -728,18 +723,19 @@ export default function HomeScreen() {
             >
               <FilterBadge
                 label="Bookmark"
-                icon={<StarsIcon size={16} color={bookmarkFilterActive ? '#FFFFFF' : '#212121'} />}
+                icon={<StarsIcon size={16} color={bookmarkFilterActive ? colors.white : colors.gray900} />}
                 isActive={bookmarkFilterActive}
                 onPress={handleToggleBookmarkFilter}
               />
-              <FilterBadge
-                label="46th_KUBA"
-                imageUri="https://via.placeholder.com/20"
-              />
-              <FilterBadge
-                label="46th_KUBA_Group_8"
-                imageUri="https://via.placeholder.com/20"
-              />
+              {flatClubs.map((club) => (
+                <FilterBadge
+                  key={club.id}
+                  label={club.name}
+                  imageUri={club.logo_image ?? undefined}
+                  isActive={selectedClubId === club.id}
+                  onPress={() => handleToggleClubFilter(club.id)}
+                />
+              ))}
             </ScrollView>
           )}
         </Animated.View>
@@ -749,20 +745,7 @@ export default function HomeScreen() {
           <MyLocationButton onPress={handleMyLocation} size="small" />
         </View>
 
-        {/* Transit Card - appears when detail opens */}
-        <Animated.View
-          style={[
-            styles.transitCardOverlay,
-            { top: getSafeTop(insets), pointerEvents: selectedEvent ? "auto" : "none" },
-            transitCardAnimatedStyle,
-          ]}
-        >
-          <TransitCard
-            publicTransitTime={selectedEvent?.transitTimes?.publicTransit}
-            carTime={selectedEvent?.transitTimes?.car}
-            walkTime={selectedEvent?.transitTimes?.walk}
-          />
-        </Animated.View>
+
         <BottomSheet
           ref={bottomSheetRef}
           index={1}
@@ -774,6 +757,7 @@ export default function HomeScreen() {
           animatedPosition={animatedPosition}
         >
           <View style={styles.sheetHeader}>
+            {/* Sort chips */}
             <View style={styles.sheetFilterContent}>
               {([
                 { key: 'recommended', label: 'Recommended' },
@@ -799,6 +783,47 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+            {/* Time filter - chip style, right-aligned below sort chips */}
+            <View style={styles.timeFilterRow}>
+              <TouchableOpacity
+                style={styles.timeFilterChip}
+                onPress={() => setShowTimeDropdown((v) => !v)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.timeFilterButtonText}>
+                  {eventTimeFilter === 'all' ? 'All Events' : eventTimeFilter === 'past' ? 'Past Events' : 'Current Events'}
+                </Text>
+                <Svg width={12} height={12} viewBox="0 0 24 24" style={{ marginLeft: 3 }}>
+                  <Path
+                    d={showTimeDropdown ? "M18 15L12 9L6 15" : "M6 9L12 15L18 9"}
+                    stroke={colors.text.secondary}
+                    strokeWidth={2.2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
+              {showTimeDropdown && (
+                <View style={styles.timeFilterDropdown}>
+                  {([
+                    { key: 'all', label: 'All Events' },
+                    { key: 'current', label: 'Current Events' },
+                    { key: 'past', label: 'Past Events' },
+                  ] as const).map((opt) => (
+                    <TouchableOpacity
+                      key={opt.key}
+                      style={[styles.timeFilterOption, eventTimeFilter === opt.key && styles.timeFilterOptionActive]}
+                      onPress={() => handleTimeFilterChange(opt.key)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.timeFilterOptionText, eventTimeFilter === opt.key && styles.timeFilterOptionTextActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
           </View>
           <BottomSheetScrollView
             contentContainerStyle={[
@@ -806,44 +831,6 @@ export default function HomeScreen() {
               { paddingBottom: bottomPadding },
             ]}
           >
-            {/* Past Events Section — hidden when search filter is active */}
-            {showPastEvents && searchMatches === null && (
-              <View style={styles.pastEventsSection}>
-                {isLoadingPast ? (
-                  <ActivityIndicator size="small" color="#8E8E93" />
-                ) : pastEvents.length === 0 ? (
-                  <Text style={styles.emptyText}>No past events</Text>
-                ) : (
-                  pastEvents.map((event) => (
-                    <EventCard
-                      key={`past-${event.id}`}
-                      title={event.title}
-                      date={formatEventDate(event.event_date)}
-                      provider={event.club.name}
-                      providerLogo={event.club.logo_image || undefined}
-                      status={event.user_status}
-                      participants={event.participants_preview}
-                      participantCount={event.current_slots}
-                      isBookmarked={event.is_bookmarked}
-                      onPress={() => handleEventPress(event)}
-                      onBookmark={() => handleToggleBookmark(event.id)}
-                      onShare={() => handleShare(event)}
-                    />
-                  ))
-                )}
-                <View style={styles.pastEventsDivider}>
-                  <View style={styles.pastEventsDividerLine} />
-                  <Text style={styles.pastEventsDividerText}>Upcoming</Text>
-                  <View style={styles.pastEventsDividerLine} />
-                </View>
-              </View>
-            )}
-            {!showPastEvents && searchMatches === null && (
-              <TouchableOpacity style={styles.showPastButton} onPress={handleShowPastEvents}>
-                <Text style={styles.showPastButtonText}>Show Past Events</Text>
-              </TouchableOpacity>
-            )}
-
             {isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#03CA5B" />
@@ -854,26 +841,33 @@ export default function HomeScreen() {
                 <Text style={styles.emptyText}>No events found</Text>
               </View>
             ) : (
-              filteredEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  title={event.title}
-                  date={formatEventDate(event.event_date)}
-                  provider={event.club.name}
-                  providerLogo={event.club.logo_image || undefined}
-                  status={event.user_status}
-                  opensAt={
-                    event.user_status === "upcoming"
-                      ? formatOpensAt(event.registration_start)
-                      : undefined
-                  }
-                  participants={event.participants_preview}
-                  participantCount={event.current_slots}
-                  isBookmarked={event.is_bookmarked}
-                  onPress={() => handleEventPress(event)}
-                  onBookmark={() => handleToggleBookmark(event.id)}
-                  onShare={() => handleShare(event)}
-                />
+              filteredEvents.map((event, index) => (
+                <React.Fragment key={event.id}>
+                  <EventCard
+                    title={event.title}
+                    date={formatEventDate(event.event_date)}
+                    provider={event.club.name}
+                    providerLogo={event.club.logo_image || undefined}
+                    imageUri={event.images?.[0] || undefined}
+                    status={event.user_status}
+                    opensAt={
+                      event.user_status === "upcoming"
+                        ? formatOpensAt(event.registration_start)
+                        : undefined
+                    }
+                    participants={event.participants_preview}
+                    participantCount={event.current_slots}
+                    isBookmarked={event.is_bookmarked}
+                    onPress={() => handleEventPress(event)}
+                    onBookmark={() => handleToggleBookmark(event.id)}
+                    onShare={() => handleShare(event)}
+                  />
+                  {index < filteredEvents.length - 1 && (
+                    <View style={styles.eventDivider}>
+                      <View style={styles.eventDividerInner} />
+                    </View>
+                  )}
+                </React.Fragment>
               ))
             )}
           </BottomSheetScrollView>
@@ -893,7 +887,15 @@ export default function HomeScreen() {
                 navigation.navigate('OnePass', { eventId });
               }
             }}
-            onFindWay={() => console.log("Find way pressed")}
+            onFindWay={() => {
+              const address = selectedEvent?.address;
+              if (!address) return;
+              const query = encodeURIComponent(address);
+              const naverMapUrl = `nmap://search?query=${query}&appname=com.kuba.clublms`;
+              Linking.openURL(naverMapUrl).catch(() => {
+                Linking.openURL(`https://map.naver.com/v5/search/${query}`);
+              });
+            }}
           />
         )}
 
@@ -906,6 +908,10 @@ export default function HomeScreen() {
           onPrepaidConfirm={handlePrepaidConfirm}
           onPrepaidBack={handlePrepaidBack}
           paymentDeadline={selectedEvent?.paymentDeadline}
+          bankName={selectedEvent?.bankName}
+          bankAccountNumber={selectedEvent?.bankAccountNumber}
+          accountHolderName={selectedEvent?.accountHolderName}
+          costAmount={selectedEvent?.prepaidAmount}
         />
 
         {shareEvent && (
@@ -919,14 +925,44 @@ export default function HomeScreen() {
 
         {/* Floating OnePass Button */}
         <View
-          style={[
-            styles.floatingOnePass,
-            { bottom: bottomPadding + 10 },
-          ]}
+          style={[styles.floatingOnePass, {
+            bottom: bottomPadding - 4,
+            right: isAdmin ? 16 + 52 + 12 : screenPadding.horizontal,
+          }]}
           pointerEvents="box-none"
         >
           <OnePassButton onPress={() => navigation.navigate('OnePass', {})} />
         </View>
+
+        {/* Admin FAB — same bottom level as OnePass, right side */}
+        {isAdmin && (
+          <View
+            style={[styles.adminColumn, { bottom: bottomPadding - 4 }]}
+            pointerEvents="box-none"
+          >
+            <AdminFaceFab
+              isOpen={adminMenuOpen}
+              onToggle={() => setAdminMenuOpen((v) => !v)}
+              items={[
+                {
+                  label: 'Create Event',
+                  icon: <CalendarPlusIcon />,
+                  onPress: () => { setAdminMenuOpen(false); navigation.navigate('AdminCreateEvent'); },
+                },
+                {
+                  label: 'Access Control',
+                  icon: <KeyIcon />,
+                  onPress: () => { setAdminMenuOpen(false); navigation.navigate('AccessControl'); },
+                },
+                {
+                  label: 'Admin Hub',
+                  icon: <GridIcon />,
+                  onPress: () => { setAdminMenuOpen(false); navigation.navigate('AdminHub'); },
+                },
+              ]}
+            />
+          </View>
+        )}
 
         {/* Search dropdown backdrop */}
         {isSearchFocused && (
@@ -944,62 +980,6 @@ export default function HomeScreen() {
             activeOpacity={1}
             onPress={() => setAdminMenuOpen(false)}
           />
-        )}
-
-        {/* Admin FAB + menu column — centered on map, moves with sheet */}
-        {isAdmin && (
-          <Animated.View
-            style={[styles.adminColumn, { top: screenHeight * 0.55 }, adminFabAnimatedStyle]}
-            pointerEvents="box-none"
-          >
-            {adminMenuOpen && (
-              <>
-                <TouchableOpacity
-                  style={styles.adminMenuItem}
-                  onPress={() => {
-                    setAdminMenuOpen(false);
-                    navigation.navigate("AdminCreateEvent");
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.adminMenuIcon}>
-                    <Text style={styles.adminMenuIconText}>+</Text>
-                  </View>
-                  <Text style={styles.adminMenuLabel}>Create Event</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.adminMenuItem}
-                  onPress={() => {
-                    setAdminMenuOpen(false);
-                    navigation.navigate("AccessControl");
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.adminMenuIcon}>
-                    <Text style={styles.adminMenuIconText}>A</Text>
-                  </View>
-                  <Text style={styles.adminMenuLabel}>Access Control</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.adminMenuItem}
-                  onPress={() => {
-                    setAdminMenuOpen(false);
-                    navigation.navigate("AdminHub");
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.adminMenuIcon}>
-                    <Text style={styles.adminMenuIconText}>H</Text>
-                  </View>
-                  <Text style={styles.adminMenuLabel}>Admin Hub</Text>
-                </TouchableOpacity>
-              </>
-            )}
-            <AdminFaceFab
-              isOpen={adminMenuOpen}
-              onToggle={() => setAdminMenuOpen((v) => !v)}
-            />
-          </Animated.View>
         )}
 
       </View>
@@ -1022,13 +1002,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     gap: 11.5,
-  },
-  transitCardOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    paddingTop: 12,
   },
   topBar: {
     flexDirection: "row",
@@ -1115,78 +1088,79 @@ const styles = StyleSheet.create({
   adminColumn: {
     position: "absolute" as const,
     right: 16,
-    alignItems: "flex-end" as const,
-    gap: 10,
     zIndex: 100,
-  },
-  adminMenuItem: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    backgroundColor: colors.background.primary,
-    borderRadius: 22,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    gap: 10,
-    ...shadows.lg,
-  },
-  adminMenuIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.black,
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
-  },
-  adminMenuIconText: {
-    ...typography.label,
-    color: colors.text.inverse,
-    lineHeight: 20,
-  },
-  adminMenuLabel: {
-    ...typography.label,
-    color: colors.text.primary,
-    flexShrink: 0,
   },
   myLocationBtn: {
     position: "absolute",
     right: 16,
   },
-  showPastButton: {
-    alignSelf: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  timeFilterRow: {
+    flexDirection: "row" as const,
+    justifyContent: "flex-end" as const,
+    paddingHorizontal: screenPadding.horizontal,
+    paddingTop: 10,
+    paddingBottom: 4,
+    position: "relative" as const,
+    zIndex: 10,
+  },
+  timeFilterChip: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    backgroundColor: colors.gray100,
     borderRadius: layout.borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    ...shadows.sm,
   },
-  showPastButtonText: {
-    ...typography.caption,
+  timeFilterButtonText: {
+    ...typography.labelSmall,
+    fontSize: 12,
+    color: colors.text.secondary,
+  },
+  timeFilterChevron: {
+    fontSize: 10,
     color: colors.text.tertiary,
   },
-  pastEventsSection: {
-    marginBottom: 8,
+  timeFilterDropdown: {
+    position: "absolute" as const,
+    top: 28,
+    right: screenPadding.horizontal,
+    backgroundColor: colors.background.primary,
+    borderRadius: 14,
+    paddingVertical: 4,
+    minWidth: 150,
+    zIndex: 20,
+    ...shadows.lg,
   },
-  pastEventsDivider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    marginTop: 4,
+  timeFilterOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  pastEventsDividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border.light,
+  timeFilterOptionActive: {
+    backgroundColor: colors.gray100,
   },
-  pastEventsDividerText: {
-    ...typography.caption,
-    color: colors.text.tertiary,
-    paddingHorizontal: 10,
+  timeFilterOptionText: {
+    ...typography.labelSmall,
+    color: colors.text.secondary,
+  },
+  timeFilterOptionTextActive: {
+    color: colors.text.primary,
+    fontWeight: "600" as const,
   },
   floatingOnePass: {
     position: "absolute",
     left: screenPadding.horizontal,
     right: screenPadding.horizontal,
     zIndex: 50,
+  },
+  eventDivider: {
+    backgroundColor: colors.white,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  eventDividerInner: {
+    height: 1,
+    backgroundColor: '#EBEBEB',
+    borderRadius: 1,
   },
 });

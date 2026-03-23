@@ -16,6 +16,9 @@ class Event(Base, TimestampMixin):
     event_type = Column(SQLEnum("official", "private", name="event_type_enum"), nullable=False)
     cost_type = Column(SQLEnum("free", "prepaid", "one_n", name="cost_type_enum"), nullable=False)
     cost_amount = Column(Numeric(10, 2), nullable=True)
+    bank_name = Column(String(50), nullable=True)
+    bank_account_number = Column(String(30), nullable=True)
+    account_holder_name = Column(String(50), nullable=True)
     registration_start = Column(DateTime, nullable=False)
     registration_end = Column(DateTime, nullable=False)
     event_date = Column(DateTime, nullable=False)
@@ -25,6 +28,13 @@ class Event(Base, TimestampMixin):
     max_slots = Column(Integer, nullable=False)
     current_slots = Column(Integer, default=0, nullable=False)
 
+    # Visibility
+    visibility_type = Column(SQLEnum("friends_only", "club", name="visibility_type_enum"), nullable=True)
+    visibility_club_id = Column(UUID(as_uuid=True), ForeignKey("clubs.id"), nullable=True)
+
+    # Related event
+    related_event_id = Column(UUID(as_uuid=True), ForeignKey("events.id"), nullable=True)
+
     # Foreign Keys
     provided_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     posted_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
@@ -33,5 +43,5 @@ class Event(Base, TimestampMixin):
     # Relationships
     provided_by = relationship("User", foreign_keys=[provided_by_id], back_populates="provided_events")
     posted_by = relationship("User", foreign_keys=[posted_by_id], back_populates="posted_events")
-    club = relationship("Club", back_populates="events")
+    club = relationship("Club", foreign_keys=[club_id], back_populates="events")
     registrations = relationship("Registration", back_populates="event")

@@ -1,5 +1,5 @@
 import React, { useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Participant, TicketStatus } from '../../types/accessControl';
 
 export interface ParticipantsTableHandle {
@@ -44,29 +44,20 @@ const ParticipantsTable = forwardRef<ParticipantsTableHandle, ParticipantsTableP
     { participants, selectedParticipantId, onSelectParticipant, mode, highlightedId, highlightColor },
     ref,
   ) {
-    const listRef = useRef<FlatList>(null);
+    const scrollRef = useRef<ScrollView>(null);
     const hasData = participants.length > 0;
 
     useImperativeHandle(ref, () => ({
       scrollToUser(userId: string) {
         const idx = participants.findIndex((p) => p.user_id === userId);
-        if (idx >= 0 && listRef.current) {
-          listRef.current.scrollToOffset({ offset: idx * ROW_HEIGHT, animated: true });
+        if (idx >= 0 && scrollRef.current) {
+          scrollRef.current.scrollTo({ y: idx * ROW_HEIGHT, animated: true });
         }
       },
     }));
 
-    const getItemLayout = useCallback(
-      (_: unknown, index: number) => ({
-        length: ROW_HEIGHT,
-        offset: ROW_HEIGHT * index,
-        index,
-      }),
-      [],
-    );
-
-    const renderItem = useCallback(
-      ({ item: p, index }: { item: Participant; index: number }) => {
+    const renderRow = useCallback(
+      (p: Participant, index: number) => {
         const isHighlighted = highlightedId === p.user_id;
         const isSelected = selectedParticipantId === p.user_id;
         const statusColor = STATUS_COLORS[p.ticket_status] || '#000000';
@@ -79,6 +70,7 @@ const ParticipantsTable = forwardRef<ParticipantsTableHandle, ParticipantsTableP
 
         return (
           <TouchableOpacity
+            key={p.user_id}
             style={[
               styles.row,
               borderColor ? { borderLeftWidth: 3, borderLeftColor: borderColor } : null,
@@ -114,15 +106,9 @@ const ParticipantsTable = forwardRef<ParticipantsTableHandle, ParticipantsTableP
           <Text style={[styles.headerCell, styles.statusCol]}>Check-in</Text>
         </View>
         {hasData ? (
-          <FlatList
-            ref={listRef}
-            data={participants}
-            renderItem={renderItem}
-            keyExtractor={(p) => p.user_id}
-            getItemLayout={getItemLayout}
-            style={styles.body}
-            nestedScrollEnabled
-          />
+          <ScrollView ref={scrollRef} style={styles.body}>
+            {participants.map((p, i) => renderRow(p, i))}
+          </ScrollView>
         ) : (
           <View style={styles.emptyRow}>
             <Text style={styles.emptyText}>No participants</Text>

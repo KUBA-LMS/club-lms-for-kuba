@@ -78,6 +78,25 @@ export const authService = {
   },
 
   /**
+   * Change password for authenticated user.
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    const response = await api.post<{ message: string }>('/auth/change-password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+    return response.data;
+  },
+
+  /**
+   * Delete current user's account.
+   */
+  async deleteAccount(): Promise<void> {
+    await api.delete('/users/me');
+    await storage.clearAuth();
+  },
+
+  /**
    * Check if user is authenticated (has valid token).
    */
   async isAuthenticated(): Promise<boolean> {

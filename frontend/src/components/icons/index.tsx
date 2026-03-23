@@ -1,6 +1,8 @@
 import React from 'react';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
+export { default as OnePassLogo } from './OnePassLogo';
+
 // Search Icon - Figma exact SVG
 export function SearchIcon({ size = 20, color = '#212121' }: { size?: number; color?: string }) {
   return (
@@ -427,6 +429,21 @@ export function EditPencilIcon({ size = 12, color = '#000000' }: { size?: number
   );
 }
 
+// Edit Icon - simple pencil stroke
+export function EditIcon({ size = 12, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 // Chevron Down Icon - for expand/collapse
 export function ChevronDownIcon({ size = 20, color = '#000000' }: { size?: number; color?: string }) {
   return (
@@ -545,6 +562,28 @@ export function GearIcon({ size = 24, color = '#000000' }: { size?: number; colo
         d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
         stroke={color}
         strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+// Eye Off Icon - password visibility toggle
+export function EyeOffIcon({ size = 24, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M1 1L23 23"
+        stroke={color}
+        strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

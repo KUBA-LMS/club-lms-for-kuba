@@ -7,6 +7,7 @@ import {
   Animated,
   LayoutChangeEvent,
 } from 'react-native';
+import { colors, font } from '../../constants';
 
 interface SegmentedControlProps {
   segments: string[];
@@ -76,9 +77,9 @@ export default function SegmentedControl({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 36,
+    height: 40,
     borderRadius: 100,
-    backgroundColor: 'rgba(118,118,128,0.12)',
+    backgroundColor: '#F0F0F5',
     padding: 4,
     position: 'relative',
   },
@@ -87,12 +88,12 @@ const styles = StyleSheet.create({
     top: 4,
     bottom: 4,
     left: 4,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     borderRadius: 20,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 3,
   },
   segment: {
@@ -102,12 +103,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   label: {
-    fontFamily: 'Inter-Medium',
+    fontFamily: font.medium,
     fontSize: 14,
-    color: '#000000',
+    color: colors.gray500,
     letterSpacing: -0.08,
   },
   labelSelected: {
-    fontFamily: 'Inter-Bold',
+    fontFamily: font.semibold,
+    color: colors.white,
   },
 });

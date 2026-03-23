@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SearchIcon } from '../icons';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
+import Avatar from '../common/Avatar';
 import {
   searchUsers,
   sendFriendRequest,
@@ -27,7 +29,7 @@ function ClubBadges({ clubs }: { clubs: ClubBrief[] }) {
         club.logo_image ? (
           <Image
             key={club.id}
-            source={{ uri: club.logo_image }}
+            source={{ uri: resolveImageUrl(club.logo_image) }}
             style={styles.clubBadge}
           />
         ) : (
@@ -132,13 +134,7 @@ function FriendSearchItem({ user, onStateChange }: FriendSearchItemProps) {
 
   return (
     <View style={styles.itemContainer}>
-      <View style={styles.avatarContainer}>
-        {user.profile_image ? (
-          <Image source={{ uri: user.profile_image }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]} />
-        )}
-      </View>
+      <Avatar uri={user.profile_image} size={50} name={user.username} style={{ marginRight: 13 }} />
       <View style={styles.content}>
         <Text style={styles.username}>{user.username}</Text>
         {user.common_clubs.length > 0 && (
@@ -262,9 +258,9 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
     paddingVertical: 0,
   },
   listContent: {
@@ -277,7 +273,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray400,
   },
@@ -288,33 +284,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    marginRight: 13,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
-  },
   content: {
     flex: 1,
     justifyContent: 'center',
   },
   username: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 17,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 2,
   },
   groupsLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 4,
   },
   badgeRow: {
@@ -328,20 +311,20 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   clubBadgePlaceholder: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.gray50,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.gray200,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
   },
   clubBadgeText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#333',
+    color: colors.gray700,
   },
   addButton: {
-    backgroundColor: '#00C0E8',
+    backgroundColor: colors.info,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 6,
@@ -350,12 +333,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButtonText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   acceptButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: colors.success,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 6,
@@ -364,9 +347,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   acceptButtonText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   pendingBadge: {
     borderRadius: 14,
@@ -378,7 +361,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray100,
   },
   pendingText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
     color: colors.gray400,
   },

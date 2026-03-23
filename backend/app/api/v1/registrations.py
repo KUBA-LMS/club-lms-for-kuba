@@ -1,4 +1,5 @@
 import logging
+import secrets
 import uuid as uuid_lib
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -141,7 +142,7 @@ async def create_registration(
     # Create ticket if confirmed
     if initial_status == RegistrationStatusEnum.confirmed:
         await db.flush()  # ensure registration.id is assigned
-        barcode = f"KUBA-{uuid_lib.uuid4().hex[:12].upper()}"
+        barcode = str(secrets.randbelow(10**12 - 10**11) + 10**11)
         ticket = Ticket(
             registration_id=new_registration.id,
             barcode=barcode,

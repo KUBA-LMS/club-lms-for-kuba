@@ -36,9 +36,15 @@ const getWsUrl = () => {
   return api.replace(/^http/, "ws") + "/ws";
 };
 
+const getImageBaseUrl = () => {
+  const apiUrl = getApiUrl();
+  return apiUrl.replace(/\/api\/v1$/, '');
+};
+
 const config = {
   API_URL: getApiUrl(),
   WS_URL: getWsUrl(),
+  IMAGE_BASE_URL: getImageBaseUrl(),
   // Token storage keys
   ACCESS_TOKEN_KEY: "@club_lms_access_token",
   REFRESH_TOKEN_KEY: "@club_lms_refresh_token",

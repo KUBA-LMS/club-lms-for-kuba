@@ -2,9 +2,12 @@ import logging
 import logging.config
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -122,10 +125,15 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/api/v1")
 
+# Static file serving for uploaded images
+_static_dir = Path("static/uploads")
+_static_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Club LMS API"}
+    return {"message": "Welcome to ClubX API"}
 
 
 @app.get("/health")

@@ -14,10 +14,10 @@ export interface SignUpData {
 export type AuthStackParamList = {
   Login: undefined;
   SignUpStep1: undefined;
-  SignUpStep2: { username: string; name: string };
-  SignUpStep3: { username: string; name: string; profileImage?: string };
-  SignUpStep4: { username: string; name: string; profileImage?: string; studentId: string; nationality: string; gender: string };
-  SignUpStep5: { username: string; name: string; profileImage?: string; studentId: string; nationality: string; gender: string; password: string };
+  SignUpStep2: { username: string; name: string; email: string };
+  SignUpStep3: { username: string; name: string; email: string; profileImage?: string };
+  SignUpStep4: { username: string; name: string; email: string; profileImage?: string; studentId: string; nationality: string; gender: string };
+  SignUpStep5: { username: string; name: string; email: string; profileImage?: string; studentId: string; nationality: string; gender: string; password: string };
   ForgotPassword: undefined;
 };
 
@@ -42,13 +42,16 @@ export interface EventFormData {
   visibility_club_id?: string;
   poster_uri?: string;
   photo_uris?: string[];
+  bank_name?: string;
+  bank_account_number?: string;
+  account_holder_name?: string;
 }
 
 // Main Stack (contains tabs and detail screens)
 export type MainStackParamList = {
   Home: undefined;
   EventDetail: { eventId: string };
-  ProviderDetail: { providerId: string };
+
   OnePass: { eventId?: string };
   // Community / Chat screens
   Community: undefined;
@@ -59,8 +62,8 @@ export type MainStackParamList = {
   EditProfile: undefined;
   Settings: undefined;
   // Admin screens
-  AdminCreateEvent: undefined;
-  AdminUploadPoster: { eventData: Partial<EventFormData> };
+  AdminCreateEvent: { eventId?: string } | undefined;
+  AdminUploadPoster: { onPosterSelected: (uri: string | undefined) => void } | undefined;
   AccessControl: undefined;
   AdminHub: undefined;
   AdminHubSubgroupDetail: { clubId: string; subgroupId: string; subgroupName: string };

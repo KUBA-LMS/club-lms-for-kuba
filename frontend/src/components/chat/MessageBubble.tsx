@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ReadReceipt from './ReadReceipt';
+import Avatar from '../common/Avatar';
 import { Message } from '../../types/chat';
 import { MainStackParamList } from '../../navigation/types';
+import { colors, font } from '../../constants';
 
 interface MessageBubbleProps {
   message: Message;
@@ -57,11 +59,7 @@ export default function MessageBubble({
     return (
       <View style={styles.otherRow}>
         {showAvatar ? (
-          message.sender.profile_image ? (
-            <Image source={{ uri: message.sender.profile_image }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]} />
-          )
+          <Avatar uri={message.sender.profile_image} size={32} name={message.sender.username} style={{ marginRight: 8 }} />
         ) : (
           <View style={styles.avatarSpacer} />
         )}
@@ -95,11 +93,7 @@ export default function MessageBubble({
   return (
     <View style={styles.otherRow}>
       {showAvatar ? (
-        message.sender.profile_image ? (
-          <Image source={{ uri: message.sender.profile_image }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]} />
-        )
+        <Avatar uri={message.sender.profile_image} size={32} name={message.sender.username} style={{ marginRight: 8 }} />
       ) : (
         <View style={styles.avatarSpacer} />
       )}
@@ -131,102 +125,93 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   ownBubble: {
-    backgroundColor: '#000000',
-    borderRadius: 18,
-    borderBottomRightRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    maxWidth: '70%',
+    backgroundColor: colors.gray900,
+    borderRadius: 20,
+    borderBottomRightRadius: 5,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    maxWidth: '72%',
   },
   ownText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 15,
-    color: '#FFFFFF',
-    lineHeight: 20,
+    color: colors.white,
+    lineHeight: 21,
   },
   otherRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 16,
-    marginBottom: 6,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 8,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#FF9500',
+    marginBottom: 4,
   },
   avatarSpacer: {
     width: 32,
     marginRight: 8,
   },
   otherContent: {
-    maxWidth: '75%',
+    maxWidth: '72%',
   },
   senderName: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
-    color: '#8E8E93',
-    marginBottom: 3,
-    marginLeft: 4,
+    color: colors.gray500,
+    marginBottom: 4,
+    marginLeft: 2,
   },
   otherBubbleRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
   otherBubble: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 18,
-    borderBottomLeftRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    backgroundColor: colors.gray100,
+    borderRadius: 20,
+    borderBottomLeftRadius: 5,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   otherText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 15,
-    color: '#000000',
-    lineHeight: 20,
+    color: colors.text.primary,
+    lineHeight: 21,
   },
   time: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#8E8E93',
-    marginHorizontal: 4,
+    color: colors.gray400,
+    marginHorizontal: 5,
     marginBottom: 2,
   },
   failedText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
-    color: '#FF3B30',
+    color: colors.error,
     marginRight: 4,
   },
   sendingText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray400,
     marginRight: 4,
   },
   eventShareCard: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 14,
+    backgroundColor: '#F0F7FF',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    maxWidth: '70%',
+    maxWidth: '72%',
     borderWidth: 1,
-    borderColor: '#C8E6C9',
+    borderColor: '#D0E8FF',
   },
   eventShareTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#2E7D32',
+    color: colors.primaryDark,
   },
   eventShareSub: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 12,
-    color: '#4CAF50',
+    color: colors.primaryLight,
     marginTop: 2,
   },
 });

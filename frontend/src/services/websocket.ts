@@ -44,10 +44,7 @@ class WebSocketService {
   subscribe(channel: string): void {
     this.channels.add(channel);
     if (this.connected) {
-      console.log(`[WS] Subscribe: ${channel} (connected=true)`);
       this._send({ type: "subscribe", channel });
-    } else {
-      console.log(`[WS] Subscribe queued (not connected): ${channel}`);
     }
   }
 
@@ -94,7 +91,6 @@ class WebSocketService {
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log(`[WS] Connected to ${this.url}`);
         this.connected = true;
         this.reconnectAttempt = 0;
         this._resubscribe();
@@ -111,13 +107,11 @@ class WebSocketService {
       };
 
       this.ws.onclose = (event: WebSocketCloseEvent) => {
-        console.log(`[WS] Closed: code=${event.code}, reason=${event.reason}`);
         this.connected = false;
         this._stopPing();
 
         // Token expired
         if (event.code === 4001) {
-          console.log("[WS] Token expired (4001), not reconnecting");
           return;
         }
 
@@ -126,8 +120,7 @@ class WebSocketService {
         }
       };
 
-      this.ws.onerror = (event: Event) => {
-        console.log("[WS] Error:", event);
+      this.ws.onerror = () => {
         // onclose will fire after onerror
       };
     } catch {
@@ -164,16 +157,10 @@ class WebSocketService {
 
   private _handleMessage(msg: WSMessage): void {
     if (msg.type === "pong") return;
-
-    if (msg.type === "subscribed" || msg.type === "unsubscribed") {
-      console.log(`[WS] ${msg.type}: ${msg.channel}`);
-      return;
-    }
+    if (msg.type === "subscribed" || msg.type === "unsubscribed") return;
 
     const channel = msg.channel;
     if (!channel) return;
-
-    console.log(`[WS] Message: type=${msg.type}, channel=${channel}`);
 
     const handlers = this.listeners.get(channel);
     if (handlers) {
@@ -184,13 +171,10 @@ class WebSocketService {
           // don't let one handler break others
         }
       }
-    } else {
-      console.log(`[WS] No handlers for channel: ${channel}`);
     }
   }
 
   private _resubscribe(): void {
-    console.log(`[WS] Resubscribing to ${this.channels.size} channels:`, [...this.channels]);
     for (const channel of this.channels) {
       this._send({ type: "subscribe", channel });
     }

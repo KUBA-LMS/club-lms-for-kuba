@@ -6,12 +6,14 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Vibration,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../../navigation/types';
+import { colors } from '../../constants';
+import AdminHeader from '../../components/admin/AdminHeader';
 import {
-  AccessControlHeader,
   ScannerArea,
   EventSelector,
   EventSearchDropdown,
@@ -169,11 +171,20 @@ export default function AccessControlScreen({ navigation }: Props) {
       try {
         const res = await scanBarcode(selectedEvent.id, barcode);
         setScanResult(res.result);
+
+        if (res.result === 'entry_approved') {
+          Vibration.vibrate([0, 80, 60, 80]);
+        } else if (res.result === 'double_checked_in') {
+          Vibration.vibrate(200);
+        } else {
+          Vibration.vibrate([0, 100, 80, 100, 80, 100]);
+        }
+
         if (res.participant) {
           setSelectedParticipant(res.participant);
           setHighlightedId(res.participant.user_id);
           const colorMap: Record<ScanResult, string> = {
-            entry_approved: '#34C759',
+            entry_approved: colors.success,
             entry_denied_pending: '#FF383C',
             entry_denied_no_ticket: '#FF383C',
             double_checked_in: '#FFCC00',
@@ -238,7 +249,7 @@ export default function AccessControlScreen({ navigation }: Props) {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <AccessControlHeader onBack={() => navigation.goBack()} />
+        <AdminHeader title="ACCESS CONTROL" />
 
         {mode === 'entry_control' && (
           <ScannerArea
@@ -317,10 +328,11 @@ export default function AccessControlScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   flex: {
     flex: 1,
+    backgroundColor: colors.surface,
   },
   bannerSection: {
     marginTop: 8,

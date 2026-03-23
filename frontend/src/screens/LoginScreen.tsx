@@ -19,40 +19,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { AuthStackParamList } from '../navigation/types';
 import { ApiError } from '../types/auth';
-import { colors, spacing, layout, screenPadding } from '../constants';
-
-// Eye icon component for password visibility toggle
-function EyeOffIcon({ size = 16, color = '#1e1e1e' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={[eyeStyles.line, { backgroundColor: color }]} />
-      <View style={[eyeStyles.circle, { borderColor: color }]} />
-      <View style={[eyeStyles.slash, { backgroundColor: color }]} />
-    </View>
-  );
-}
-
-const eyeStyles = StyleSheet.create({
-  line: {
-    position: 'absolute',
-    width: 12,
-    height: 1.5,
-    borderRadius: 1,
-  },
-  circle: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    borderWidth: 1.5,
-  },
-  slash: {
-    position: 'absolute',
-    width: 14,
-    height: 1.5,
-    borderRadius: 1,
-    transform: [{ rotate: '45deg' }],
-  },
-});
+import { colors, font, spacing, layout, screenPadding } from '../constants';
+import { EyeOffIcon } from '../components/icons';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -92,8 +60,7 @@ export default function LoginScreen() {
   };
 
   const handleForgotPassword = () => {
-    // TODO: Navigate to forgot password screen
-    Alert.alert('Info', 'Password reset feature coming soon');
+    navigation.navigate('ForgotPassword');
   };
 
   return (
@@ -149,7 +116,7 @@ export default function LoginScreen() {
                   (focusedField === 'email' || email) && styles.inputWithLabel,
                 ]}
                 placeholder={focusedField === 'email' || email ? '' : 'Enter ID or Email'}
-                placeholderTextColor="#1e1e1e"
+                placeholderTextColor={colors.gray400}
                 value={email}
                 onChangeText={setEmail}
                 onFocus={() => setFocusedField('email')}
@@ -179,7 +146,7 @@ export default function LoginScreen() {
                   (focusedField === 'password' || password) && styles.inputWithLabel,
                 ]}
                 placeholder={focusedField === 'password' || password ? '' : 'Enter Password'}
-                placeholderTextColor="#1e1e1e"
+                placeholderTextColor={colors.gray400}
                 value={password}
                 onChangeText={setPassword}
                 onFocus={() => setFocusedField('password')}
@@ -252,8 +219,8 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontWeight: '700',
@@ -266,8 +233,8 @@ const styles = StyleSheet.create({
   },
   newUserText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
@@ -275,13 +242,13 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 12,
     fontWeight: '700',
-    color: '#00c0e8',
+    color: '#1C1C1E',
     textDecorationLine: 'underline',
   },
   inputContainer: {
@@ -292,35 +259,34 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm + spacing.xxs,
   },
   inputField: {
-    height: layout.inputHeight,
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-    borderRadius: layout.borderRadius.sm,
+    height: 54,
+    backgroundColor: colors.gray50,
+    borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
   },
   inputFieldFocused: {
-    borderColor: colors.black,
+    backgroundColor: '#EBEBF0',
   },
   inputLabel: {
     position: 'absolute',
-    top: 6,
+    top: 8,
     left: spacing.md,
     fontSize: 11,
-    color: colors.gray900,
+    color: colors.gray500,
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
   },
   input: {
     flex: 1,
     fontSize: 15,
-    color: colors.black,
+    color: '#1C1C1E',
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     paddingRight: 30,
@@ -340,18 +306,17 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
-    color: colors.status.requested,
-    textDecorationLine: 'underline',
+    color: colors.gray500,
   },
   signInButton: {
-    height: layout.buttonHeight,
-    backgroundColor: colors.black,
-    borderRadius: layout.borderRadius.sm,
+    height: 54,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sm + spacing.xxs,
@@ -361,11 +326,12 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
-    fontSize: 20,
+    fontSize: 16,
     color: colors.white,
+    letterSpacing: 0.2,
   },
 });

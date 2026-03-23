@@ -15,6 +15,7 @@ interface RegistrationPeriodBottomSheetProps {
   onSelect: (start: Date, end: Date) => void;
   startDate?: Date;
   endDate?: Date;
+  eventDate?: Date;
 }
 
 const MONTHS_SHORT = [
@@ -28,19 +29,30 @@ export default function RegistrationPeriodBottomSheet({
   onSelect,
   startDate,
   endDate,
+  eventDate,
 }: RegistrationPeriodBottomSheetProps) {
   const insets = useSafeAreaInsets();
   const now = new Date();
 
+  const defaultEnd = (() => {
+    if (eventDate) {
+      return new Date(eventDate.getTime() - 60 * 60 * 1000);
+    }
+    return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  })();
+
   const [start, setStart] = useState<Date>(startDate || now);
-  const [end, setEnd] = useState<Date>(endDate || new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000));
+  const [end, setEnd] = useState<Date>(endDate || defaultEnd);
   const [startTime, setStartTime] = useState('1:59 PM');
   const [endTime, setEndTime] = useState('3:59 PM');
 
   useEffect(() => {
     if (startDate) setStart(startDate);
     if (endDate) setEnd(endDate);
-  }, [startDate, endDate]);
+    else if (eventDate) {
+      setEnd(new Date(eventDate.getTime() - 60 * 60 * 1000));
+    }
+  }, [startDate, endDate, eventDate]);
 
   const formatDate = (date: Date) => {
     return `${MONTHS_SHORT[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;

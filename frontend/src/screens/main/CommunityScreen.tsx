@@ -19,7 +19,7 @@ import FriendSearchTab from '../../components/community/FriendSearchTab';
 import FriendRequestsTab from '../../components/community/FriendRequestsTab';
 import FriendManageTab from '../../components/community/FriendManageTab';
 import JoinGroupsTab from '../../components/community/JoinGroupsTab';
-import { colors, screenPadding } from '../../constants';
+import { colors, font, screenPadding } from '../../constants';
 import { MainStackParamList } from '../../navigation/types';
 import { useChatList } from '../../hooks/useChat';
 import { useMyClubs } from '../../hooks/useMyClubs';
@@ -94,51 +94,52 @@ function SubTabBar({
 const subTabStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: colors.gray100,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 13,
     position: 'relative',
   },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   badge: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
     borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 4,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   label: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray400,
   },
   labelActive: {
-    fontFamily: 'Inter-SemiBold',
-    color: '#000000',
+    fontFamily: font.semibold,
+    color: '#1C1C1E',
   },
   underline: {
     position: 'absolute',
     bottom: 0,
-    left: '20%',
-    right: '20%',
-    height: 2,
-    backgroundColor: '#000000',
-    borderRadius: 1,
+    left: '30%',
+    right: '30%',
+    height: 2.5,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 2,
   },
 });
 
@@ -224,7 +225,7 @@ export default function CommunityScreen() {
           />
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#8E8E93" />
+              <ActivityIndicator size="large" color={colors.gray500} />
             </View>
           ) : (
             <FlatList
@@ -275,7 +276,7 @@ export default function CommunityScreen() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.6}
         >
-          <ArrowBackIcon size={24} color="#000000" />
+          <ArrowBackIcon size={24} color={colors.black} />
         </TouchableOpacity>
         <Text style={styles.title}>COMMUNITY</Text>
         <TouchableOpacity
@@ -283,7 +284,7 @@ export default function CommunityScreen() {
           onPress={() => navigation.navigate('CreateGroupChat')}
           activeOpacity={0.6}
         >
-          <PlusIcon size={24} color="#000000" />
+          <PlusIcon size={24} color={colors.black} />
         </TouchableOpacity>
       </View>
 
@@ -311,28 +312,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: screenPadding.horizontal,
-    height: 50,
+    paddingHorizontal: 16,
+    height: 60,
   },
   headerButton: {
-    width: 35,
-    height: 35,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 20,
   },
   title: {
     fontFamily: Platform.select({
       ios: 'PorterSansBlock',
       android: 'porter-sans-inline-block',
     }),
-    fontSize: 20,
-    color: '#000000',
+    fontSize: 18,
+    color: '#1C1C1E',
     letterSpacing: -0.08,
     textAlign: 'center',
   },
   segmentContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   chatList: {
     flex: 1,
@@ -351,12 +353,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeholderText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
     color: colors.gray500,
   },
   placeholderSubtext: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray400,
     marginTop: 8,

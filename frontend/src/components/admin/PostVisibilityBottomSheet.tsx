@@ -9,11 +9,11 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getMyGroups, MyGroup } from '../../services/clubs';
 import { CheckIcon, ChevronDownIcon } from '../icons';
+import { resolveImageUrl } from '../../utils/image';
 
 type VisibilityType = 'friends_only' | 'club';
 
@@ -72,9 +72,14 @@ export default function PostVisibilityBottomSheet({
     <Modal visible={visible} transparent animationType="slide">
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
-          {/* Header */}
-          <View style={styles.header}>
+          {/* Handle */}
+          <View style={styles.handleRow}>
             <View style={styles.handle} />
+          </View>
+
+          {/* Header: title + Done */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Post Visibility</Text>
             <TouchableOpacity style={styles.doneButton} onPress={onClose}>
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
@@ -87,20 +92,25 @@ export default function PostVisibilityBottomSheet({
           >
             {/* Friends Only option */}
             <TouchableOpacity
-              style={styles.friendsOnlyRow}
+              style={[styles.optionRow, selectedType === 'friends_only' && styles.optionRowSelected]}
               onPress={() => onSelect('friends_only')}
               activeOpacity={0.6}
             >
-              <Text style={styles.friendsOnlyText}>ONLY TO MY FRIENDS</Text>
+              <Text style={styles.optionText}>Only to my friends</Text>
               {selectedType === 'friends_only' && (
-                <CheckIcon size={16} color="#8E8E93" />
+                <CheckIcon size={16} color="#1C1C1E" />
               )}
             </TouchableOpacity>
+
+            {/* Divider label */}
+            <View style={styles.sectionLabel}>
+              <Text style={styles.sectionLabelText}>BY CLUB</Text>
+            </View>
 
             {/* Club list */}
             {isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#3B82F6" />
+                <ActivityIndicator size="large" color="#000" />
               </View>
             ) : (
               groups.map((group) => (
@@ -113,7 +123,7 @@ export default function PostVisibilityBottomSheet({
                     >
                       {group.logo_image ? (
                         <Image
-                          source={{ uri: group.logo_image }}
+                          source={{ uri: resolveImageUrl(group.logo_image) }}
                           style={styles.clubAvatar}
                         />
                       ) : (
@@ -145,7 +155,7 @@ export default function PostVisibilityBottomSheet({
                         )}
                       </View>
                       {selectedType === 'club' && selectedClubId === group.id && (
-                        <CheckIcon size={16} color="#8E8E93" />
+                        <CheckIcon size={16} color="#1C1C1E" />
                       )}
                     </TouchableOpacity>
                   </View>
@@ -164,7 +174,7 @@ export default function PostVisibilityBottomSheet({
                         >
                           {sub.logo_image ? (
                             <Image
-                              source={{ uri: sub.logo_image }}
+                              source={{ uri: resolveImageUrl(sub.logo_image) }}
                               style={styles.subgroupAvatar}
                             />
                           ) : (
@@ -180,7 +190,7 @@ export default function PostVisibilityBottomSheet({
                             {sub.name}
                           </Text>
                           {selectedType === 'club' && selectedClubId === sub.id && (
-                            <CheckIcon size={16} color="#34C759" />
+                            <CheckIcon size={16} color="#1C1C1E" />
                           )}
                         </TouchableOpacity>
                       </View>
@@ -202,40 +212,49 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: '#F2F2F2',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingTop: 12,
-    maxHeight: '70%',
+    minHeight: '45%',
+    maxHeight: '75%',
   },
-  header: {
+  handleRow: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   handle: {
     width: 40,
     height: 4,
     backgroundColor: '#CCCCCC',
     borderRadius: 2,
-    marginBottom: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  title: {
+    flex: 1,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 17,
+    color: '#000000',
   },
   doneButton: {
-    position: 'absolute',
-    right: 16,
-    top: 0,
-    backgroundColor: '#0088FF',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 10,
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    borderRadius: 20,
   },
   doneButtonText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 15,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
     color: '#FFFFFF',
   },
   content: {
     flex: 1,
+    minHeight: 200,
   },
   contentContainer: {
     paddingBottom: 16,
@@ -244,45 +263,50 @@ const styles = StyleSheet.create({
     padding: 40,
     alignItems: 'center',
   },
-
-  // Friends only row
-  friendsOnlyRow: {
+  optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    height: 50,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    height: 52,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#E5E5EA',
   },
-  friendsOnlyText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 17,
-    color: '#000000',
+  optionRowSelected: {
+    backgroundColor: '#F5F5F5',
+  },
+  optionText: {
     flex: 1,
-    textAlign: 'center',
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 15,
+    color: '#1C1C1E',
   },
-
-  // Club row (reuse from ProviderSelector)
+  sectionLabel: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  sectionLabelText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 11,
+    color: '#8E8E93',
+    letterSpacing: 0.5,
+  },
   clubRow: {
     backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#E5E5EA',
   },
   clubItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 13,
-    height: 90,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    height: 72,
   },
   clubAvatar: {
-    width: 50,
-    height: 50,
+    width: 44,
+    height: 44,
     borderRadius: 10,
-    borderWidth: 0.1,
-    borderColor: '#000000',
     overflow: 'hidden',
   },
   clubAvatarPlaceholder: {
@@ -292,7 +316,7 @@ const styles = StyleSheet.create({
   },
   clubAvatarText: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 18,
+    fontSize: 16,
     color: '#8E8E93',
   },
   clubInfo: {
@@ -301,33 +325,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   clubName: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 15,
     color: '#000000',
   },
   viewSubgroupsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 4,
+    marginTop: 3,
   },
   viewSubgroupsText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Inter-Regular',
     fontSize: 11,
     color: '#8E8E93',
   },
-
-  // Subgroup row
   subgroupRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingLeft: 0,
   },
   bracketContainer: {
     width: 24,
-    height: 90,
-    marginLeft: 5,
+    height: 72,
+    marginLeft: 20,
   },
   bracketVertical: {
     position: 'absolute',
@@ -351,28 +372,28 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingRight: 13,
-    height: 90,
+    paddingVertical: 12,
+    paddingRight: 20,
+    height: 72,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
   subgroupAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    borderWidth: 0.1,
-    borderColor: '#000000',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     overflow: 'hidden',
   },
   subgroupAvatarText: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
+    fontSize: 12,
     color: '#8E8E93',
   },
   subgroupName: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
     color: '#000000',
     flex: 1,
-    marginLeft: 13,
+    marginLeft: 10,
   },
 });

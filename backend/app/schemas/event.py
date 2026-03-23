@@ -20,6 +20,11 @@ class CostTypeEnum(str, Enum):
     one_n = "one_n"
 
 
+class VisibilityTypeEnum(str, Enum):
+    friends_only = "friends_only"
+    club = "club"
+
+
 class EventBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = None
@@ -27,6 +32,9 @@ class EventBase(BaseModel):
     event_type: EventTypeEnum
     cost_type: CostTypeEnum
     cost_amount: Optional[Decimal] = None
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    account_holder_name: Optional[str] = None
     registration_start: datetime
     registration_end: datetime
     event_date: datetime
@@ -34,6 +42,9 @@ class EventBase(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     max_slots: int = Field(..., gt=0)
+    visibility_type: Optional[VisibilityTypeEnum] = None
+    visibility_club_id: Optional[UUID] = None
+    related_event_id: Optional[UUID] = None
 
 
 class EventCreate(EventBase):
@@ -47,6 +58,9 @@ class EventUpdate(BaseModel):
     event_type: Optional[EventTypeEnum] = None
     cost_type: Optional[CostTypeEnum] = None
     cost_amount: Optional[Decimal] = None
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    account_holder_name: Optional[str] = None
     registration_start: Optional[datetime] = None
     registration_end: Optional[datetime] = None
     event_date: Optional[datetime] = None
@@ -54,6 +68,9 @@ class EventUpdate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     max_slots: Optional[int] = Field(None, gt=0)
+    visibility_type: Optional[VisibilityTypeEnum] = None
+    visibility_club_id: Optional[UUID] = None
+    related_event_id: Optional[UUID] = None
 
 
 class EventResponse(EventBase):
@@ -118,5 +135,6 @@ class EventWithStatusResponse(EventResponse):
     """Event response with user's registration status."""
     user_status: UserRegistrationStatus
     user_registration_id: Optional[UUID] = None
+    payment_deadline: Optional[datetime] = None
     participants_preview: List[UserBriefResponse] = []
     is_bookmarked: bool = False

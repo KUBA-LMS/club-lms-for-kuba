@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { colors, font } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 interface MyBadgeProps {
   onPress?: () => void;
@@ -15,7 +17,7 @@ export default function MyBadge({ onPress, userImage, username }: MyBadgeProps) 
       activeOpacity={0.7}
     >
       {userImage ? (
-        <Image source={{ uri: userImage }} style={styles.profileImage} />
+        <Image source={{ uri: resolveImageUrl(userImage) }} style={styles.profileImage} />
       ) : (
         <View style={styles.fallbackWrapper}>
           {username ? (
@@ -42,7 +44,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
@@ -61,7 +63,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -93,12 +95,12 @@ const styles = StyleSheet.create({
   myText: {
     fontFamily: 'Copperplate-Bold',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: 'bold',
     zIndex: 1,
   },
   initialText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
     color: '#555555',
     fontWeight: 'bold',

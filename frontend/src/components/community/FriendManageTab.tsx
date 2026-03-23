@@ -13,7 +13,9 @@ import {
 import { Swipeable } from 'react-native-gesture-handler';
 import { SearchIcon, TrashIcon } from '../icons';
 import RemoveFriendModal from './RemoveFriendModal';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
+import Avatar from '../common/Avatar';
 import {
   getFriends,
   removeFriend,
@@ -29,7 +31,7 @@ function ClubBadges({ clubs }: { clubs: ClubBrief[] }) {
         club.logo_image ? (
           <Image
             key={club.id}
-            source={{ uri: club.logo_image }}
+            source={{ uri: resolveImageUrl(club.logo_image) }}
             style={styles.clubBadge}
           />
         ) : (
@@ -85,13 +87,7 @@ function FriendManageItem({ friend, onDelete }: FriendManageItemProps) {
       overshootRight={false}
     >
       <View style={styles.itemContainer}>
-        <View style={styles.avatarContainer}>
-          {friend.profile_image ? (
-            <Image source={{ uri: friend.profile_image }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]} />
-          )}
-        </View>
+        <Avatar uri={friend.profile_image} size={50} name={friend.username} style={{ marginRight: 13 }} />
         <View style={styles.content}>
           <Text style={styles.username}>{friend.username}</Text>
           {friend.common_clubs.length > 0 && (
@@ -233,9 +229,9 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
     paddingVertical: 0,
   },
   listContent: {
@@ -248,13 +244,13 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray400,
   },
   // Swipe delete
   deleteAction: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
     justifyContent: 'center',
     alignItems: 'center',
     width: 70,
@@ -266,35 +262,22 @@ const styles = StyleSheet.create({
     minHeight: 80,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    marginRight: 13,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.white,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
   },
   username: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 17,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 2,
   },
   groupsLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 4,
   },
   badgeRow: {
@@ -308,17 +291,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   clubBadgePlaceholder: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.gray50,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.gray200,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
   },
   clubBadgeText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#333',
+    color: colors.gray700,
   },
   separator: {
     position: 'absolute',

@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  Linking,
+  Clipboard,
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { colors } from '../../constants';
@@ -32,6 +34,10 @@ interface RegistrationModalProps {
   onPrepaidConfirm?: () => void;
   onPrepaidBack?: () => void;
   paymentDeadline?: Date;
+  bankName?: string;
+  bankAccountNumber?: string;
+  accountHolderName?: string;
+  costAmount?: number;
 }
 
 const CheckIcon = ({ size = 80 }: { size?: number }) => (
@@ -110,8 +116,27 @@ export default function RegistrationModal({
   onPrepaidConfirm,
   onPrepaidBack,
   paymentDeadline,
+  bankName,
+  bankAccountNumber,
+  accountHolderName,
+  costAmount,
 }: RegistrationModalProps) {
   const countdown = useCountdown(paymentDeadline);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyAccount = () => {
+    if (bankAccountNumber) {
+      Clipboard.setString(bankAccountNumber);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleOpenToss = () => {
+    Linking.openURL('supertoss://').catch(() => {
+      Linking.openURL('https://toss.im');
+    });
+  };
 
   if (!visible || !state) return null;
 
@@ -235,11 +260,35 @@ export default function RegistrationModal({
       <CheckIcon size={80} />
       <Text style={styles.dialogTitle}>Your reservation is complete.</Text>
       <Text style={styles.dialogSubtitle}>
-        Please complete the payment by the deadline
+        Please transfer to the account below to confirm.
       </Text>
+
+      {(bankName || bankAccountNumber) && (
+        <View style={styles.bankCard}>
+          {bankName && (
+            <Text style={styles.bankName}>{bankName}</Text>
+          )}
+          {accountHolderName && (
+            <Text style={styles.accountHolder}>{accountHolderName}</Text>
+          )}
+          {bankAccountNumber && (
+            <TouchableOpacity style={styles.accountRow} onPress={handleCopyAccount}>
+              <Text style={styles.accountNumber}>{bankAccountNumber}</Text>
+              <Text style={styles.copyLabel}>{copied ? 'Copied!' : 'Copy'}</Text>
+            </TouchableOpacity>
+          )}
+          {costAmount && (
+            <Text style={styles.amountText}>{costAmount.toLocaleString('en-US')} KRW</Text>
+          )}
+          <TouchableOpacity style={styles.tossButton} onPress={handleOpenToss}>
+            <Text style={styles.tossButtonText}>Open Toss</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <TouchableOpacity style={styles.paymentDeadlineButton} disabled>
         <Text style={styles.paymentDeadlineButtonText}>Registration Requested</Text>
-        <Text style={styles.countdownText}>{formatCountdown()}</Text>
+        <Text style={styles.countdownText}>Pay within: {formatCountdown()}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.doneButton} onPress={onClose}>
         <Text style={styles.doneButtonText}>Done</Text>
@@ -456,5 +505,60 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginTop: 2,
+  },
+  bankCard: {
+    width: '100%',
+    backgroundColor: '#F7F7F7',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 14,
+    alignItems: 'center',
+    gap: 4,
+  },
+  bankName: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 13,
+    color: '#1C1C1E',
+  },
+  accountHolder: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  accountNumber: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 15,
+    color: '#1C1C1E',
+    letterSpacing: 0.5,
+  },
+  copyLabel: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    color: '#3B82F6',
+  },
+  amountText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    color: '#000000',
+    marginTop: 4,
+  },
+  tossButton: {
+    marginTop: 10,
+    backgroundColor: '#3182F6',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  tossButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 13,
+    color: '#FFFFFF',
   },
 });

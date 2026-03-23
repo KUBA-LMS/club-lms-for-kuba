@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { colors, font } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -30,7 +32,7 @@ export default function ConfirmModal({
       <View style={styles.overlay}>
         <View style={styles.container}>
           {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.avatar} />
+            <Image source={{ uri: resolveImageUrl(profileImage) }} style={styles.avatar} />
           ) : null}
 
           <Text style={styles.title}>{title}</Text>
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '85%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -79,16 +81,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 18,
-    color: '#000000',
+    color: '#1C1C1E',
     textAlign: 'center',
     marginBottom: 8,
   },
   message: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -100,28 +102,28 @@ const styles = StyleSheet.create({
   },
   backButton: {
     flex: 1,
-    height: 48,
+    height: 50,
     backgroundColor: '#FF383C',
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   proceedButton: {
     flex: 1,
-    height: 48,
-    backgroundColor: '#000000',
-    borderRadius: 10,
+    height: 50,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   proceedButtonText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
 });

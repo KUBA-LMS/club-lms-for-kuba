@@ -15,7 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, spacing, layout, screenPadding } from '../constants';
+import { colors, font, spacing, layout, screenPadding } from '../constants';
+import { EditIcon } from '../components/icons';
 
 // User icon placeholder component
 function UserIcon({ size = 100, color = '#000000' }: { size?: number; color?: string }) {
@@ -85,23 +86,6 @@ function UploadIcon({ size = 15, color = '#000000' }: { size?: number; color?: s
   );
 }
 
-// Edit icon component
-function EditIcon({ size = 12, color = '#000000' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View
-        style={{
-          width: size * 0.8,
-          height: size * 0.25,
-          backgroundColor: color,
-          transform: [{ rotate: '-45deg' }],
-          borderRadius: 1,
-        }}
-      />
-    </View>
-  );
-}
-
 // Progress Bar component
 function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
   const percentage = (progress / totalSteps) * 100;
@@ -117,19 +101,19 @@ function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: n
 
 const progressStyles = StyleSheet.create({
   container: {
-    width: 250,
-    height: 8,
+    width: 180,
+    height: 4,
   },
   bar: {
     flex: 1,
-    backgroundColor: '#e6dfd4',
-    borderRadius: 8,
+    backgroundColor: '#EBEBF0',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: '#00c0e8',
-    borderRadius: 8,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 4,
   },
 });
 
@@ -141,7 +125,7 @@ export default function SignUpStep2Screen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<SignUpStep2NavigationProp>();
   const route = useRoute<SignUpStep2RouteProp>();
-  const { username, name } = route.params;
+  const { username, name, email } = route.params;
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isCropping, setIsCropping] = useState(false);
@@ -194,6 +178,7 @@ export default function SignUpStep2Screen() {
     navigation.navigate('SignUpStep3', {
       username,
       name,
+      email,
       profileImage: profileImage || undefined,
     });
   };
@@ -202,6 +187,7 @@ export default function SignUpStep2Screen() {
     navigation.navigate('SignUpStep3', {
       username,
       name,
+      email,
       profileImage: undefined,
     });
   };
@@ -251,7 +237,7 @@ export default function SignUpStep2Screen() {
 
           {/* Title */}
           <View style={styles.titleContainer}>
-            <Text style={[styles.title, { fontSize: Math.max(24, 30 * scale) }]}>
+            <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
               CLUB.{'\n'}LMS
             </Text>
           </View>
@@ -441,46 +427,48 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   backArrow: {
-    fontSize: 24,
+    fontSize: 22,
     color: colors.black,
     fontWeight: '300',
   },
   progressSection: {
     alignItems: 'center',
     flex: 1,
+    gap: 6,
   },
   stepText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
-    color: colors.black,
+    color: colors.gray500,
     textAlign: 'center',
-    marginTop: spacing.xs,
+    letterSpacing: 0.2,
   },
   startOverButton: {
     alignItems: 'center',
     padding: spacing.xs,
+    gap: 3,
   },
   startOverIcon: {
-    fontSize: 20,
-    color: colors.black,
+    fontSize: 17,
+    color: colors.gray500,
   },
   startOverText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
-    fontSize: 11,
-    color: colors.black,
+    fontSize: 10,
+    color: colors.gray500,
     textAlign: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg + spacing.sm,
+    marginBottom: spacing.lg,
   },
   title: {
     fontFamily: Platform.select({
@@ -490,15 +478,15 @@ const styles = StyleSheet.create({
     }),
     color: colors.black,
     textAlign: 'center',
-    lineHeight: 36,
+    lineHeight: 30,
   },
   contentContainer: {
     alignItems: 'flex-start',
   },
   heading: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontWeight: '700',
@@ -512,8 +500,8 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
@@ -521,13 +509,13 @@ const styles = StyleSheet.create({
   },
   guideLink: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 12,
     fontWeight: '700',
-    color: colors.status.requested,
+    color: '#1C1C1E',
     textDecorationLine: 'underline',
   },
   profileContainer: {
@@ -550,8 +538,8 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 13,
@@ -575,8 +563,8 @@ const styles = StyleSheet.create({
   },
   editText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 15,
@@ -590,8 +578,8 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    height: 40,
-    borderRadius: layout.borderRadius.sm,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -600,8 +588,8 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,
@@ -611,12 +599,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray400,
   },
   nextButtonActive: {
-    backgroundColor: colors.success,
+    backgroundColor: '#1C1C1E',
   },
   nextButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,
@@ -632,8 +620,8 @@ const styles = StyleSheet.create({
   },
   backActionButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,
@@ -644,8 +632,8 @@ const styles = StyleSheet.create({
   },
   doneButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,

@@ -12,15 +12,18 @@ import {
   TextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/auth';
 import { MainStackParamList } from '../../navigation/types';
 import { ArrowBackIcon } from '../../components/icons';
 import * as userApi from '../../services/user';
 import { colors } from '../../constants/colors';
+import { font } from '../../constants/typography';
 import { shadows } from '../../constants/shadows';
 
 type Nav = NativeStackNavigationProp<MainStackParamList>;
@@ -48,6 +51,13 @@ export default function SettingsScreen() {
   const [accountNumber, setAccountNumber] = useState('');
   const [holderName, setHolderName] = useState('');
   const [bankSaving, setBankSaving] = useState(false);
+
+  // Change password state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   useEffect(() => {
     userApi.getBankAccount()
@@ -102,6 +112,70 @@ export default function SettingsScreen() {
     ]);
   }, []);
 
+  const handleChangePassword = useCallback(async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    if (newPassword.length < 8) {
+      Alert.alert('Error', 'New password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match');
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      await authService.changePassword(currentPassword, newPassword);
+      setShowPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      Alert.alert('Success', 'Password changed successfully');
+    } catch (error: any) {
+      const msg = error?.response?.data?.detail || 'Failed to change password';
+      Alert.alert('Error', msg);
+    } finally {
+      setPasswordSaving(false);
+    }
+  }, [currentPassword, newPassword, confirmPassword]);
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Delete Account',
+      'This action is permanent and cannot be undone. All your data will be removed. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete My Account',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Final Confirmation',
+              'This will permanently delete your account.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await authService.deleteAccount();
+                      await logout();
+                    } catch {
+                      Alert.alert('Error', 'Failed to delete account');
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  }, [logout]);
+
   const handleLogout = useCallback(() => {
     const doLogout = async () => {
       try {
@@ -129,7 +203,7 @@ export default function SettingsScreen() {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <ArrowBackIcon size={24} color="#000" />
+          <ArrowBackIcon size={24} color={colors.black} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={styles.headerSide} />
@@ -147,7 +221,7 @@ export default function SettingsScreen() {
             <Switch
               value={notifEvents}
               onValueChange={setNotifEvents}
-              trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+              trackColor={{ false: colors.gray100, true: colors.success }}
             />
           </View>
           <View style={styles.divider} />
@@ -156,7 +230,7 @@ export default function SettingsScreen() {
             <Switch
               value={notifChat}
               onValueChange={setNotifChat}
-              trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+              trackColor={{ false: colors.gray100, true: colors.success }}
             />
           </View>
         </View>
@@ -171,7 +245,7 @@ export default function SettingsScreen() {
             <Text style={styles.arrow}>{'>'}</Text>
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={() => setShowPasswordModal(true)}>
             <Text style={styles.rowText}>Change Password</Text>
             <Text style={styles.arrow}>{'>'}</Text>
           </TouchableOpacity>
@@ -181,7 +255,7 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           {bankLoading ? (
             <View style={styles.row}>
-              <ActivityIndicator size="small" color="#8E8E93" />
+              <ActivityIndicator size="small" color={colors.gray500} />
             </View>
           ) : bankAccount?.bank_name ? (
             <>
@@ -214,12 +288,12 @@ export default function SettingsScreen() {
             <Text style={styles.rowValue}>1.0.0</Text>
           </View>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://robust-haumea-616.notion.site/Terms-of-Service-32c78b1d4e7780b1af86e186f61ccde4')}>
             <Text style={styles.rowText}>Terms of Service</Text>
             <Text style={styles.arrow}>{'>'}</Text>
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://robust-haumea-616.notion.site/Privacy-Policy-32c78b1d4e7780e6910ae55ba43b39dd')}>
             <Text style={styles.rowText}>Privacy Policy</Text>
             <Text style={styles.arrow}>{'>'}</Text>
           </TouchableOpacity>
@@ -227,6 +301,10 @@ export default function SettingsScreen() {
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.deleteAccountBtn} onPress={handleDeleteAccount}>
+          <Text style={styles.deleteAccountText}>Delete Account</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -268,7 +346,7 @@ export default function SettingsScreen() {
             <TextInput
               style={styles.input}
               placeholder="Enter account number"
-              placeholderTextColor="#AEAEB2"
+              placeholderTextColor={colors.gray400}
               value={accountNumber}
               onChangeText={setAccountNumber}
               keyboardType="number-pad"
@@ -278,7 +356,7 @@ export default function SettingsScreen() {
             <TextInput
               style={styles.input}
               placeholder="Enter holder name"
-              placeholderTextColor="#AEAEB2"
+              placeholderTextColor={colors.gray400}
               value={holderName}
               onChangeText={setHolderName}
             />
@@ -296,9 +374,76 @@ export default function SettingsScreen() {
                 disabled={bankSaving}
               >
                 {bankSaving ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <Text style={styles.modalSaveText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Change password modal */}
+      <Modal visible={showPasswordModal} animationType="slide" transparent>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
+            <Text style={styles.modalTitle}>Change Password</Text>
+
+            <Text style={styles.inputLabel}>Current Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter current password"
+              placeholderTextColor={colors.gray400}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              secureTextEntry
+            />
+
+            <Text style={styles.inputLabel}>New Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Min 8 characters"
+              placeholderTextColor={colors.gray400}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+            />
+
+            <Text style={styles.inputLabel}>Confirm New Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Re-enter new password"
+              placeholderTextColor={colors.gray400}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => {
+                  setShowPasswordModal(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSaveBtn}
+                onPress={handleChangePassword}
+                disabled={passwordSaving}
+              >
+                {passwordSaving ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.modalSaveText}>Change</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -312,49 +457,52 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: colors.white,
   },
-  flex: { flex: 1 },
+  flex: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    height: 50,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    height: 60,
+    backgroundColor: colors.white,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border.light,
   },
   headerSide: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 20,
   },
   headerTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 17,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   headerDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#C5C5C5',
+    height: 0,
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
     paddingBottom: 120,
   },
   groupLabel: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 13,
-    color: '#8E8E93',
+    fontFamily: font.semibold,
+    fontSize: 12,
+    color: colors.gray500,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 28,
     marginLeft: 4,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    backgroundColor: colors.white,
+    borderRadius: 16,
     overflow: 'hidden',
     ...shadows.sm,
   },
@@ -362,45 +510,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
   },
   rowText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 16,
-    color: '#000000',
+    color: '#1C1C1E',
   },
   rowValue: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: '#8E8E93',
+    fontFamily: font.regular,
+    fontSize: 15,
+    color: colors.gray500,
   },
   arrow: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 18,
     color: colors.gray300,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
-    marginLeft: 16,
+    backgroundColor: colors.gray50,
+    marginLeft: 18,
   },
   logoutBtn: {
     backgroundColor: colors.error,
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 32,
   },
   logoutText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   bankDetail: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginTop: 2,
   },
   modalOverlay: {
@@ -409,21 +557,21 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
   },
   modalTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 16,
   },
   inputLabel: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginBottom: 6,
     marginTop: 12,
   },
@@ -436,29 +584,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     marginRight: 8,
   },
   bankChipSelected: {
     backgroundColor: colors.primary,
   },
   bankChipText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
   },
   bankChipTextSelected: {
-    color: '#FFFFFF',
-    fontFamily: 'Inter-SemiBold',
+    color: colors.white,
+    fontFamily: font.semibold,
   },
   input: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 16,
-    color: '#000000',
+    color: colors.black,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -467,15 +615,15 @@ const styles = StyleSheet.create({
   },
   modalCancelBtn: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   modalCancelText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#000000',
+    color: colors.black,
   },
   modalSaveBtn: {
     flex: 1,
@@ -485,8 +633,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSaveText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
+  },
+  deleteAccountBtn: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  deleteAccountText: {
+    fontFamily: font.regular,
+    fontSize: 14,
+    color: colors.gray500,
+    textDecorationLine: 'underline',
   },
 });

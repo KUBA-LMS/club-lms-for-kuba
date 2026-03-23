@@ -19,6 +19,6 @@ class Club(Base, TimestampMixin):
 
     # Relationships
     members = relationship("User", secondary=user_club, back_populates="clubs")
-    events = relationship("Event", back_populates="club")
+    events = relationship("Event", foreign_keys="Event.club_id", back_populates="club")
     parent = relationship("Club", remote_side=[id], back_populates="subgroups")
     subgroups = relationship("Club", back_populates="parent")

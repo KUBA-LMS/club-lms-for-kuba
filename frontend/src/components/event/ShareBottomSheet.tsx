@@ -13,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { listChats, sendMessage } from '../../services/chat';
 import { copyEventLink, shareEventViaSystem } from '../../utils/share';
 import { Chat } from '../../types/chat';
+import { colors, font } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ShareBottomSheetProps {
   eventId: string;
@@ -110,7 +112,7 @@ const ShareBottomSheet = forwardRef<BottomSheetModal, ShareBottomSheetProps>(
           contentContainerStyle={[styles.chatList, { paddingBottom: insets.bottom + 16 }]}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#8E8E93" style={{ marginTop: 20 }} />
+            <ActivityIndicator size="small" color={colors.gray500} style={{ marginTop: 20 }} />
           ) : chats.length === 0 ? (
             <Text style={styles.emptyText}>No chats available</Text>
           ) : (
@@ -128,7 +130,7 @@ const ShareBottomSheet = forwardRef<BottomSheetModal, ShareBottomSheetProps>(
                   activeOpacity={0.7}
                 >
                   {avatar ? (
-                    <Image source={{ uri: avatar }} style={styles.chatAvatar} />
+                    <Image source={{ uri: resolveImageUrl(avatar) }} style={styles.chatAvatar} />
                   ) : (
                     <View style={[styles.chatAvatar, styles.chatAvatarEmpty]}>
                       <Text style={styles.chatAvatarText}>
@@ -140,7 +142,7 @@ const ShareBottomSheet = forwardRef<BottomSheetModal, ShareBottomSheetProps>(
                     {displayName}
                   </Text>
                   {sending === chat.id && (
-                    <ActivityIndicator size="small" color="#000" />
+                    <ActivityIndicator size="small" color={colors.black} />
                   )}
                 </TouchableOpacity>
               );
@@ -158,7 +160,7 @@ export default ShareBottomSheet;
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -172,9 +174,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
-    color: '#000000',
+    color: colors.black,
   },
   actionsRow: {
     flexDirection: 'row',
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 12,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -198,25 +200,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E9',
   },
   actionIconText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#000000',
+    color: colors.black,
   },
   actionLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
     color: '#595959',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.gray100,
     marginHorizontal: 20,
     marginBottom: 12,
   },
   sectionTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
     paddingHorizontal: 20,
     marginBottom: 8,
   },
@@ -224,9 +226,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
     marginTop: 20,
   },
@@ -242,19 +244,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   chatAvatarEmpty: {
-    backgroundColor: '#8E8E93',
+    backgroundColor: colors.gray500,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chatAvatarText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   chatName: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 15,
-    color: '#000000',
+    color: colors.black,
     flex: 1,
   },
 });

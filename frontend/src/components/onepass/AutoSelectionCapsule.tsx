@@ -5,56 +5,87 @@ import Animated, {
   useAnimatedStyle,
   withRepeat,
   withTiming,
+  withSequence,
   Easing,
 } from 'react-native-reanimated';
-import Svg, { Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
+import OnePassLogo from '../icons/OnePassLogo';
+
+function ChevronDown({ size = 18, color = 'rgba(255,255,255,0.7)' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 9L12 15L18 9"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
 
 export default function AutoSelectionCapsule() {
-  const arrowOpacity = useSharedValue(1);
+  const chevronY = useSharedValue(0);
+  const glowOpacity = useSharedValue(0.25);
+  const glowScale = useSharedValue(1);
 
   useEffect(() => {
-    arrowOpacity.value = withRepeat(
-      withTiming(0.3, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+    // Chevron bouncing down animation
+    chevronY.value = withRepeat(
+      withSequence(
+        withTiming(5, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+      ),
       -1,
-      true
+      false
     );
-  }, [arrowOpacity]);
 
-  const arrowStyle = useAnimatedStyle(() => ({
-    opacity: arrowOpacity.value,
+    // Glow pulse
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.55, { duration: 1600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.2, { duration: 1600, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false
+    );
+    glowScale.value = withRepeat(
+      withSequence(
+        withTiming(1.06, { duration: 1600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false
+    );
+  }, [chevronY, glowOpacity, glowScale]);
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: chevronY.value }],
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+    transform: [{ scale: glowScale.value }],
   }));
 
   return (
     <View style={styles.container}>
+      {/* Glow ring behind capsule */}
+      <Animated.View style={[styles.glowRing, glowStyle]} pointerEvents="none" />
+
       <View style={styles.capsule}>
         <View style={styles.logoContainer}>
-          <View style={styles.ticketFrame}>
-            <Svg style={styles.ticketBorder} viewBox="0 0 65 15">
-              <Rect
-                x={0.5}
-                y={0.5}
-                width={64}
-                height={14}
-                rx={7}
-                stroke="white"
-                strokeWidth={0.5}
-                fill="none"
-              />
-            </Svg>
-            <Text style={styles.oneText}>ONE</Text>
-            <Text style={styles.passText}>PASS</Text>
-          </View>
-          <Text style={styles.numberText}>1</Text>
+          <OnePassLogo width={80} height={46} color="#FFFFFF" />
         </View>
 
         <Text style={styles.title}>AUTO{'\n'}SELECTION</Text>
 
-        <Text style={styles.subtitle}>SLIDE DOWN TO{'\n'}VIEW TICKETS</Text>
+        <Text style={styles.subtitle}>SLIDE DOWN TO VIEW TICKETS</Text>
 
-        <Animated.View style={[styles.arrowContainer, arrowStyle]}>
-          <Text style={styles.arrows}>{'>'}</Text>
-          <Text style={styles.arrows}>{'>'}</Text>
-          <Text style={styles.arrows}>{'>'}</Text>
+        <Animated.View style={[styles.chevronStack, chevronStyle]}>
+          <ChevronDown size={18} color="rgba(255,255,255,0.8)" />
+          <ChevronDown size={18} color="rgba(255,255,255,0.45)" />
         </Animated.View>
       </View>
     </View>
@@ -68,22 +99,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 10,
   },
+  glowRing: {
+    position: 'absolute',
+    width: 290,
+    height: 380,
+    borderRadius: 145,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'transparent',
+  },
   capsule: {
-    width: 285,
-    height: 385,
-    borderRadius: 150,
-    backgroundColor: '#000000',
+    width: 270,
+    height: 360,
+    borderRadius: 135,
+    backgroundColor: '#0A0A0A',
     borderWidth: 0.5,
-    borderColor: '#C5C5C5',
+    borderColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 30,
+    paddingVertical: 44,
+    paddingHorizontal: 20,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 30 },
-        shadowOpacity: 0.7,
-        shadowRadius: 40,
+        shadowColor: '#FFFFFF',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.08,
+        shadowRadius: 30,
       },
       android: {
         elevation: 24,
@@ -93,71 +134,30 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    height: 40,
-    width: 65,
+    height: 50,
+    width: 80,
     marginBottom: 20,
   },
-  ticketFrame: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    height: 15,
-    width: 65,
-    marginTop: 18,
-  },
-  ticketBorder: {
-    position: 'absolute',
-    width: 65,
-    height: 15,
-  },
-  oneText: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 11,
-    color: '#FFFFFF',
-    position: 'absolute',
-    left: 4,
-  },
-  passText: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 11,
-    color: '#FFFFFF',
-    position: 'absolute',
-    right: 3,
-  },
-  numberText: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 50,
-    color: '#FFFFFF',
-    position: 'absolute',
-    top: -12,
-    textAlign: 'center',
-  },
   title: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 30,
+    fontFamily: 'Inter-Bold',
+    fontSize: 26,
     color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 34,
+    lineHeight: 32,
+    letterSpacing: 1,
   },
   subtitle: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 20,
+    fontFamily: 'Inter-Regular',
+    fontSize: 10,
     color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 24,
-    marginTop: 40,
+    marginTop: 20,
+    opacity: 0.4,
+    letterSpacing: 1.2,
   },
-  arrowContainer: {
-    marginTop: 10,
+  chevronStack: {
+    marginTop: 16,
     alignItems: 'center',
-  },
-  arrows: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 20,
-    color: '#FFFFFF',
-    lineHeight: 18,
-    transform: [{ rotate: '90deg' }],
+    gap: -6,
   },
 });

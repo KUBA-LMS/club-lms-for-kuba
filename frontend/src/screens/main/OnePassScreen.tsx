@@ -6,6 +6,8 @@ import {
   Text,
   StatusBar,
   AppState,
+  useWindowDimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue } from 'react-native-reanimated';
@@ -15,6 +17,7 @@ import { MainStackParamList } from '../../navigation/types';
 import { OnePassTicket, OnePassScreenState } from '../../types/onepass';
 import { getOnePassTickets } from '../../services/onepass';
 import { useAuth } from '../../context/AuthContext';
+import { colors, font } from '../../constants';
 import {
   OnePassHeader,
   UserProfile,
@@ -33,6 +36,7 @@ type Props = NativeStackScreenProps<MainStackParamList, 'OnePass'>;
 export default function OnePassScreen({ navigation, route }: Props) {
   const { eventId } = route.params || {};
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
   const auth = useAuth();
   const user = auth.user;
 
@@ -165,18 +169,18 @@ export default function OnePassScreen({ navigation, route }: Props) {
   }, [screenState, activeTicket]);
 
   const statusColor = useMemo(() => {
-    if (screenState === 'checked_in') return '#34C759';
-    if (activeTicket?.is_used) return '#8E8E93';
+    if (screenState === 'checked_in') return colors.success;
+    if (activeTicket?.is_used) return colors.gray500;
     return undefined;
   }, [screenState, activeTicket]);
 
   if (isLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.black} />
         <OnePassHeader onBack={handleBack} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+          <ActivityIndicator size="large" color={colors.white} />
           <Text style={styles.loadingText}>Loading tickets...</Text>
         </View>
       </View>
@@ -186,7 +190,7 @@ export default function OnePassScreen({ navigation, route }: Props) {
   if (tickets.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.black} />
         <OnePassHeader onBack={handleBack} />
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No tickets available</Text>
@@ -202,9 +206,14 @@ export default function OnePassScreen({ navigation, route }: Props) {
   const showCheckedIn = screenState === 'checked_in';
   const showEventInfo = screenState === 'viewing_ticket' || screenState === 'checked_in';
 
+  // Estimated heights of all non-carousel elements (worst-case: viewing_ticket)
+  // Header(60) + UserProfile(68) + BarcodeDisplay(168) + ActionButtons(38) + EventInfoPanel(120)
+  const FIXED_UI_HEIGHT = 60 + 68 + 168 + 38 + 120;
+  const carouselMaxHeight = Math.max(200, screenHeight - insets.top - FIXED_UI_HEIGHT);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.black} />
 
       <OnePassHeader onBack={handleBack} />
 
@@ -219,18 +228,24 @@ export default function OnePassScreen({ navigation, route }: Props) {
         />
       )}
 
-      <View
-        style={styles.carouselSection}
-        onTouchEnd={handleSwipeDown}
-      >
+      <View style={styles.carouselSection}>
         <TicketCarousel
           tickets={tickets}
           activeIndex={activeIndex}
           onIndexChange={handleIndexChange}
           scrollX={scrollX}
+          maxHeight={carouselMaxHeight}
         />
 
-        {showAutoSelection && <AutoSelectionCapsule />}
+        {showAutoSelection && (
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={handleSwipeDown}
+            activeOpacity={1}
+          >
+            <AutoSelectionCapsule />
+          </TouchableOpacity>
+        )}
 
         {showCheckedIn && <CheckinOverlay type="success" />}
       </View>
@@ -244,14 +259,14 @@ export default function OnePassScreen({ navigation, route }: Props) {
       {showAutoSelection ? (
         <View style={styles.bottomPanel}>
           <View style={styles.scanInfoContainer}>
-            <Svg style={styles.scanInfoBorder} viewBox="0 0 316 32">
+            <Svg style={styles.scanInfoBorder} viewBox="0 0 316 28">
               <Rect
                 x={0.5}
                 y={0.5}
                 width={315}
-                height={31}
-                rx={16}
-                stroke="#FF383C"
+                height={27}
+                rx={14}
+                stroke="rgba(255,255,255,0.25)"
                 strokeWidth={1}
                 fill="none"
               />
@@ -260,7 +275,10 @@ export default function OnePassScreen({ navigation, route }: Props) {
           </View>
         </View>
       ) : showEventInfo && activeTicket ? (
-        <EventInfoPanel ticket={activeTicket} />
+        <EventInfoPanel
+          ticket={activeTicket}
+          onDetailsPress={() => navigation.navigate('EventDetail', { eventId: activeTicket.event.id })}
+        />
       ) : null}
     </View>
   );
@@ -269,7 +287,7 @@ export default function OnePassScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.black,
   },
   loadingContainer: {
     flex: 1,
@@ -277,10 +295,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.white,
     marginTop: 12,
+    opacity: 0.6,
   },
   emptyContainer: {
     flex: 1,
@@ -289,32 +308,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
-    color: '#FFFFFF',
+    color: colors.white,
     marginBottom: 8,
   },
   emptySubtext: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.white,
+    opacity: 0.5,
     textAlign: 'center',
   },
   carouselSection: {
-    flex: 1,
     position: 'relative',
     justifyContent: 'center',
   },
   bottomPanel: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    minHeight: 120,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.12)',
+    minHeight: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 30,
+    paddingVertical: 24,
   },
   scanInfoContainer: {
     width: 316,
-    height: 32,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -322,12 +343,14 @@ const styles = StyleSheet.create({
   scanInfoBorder: {
     position: 'absolute',
     width: 316,
-    height: 32,
+    height: 28,
   },
   scanInfoText: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 20,
-    color: '#FF383C',
+    fontFamily: font.regular,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.65)',
     textAlign: 'center',
+    letterSpacing: 1.5,
+    opacity: 0.8,
   },
 });

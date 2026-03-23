@@ -19,6 +19,8 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
 import SplashScreenComponent from './src/screens/SplashScreen';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import NetworkBanner from './src/components/NetworkBanner';
 
 // Prevent auto hide
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -88,14 +90,17 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider>
-        <NavigationContainer linking={linking}>
-          <AuthProvider>
-            <StatusBar style="dark" />
-            <AppContent />
-          </AuthProvider>
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <ErrorBoundary>
+        <SafeAreaProvider>
+          <NavigationContainer linking={linking}>
+            <AuthProvider>
+              <StatusBar style="dark" />
+              <NetworkBanner />
+              <AppContent />
+            </AuthProvider>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }

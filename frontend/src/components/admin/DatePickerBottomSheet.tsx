@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, font } from '../../constants';
 
 interface DatePickerBottomSheetProps {
   visible: boolean;
@@ -234,11 +235,11 @@ export default function DatePickerBottomSheet({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: colors.overlay.medium,
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 12,
@@ -266,9 +267,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   doneButtonText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -294,12 +295,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pickerText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   pickerTextSelected: {
-    fontFamily: 'Inter-SemiBold',
-    color: '#000000',
+    fontFamily: font.semibold,
+    color: colors.black,
   },
 });

@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 interface ChatListItemProps {
   avatar?: string;
@@ -22,8 +23,9 @@ interface ChatListItemProps {
 function GroupAvatar() {
   return (
     <View style={styles.groupAvatarContainer}>
-      <View style={[styles.groupCircle, styles.groupCircleBack]} />
-      <View style={[styles.groupCircle, styles.groupCircleFront]} />
+      <View style={[styles.groupCircle, styles.groupCircleBack]}>
+        <Text style={styles.groupCircleInitial}>G</Text>
+      </View>
     </View>
   );
 }
@@ -50,7 +52,7 @@ export default function ChatListItem({
         {isGroup ? (
           <GroupAvatar />
         ) : avatar ? (
-          <Image source={{ uri: avatar }} style={styles.avatar} />
+          <Image source={{ uri: resolveImageUrl(avatar) }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}
@@ -87,6 +89,7 @@ export default function ChatListItem({
         </Text>
       </View>
       <View style={styles.separator} />
+
     </TouchableOpacity>
   );
 }
@@ -95,13 +98,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 90,
-    paddingHorizontal: 15,
+    height: 76,
+    paddingHorizontal: 20,
+    backgroundColor: colors.white,
   },
   avatarContainer: {
     width: 50,
     height: 50,
-    marginRight: 13,
+    marginRight: 14,
   },
   avatar: {
     width: 50,
@@ -109,28 +113,35 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   avatarPlaceholder: {
-    backgroundColor: '#FF9500',
+    backgroundColor: '#E8E8ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontFamily: font.semibold,
+    fontSize: 18,
+    color: '#6E6E73',
   },
   groupAvatarContainer: {
     width: 50,
     height: 50,
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   groupCircle: {
-    width: 35,
-    height: 35,
-    borderRadius: 17.5,
-    position: 'absolute',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E8E8ED',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  groupCircleBack: {
-    backgroundColor: '#FFB347',
-    left: 0,
-    top: 5,
-  },
-  groupCircleFront: {
-    backgroundColor: '#FF9500',
-    left: 15,
-    top: 10,
+  groupCircleBack: {},
+  groupCircleInitial: {
+    fontFamily: font.semibold,
+    fontSize: 20,
+    color: '#6E6E73',
   },
   content: {
     flex: 1,
@@ -149,9 +160,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   name: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 17,
-    color: '#000000',
+    fontFamily: font.semibold,
+    fontSize: 16,
+    color: '#1C1C1E',
     flexShrink: 1,
   },
   dollarBadge: {
@@ -166,12 +177,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   timestamp: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray500,
   },
   unreadBadge: {
-    backgroundColor: '#34C759',
+    backgroundColor: colors.success,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -180,24 +191,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   unreadText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   message: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 15,
+    fontFamily: font.regular,
+    fontSize: 14,
     color: colors.gray500,
   },
   messageUnread: {
-    color: '#000000',
+    fontFamily: font.medium,
+    color: '#1C1C1E',
   },
   separator: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    left: 84,
+    right: 20,
     bottom: 0,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.gray200,
+    backgroundColor: '#F0F0F5',
   },
 });

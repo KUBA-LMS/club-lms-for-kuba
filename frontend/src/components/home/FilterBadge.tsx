@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { colors } from '../../constants';
+import { resolveImageUrl } from '../../utils/image';
 
 interface FilterBadgeProps {
   label: string;
@@ -25,7 +26,7 @@ export default function FilterBadge({
     >
       {icon && <View style={styles.iconWrapper}>{icon}</View>}
       {imageUri && (
-        <Image source={{ uri: imageUri }} style={styles.image} />
+        <Image source={{ uri: resolveImageUrl(imageUri) }} style={styles.image} />
       )}
       <Text style={[styles.label, isActive && styles.labelActive]}>{label}</Text>
     </TouchableOpacity>
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   containerActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#1C1C1E',
   },
   iconWrapper: {
     width: 16,

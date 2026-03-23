@@ -14,53 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, spacing, layout, screenPadding } from '../constants';
-
-// Check icon component
-function CheckIcon({ size = 16, color = '#4CAF50' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={[checkStyles.check, { borderColor: color }]} />
-    </View>
-  );
-}
-
-const checkStyles = StyleSheet.create({
-  check: {
-    width: 8,
-    height: 14,
-    borderWidth: 2,
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    transform: [{ rotate: '45deg' }],
-    marginTop: -4,
-  },
-});
-
-// X icon component
-function XIcon({ size = 20, color = '#ff383c' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={[xStyles.line1, { backgroundColor: color }]} />
-      <View style={[xStyles.line2, { backgroundColor: color }]} />
-    </View>
-  );
-}
-
-const xStyles = StyleSheet.create({
-  line1: {
-    position: 'absolute',
-    width: 2,
-    height: 14,
-    transform: [{ rotate: '45deg' }],
-  },
-  line2: {
-    position: 'absolute',
-    width: 2,
-    height: 14,
-    transform: [{ rotate: '-45deg' }],
-  },
-});
+import { colors, font, spacing, screenPadding } from '../constants';
+import { CheckIcon, CloseIcon } from '../components/icons';
 
 // Progress Bar component
 function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
@@ -77,19 +32,19 @@ function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: n
 
 const progressStyles = StyleSheet.create({
   container: {
-    width: 250,
-    height: 8,
+    width: 180,
+    height: 4,
   },
   bar: {
     flex: 1,
-    backgroundColor: '#e6dfd4',
-    borderRadius: 8,
+    backgroundColor: '#EBEBF0',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: '#00c0e8',
-    borderRadius: 8,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 4,
   },
 });
 
@@ -101,7 +56,7 @@ export default function SignUpStep4Screen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<SignUpStep4NavigationProp>();
   const route = useRoute<SignUpStep4RouteProp>();
-  const { username, name, profileImage, studentId, nationality, gender } = route.params;
+  const { username, name, email, profileImage, studentId, nationality, gender } = route.params;
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -134,6 +89,7 @@ export default function SignUpStep4Screen() {
       navigation.navigate('SignUpStep5', {
         username,
         name,
+        email,
         profileImage,
         studentId,
         nationality,
@@ -187,7 +143,7 @@ export default function SignUpStep4Screen() {
 
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={[styles.title, { fontSize: Math.max(24, 30 * scale) }]}>
+          <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
             CLUB.{'\n'}LMS
           </Text>
         </View>
@@ -226,7 +182,7 @@ export default function SignUpStep4Screen() {
                     (focusedField === 'password' || password) && styles.inputWithLabel,
                   ]}
                   placeholder={focusedField === 'password' || password ? '' : 'Enter Password'}
-                  placeholderTextColor="#1e1e1e"
+                  placeholderTextColor={colors.gray400}
                   value={password}
                   onChangeText={setPassword}
                   onFocus={() => setFocusedField('password')}
@@ -238,9 +194,9 @@ export default function SignUpStep4Screen() {
                 {password.length > 0 && (
                   <View style={styles.validIcon}>
                     {isPasswordValid ? (
-                      <CheckIcon size={16} color="#4CAF50" />
+                      <CheckIcon size={16} color="#1C1C1E" />
                     ) : (
-                      <XIcon size={20} color="#ff383c" />
+                      <CloseIcon size={20} color={colors.error} />
                     )}
                   </View>
                 )}
@@ -269,7 +225,7 @@ export default function SignUpStep4Screen() {
                     (focusedField === 'confirm' || confirmPassword) && styles.inputWithLabel,
                   ]}
                   placeholder={focusedField === 'confirm' || confirmPassword ? '' : 'Confirm Password'}
-                  placeholderTextColor="#1e1e1e"
+                  placeholderTextColor={colors.gray400}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   onFocus={() => setFocusedField('confirm')}
@@ -281,9 +237,9 @@ export default function SignUpStep4Screen() {
                 {confirmPassword.length > 0 && isPasswordValid && (
                   <View style={styles.validIcon}>
                     {passwordsMatch ? (
-                      <CheckIcon size={16} color="#4CAF50" />
+                      <CheckIcon size={16} color="#1C1C1E" />
                     ) : (
-                      <XIcon size={20} color="#ff383c" />
+                      <CloseIcon size={20} color={colors.error} />
                     )}
                   </View>
                 )}
@@ -336,46 +292,48 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   backArrow: {
-    fontSize: 24,
+    fontSize: 22,
     color: colors.black,
     fontWeight: '300',
   },
   progressSection: {
     alignItems: 'center',
     flex: 1,
+    gap: 6,
   },
   stepText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
-    color: colors.black,
+    color: colors.gray500,
     textAlign: 'center',
-    marginTop: spacing.xs,
+    letterSpacing: 0.2,
   },
   startOverButton: {
     alignItems: 'center',
     padding: spacing.xs,
+    gap: 3,
   },
   startOverIcon: {
-    fontSize: 20,
-    color: colors.black,
+    fontSize: 17,
+    color: colors.gray500,
   },
   startOverText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
-    fontSize: 11,
-    color: colors.black,
+    fontSize: 10,
+    color: colors.gray500,
     textAlign: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg + spacing.sm,
+    marginBottom: spacing.lg,
   },
   title: {
     fontFamily: Platform.select({
@@ -385,15 +343,15 @@ const styles = StyleSheet.create({
     }),
     color: colors.black,
     textAlign: 'center',
-    lineHeight: 36,
+    lineHeight: 30,
   },
   contentContainer: {
     alignItems: 'flex-start',
   },
   heading: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontWeight: '700',
@@ -407,8 +365,8 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
@@ -416,13 +374,13 @@ const styles = StyleSheet.create({
   },
   guideLink: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 12,
     fontWeight: '700',
-    color: colors.status.requested,
+    color: '#1C1C1E',
     textDecorationLine: 'underline',
   },
   inputContainer: {
@@ -433,25 +391,24 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm + spacing.xxs,
   },
   inputField: {
-    height: layout.inputHeight,
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-    borderRadius: layout.borderRadius.sm,
+    height: 54,
+    backgroundColor: colors.gray50,
+    borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
   },
   inputFieldFocused: {
-    borderColor: colors.black,
+    backgroundColor: '#EBEBF0',
   },
   inputLabel: {
     position: 'absolute',
     top: 6,
     left: spacing.md,
     fontSize: 11,
-    color: colors.gray900,
+    color: colors.gray500,
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
   },
@@ -460,8 +417,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.black,
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     paddingRight: 30,
@@ -477,8 +434,8 @@ const styles = StyleSheet.create({
   },
   hintText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
@@ -491,8 +448,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
@@ -501,8 +458,8 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm + spacing.xxs,
   },
   nextButton: {
-    height: 40,
-    borderRadius: layout.borderRadius.sm,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
@@ -512,12 +469,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray400,
   },
   nextButtonActive: {
-    backgroundColor: colors.success,
+    backgroundColor: '#1C1C1E',
   },
   nextButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,

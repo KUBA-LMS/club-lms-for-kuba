@@ -14,6 +14,8 @@ export interface ClubBrief {
   logo_image: string | null;
 }
 
+export type VisibilityType = 'friends_only' | 'club';
+
 export interface Event {
   id: string;
   title: string;
@@ -22,6 +24,9 @@ export interface Event {
   event_type: EventType;
   cost_type: CostType;
   cost_amount: number | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  account_holder_name: string | null;
   registration_start: string;
   registration_end: string;
   event_date: string;
@@ -30,6 +35,9 @@ export interface Event {
   longitude: number | null;
   max_slots: number;
   current_slots: number;
+  visibility_type: VisibilityType | null;
+  visibility_club_id: string | null;
+  related_event_id: string | null;
   provided_by: UserBrief;
   posted_by: UserBrief;
   club: ClubBrief;
@@ -40,6 +48,7 @@ export interface Event {
 export interface EventWithStatus extends Event {
   user_status: UserRegistrationStatus;
   user_registration_id: string | null;
+  payment_deadline: string | null;
   participants_preview: UserBrief[];
   is_bookmarked: boolean;
 }

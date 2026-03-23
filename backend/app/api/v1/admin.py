@@ -849,7 +849,7 @@ async def approve_registration(
     event.current_slots += 1
 
     # Create ticket
-    barcode = f"KUBA-{uuid.uuid4().hex[:12].upper()}"
+    barcode = f"CLX-{uuid.uuid4().hex[:12].upper()}"
     ticket = Ticket(barcode=barcode, registration_id=reg.id)
     db.add(ticket)
 

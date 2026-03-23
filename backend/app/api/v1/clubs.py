@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from uuid import UUID
@@ -339,25 +340,21 @@ async def join_club(
             detail="Club not found",
         )
 
-    # Check if already a member
-    existing = await db.execute(
-        select(user_club).where(
-            (user_club.c.user_id == current_user.id) & (user_club.c.club_id == club_id)
-        )
-    )
-    if existing.first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Already a member of this club",
-        )
-
-    # Join club as member
-    await db.execute(
-        user_club.insert().values(
-            user_id=current_user.id, club_id=club_id, role="member"
-        )
+    # Insert with ON CONFLICT DO NOTHING to handle race conditions atomically
+    result = await db.execute(
+        pg_insert(user_club)
+        .values(user_id=current_user.id, club_id=club_id, role="member")
+        .on_conflict_do_nothing(index_elements=["user_id", "club_id"])
+        .returning(user_club.c.user_id)
     )
     await db.commit()
+
+    already_member = result.first() is None
+    if already_member:
+        return {
+            "message": "Already a member of this club",
+            "club": {"id": str(club.id), "name": club.name},
+        }
 
     # Notify club channel subscribers in real-time
     await notify_member_joined(
