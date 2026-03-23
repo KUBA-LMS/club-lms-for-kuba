@@ -25,6 +25,8 @@ import TaskListSection from '../../components/admin/TaskListSection';
 import { resolveImageUrl } from '../../utils/image';
 import DepositModal from '../../components/admin/DepositModal';
 import ConfirmModal from '../../components/admin/ConfirmModal';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { colors, font } from '../../constants';
 import {
   AdminMember,
@@ -313,8 +315,16 @@ export default function AdminHubScreen() {
   const handleExportCsv = useCallback(async (eventId: string, eventTitle: string) => {
     try {
       const csvData = await exportEventCsv(eventId);
-      // TODO: enable after prebuild with expo-file-system & expo-sharing
-      Alert.alert('CSV Ready', `${csvData.split('\n').length - 1} rows exported. Rebuild app to enable file sharing.`);
+      const safeTitle = eventTitle.replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 30);
+      const fileUri = `${FileSystem.cacheDirectory}${safeTitle}_participants.csv`;
+      await FileSystem.writeAsStringAsync(fileUri, csvData, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'text/csv',
+        dialogTitle: `${eventTitle} Participants`,
+        UTI: 'public.comma-separated-values-text',
+      });
     } catch (error) {
       console.error('Failed to export CSV:', error);
       Alert.alert('Error', 'Failed to export CSV');

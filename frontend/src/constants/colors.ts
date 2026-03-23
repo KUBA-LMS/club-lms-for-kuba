@@ -36,7 +36,7 @@ export const colors = {
   },
 
   // Surface / Card
-  surface: '#F8F9FA',
+  surface: '#FFFFFF',
   card: '#FFFFFF',
 
   // Background

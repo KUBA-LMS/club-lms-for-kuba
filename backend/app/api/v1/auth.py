@@ -23,6 +23,7 @@ from app.schemas.auth import (
     RefreshTokenRequest,
     PasswordForgotRequest,
     PasswordResetRequest,
+    PasswordChangeRequest,
 )
 from app.schemas.user import UserSignUp, UserResponse
 
@@ -41,12 +42,21 @@ async def signup(request: Request, user_data: UserSignUp, db: AsyncSession = Dep
             detail="Username already taken",
         )
 
+    # Check if email already exists
+    result = await db.execute(select(User).where(User.email == user_data.email))
+    if result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered",
+        )
+
     # Create new user
     hashed_password = get_password_hash(user_data.password)
     new_user = User(
         username=user_data.username,
         hashed_password=hashed_password,
         legal_name=user_data.legal_name,
+        email=user_data.email,
         student_id=user_data.student_id,
         profile_image=user_data.profile_image,
         nationality=user_data.nationality,
@@ -147,10 +157,10 @@ async def logout(current_user: User = Depends(get_current_user)):
 @router.post("/forgot-password")
 @limiter.limit("3/minute")
 async def forgot_password(
-    http_request: Request, request: PasswordForgotRequest, db: AsyncSession = Depends(get_db)
+    request: Request, data: PasswordForgotRequest, db: AsyncSession = Depends(get_db)
 ):
     """Request password reset email."""
-    result = await db.execute(select(User).where(User.email == request.email))
+    result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalar_one_or_none()
 
     # Always return success to prevent email enumeration
@@ -187,3 +197,22 @@ async def reset_password(
     await db.commit()
 
     return {"message": "Password has been reset successfully"}
+
+
+@router.post("/change-password")
+async def change_password(
+    request: PasswordChangeRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Change password for authenticated user."""
+    if not verify_password(request.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    current_user.hashed_password = get_password_hash(request.new_password)
+    await db.commit()
+
+    return {"message": "Password changed successfully"}

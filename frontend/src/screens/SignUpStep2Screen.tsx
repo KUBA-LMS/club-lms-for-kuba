@@ -125,7 +125,7 @@ export default function SignUpStep2Screen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<SignUpStep2NavigationProp>();
   const route = useRoute<SignUpStep2RouteProp>();
-  const { username, name } = route.params;
+  const { username, name, email } = route.params;
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isCropping, setIsCropping] = useState(false);
@@ -178,6 +178,7 @@ export default function SignUpStep2Screen() {
     navigation.navigate('SignUpStep3', {
       username,
       name,
+      email,
       profileImage: profileImage || undefined,
     });
   };
@@ -186,6 +187,7 @@ export default function SignUpStep2Screen() {
     navigation.navigate('SignUpStep3', {
       username,
       name,
+      email,
       profileImage: undefined,
     });
   };

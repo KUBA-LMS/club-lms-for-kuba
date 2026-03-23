@@ -510,6 +510,68 @@ async def reject_friend_request(
 
 # --- Remove friend ---
 
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_account(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Deactivate and anonymize the current user's account."""
+    import secrets
+
+    # Remove friendships
+    await db.execute(
+        friendship.delete().where(
+            or_(
+                friendship.c.user_id == current_user.id,
+                friendship.c.friend_id == current_user.id,
+            )
+        )
+    )
+
+    # Cancel pending friend requests
+    await db.execute(
+        select(FriendRequest).where(
+            or_(
+                FriendRequest.from_user_id == current_user.id,
+                FriendRequest.to_user_id == current_user.id,
+            ),
+            FriendRequest.status == "pending",
+        )
+    )
+    from sqlalchemy import update as sa_update
+    await db.execute(
+        sa_update(FriendRequest)
+        .where(
+            or_(
+                FriendRequest.from_user_id == current_user.id,
+                FriendRequest.to_user_id == current_user.id,
+            ),
+            FriendRequest.status == "pending",
+        )
+        .values(status="rejected")
+    )
+
+    # Remove club memberships
+    await db.execute(
+        user_club.delete().where(user_club.c.user_id == current_user.id)
+    )
+
+    # Anonymize and deactivate user
+    random_suffix = secrets.token_hex(4)
+    current_user.username = f"deleted_{random_suffix}"
+    current_user.legal_name = "Deleted User"
+    current_user.email = None
+    current_user.student_id = None
+    current_user.profile_image = None
+    current_user.nationality = None
+    current_user.bank_name = None
+    current_user.bank_account_number = None
+    current_user.account_holder_name = None
+    current_user.is_active = False
+
+    await db.commit()
+
+
 @router.delete("/me/friends/{friend_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_friend(
     friend_id: UUID,

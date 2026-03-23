@@ -18,7 +18,7 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Club LMS API"
+    APP_NAME: str = "ClubX API"
     DEBUG: bool = True
     DEV_MODE: bool = False
 
@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     # Naver Developers (Search API)
     NAVER_SEARCH_CLIENT_ID: str = ""
     NAVER_SEARCH_CLIENT_SECRET: str = ""
+
+    # Kakao (Local Search API)
+    KAKAO_REST_API_KEY: str = ""
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

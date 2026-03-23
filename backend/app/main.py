@@ -133,7 +133,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Club LMS API"}
+    return {"message": "Welcome to ClubX API"}
 
 
 @app.get("/health")

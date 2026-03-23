@@ -38,6 +38,7 @@ class UserCreate(UserBase):
 class UserSignUp(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     legal_name: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
     password: str = Field(..., min_length=8)
     profile_image: Optional[str] = None
     student_id: Optional[str] = Field(None, max_length=20)

@@ -14,10 +14,10 @@ export interface SignUpData {
 export type AuthStackParamList = {
   Login: undefined;
   SignUpStep1: undefined;
-  SignUpStep2: { username: string; name: string };
-  SignUpStep3: { username: string; name: string; profileImage?: string };
-  SignUpStep4: { username: string; name: string; profileImage?: string; studentId: string; nationality: string; gender: string };
-  SignUpStep5: { username: string; name: string; profileImage?: string; studentId: string; nationality: string; gender: string; password: string };
+  SignUpStep2: { username: string; name: string; email: string };
+  SignUpStep3: { username: string; name: string; email: string; profileImage?: string };
+  SignUpStep4: { username: string; name: string; email: string; profileImage?: string; studentId: string; nationality: string; gender: string };
+  SignUpStep5: { username: string; name: string; email: string; profileImage?: string; studentId: string; nationality: string; gender: string; password: string };
   ForgotPassword: undefined;
 };
 
@@ -51,7 +51,7 @@ export interface EventFormData {
 export type MainStackParamList = {
   Home: undefined;
   EventDetail: { eventId: string };
-  ProviderDetail: { providerId: string };
+
   OnePass: { eventId?: string };
   // Community / Chat screens
   Community: undefined;

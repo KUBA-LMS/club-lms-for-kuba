@@ -3,12 +3,14 @@ from pydantic import BaseModel
 from typing import List, Optional
 import httpx
 
+from app.core.config import settings
 from app.core.security import get_current_user
 from app.models.user import User
 
 router = APIRouter()
 
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+KAKAO_KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
+KAKAO_ADDRESS_URL = "https://dapi.kakao.com/v2/local/search/address.json"
 
 
 class GeocodingResult(BaseModel):
@@ -28,70 +30,77 @@ async def search_place(
     query: str = Query(..., min_length=1, max_length=200),
     current_user: User = Depends(get_current_user),
 ):
-    """Search for places using OpenStreetMap Nominatim (English results)."""
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            NOMINATIM_URL,
-            params={
-                "q": query,
-                "format": "json",
-                "countrycodes": "kr",
-                "limit": 8,
-                "addressdetails": 1,
-            },
-            headers={
-                "Accept-Language": "en",
-                "User-Agent": "KUBA-LMS/1.0 (club-lms)",
-            },
-            timeout=10.0,
-        )
+    """Search for places using Kakao Local API (keyword + address)."""
+    if not settings.KAKAO_REST_API_KEY:
+        raise HTTPException(status_code=500, detail="Kakao API key not configured")
 
-    if resp.status_code != 200:
-        raise HTTPException(status_code=502, detail="Place search failed")
-
+    headers = {"Authorization": f"KakaoAK {settings.KAKAO_REST_API_KEY}"}
     results: List[GeocodingResult] = []
+    seen_coords: set = set()
 
-    for item in resp.json():
-        try:
-            lat = float(item["lat"])
-            lon = float(item["lon"])
-        except (KeyError, ValueError, TypeError):
-            continue
-
-        if not (33.0 <= lat <= 43.0 and 124.0 <= lon <= 132.0):
-            continue
-
-        addr = item.get("address", {})
-        display_name: str = item.get("display_name", "")
-
-        # Extract a clean short name from address components
-        name = None
-        for key in ("amenity", "building", "tourism", "shop", "office", "university", "school", "leisure"):
-            if addr.get(key):
-                name = addr[key]
-                break
-        if not name:
-            name = display_name.split(",")[0].strip()
-
-        # Build road address: house_number + road + city
-        road_parts = []
-        if addr.get("house_number"):
-            road_parts.append(addr["house_number"])
-        if addr.get("road"):
-            road_parts.append(addr["road"])
-        city = addr.get("city") or addr.get("county") or addr.get("state_district") or ""
-        if city:
-            road_parts.append(city)
-        road_address = ", ".join(road_parts) if road_parts else None
-
-        results.append(
-            GeocodingResult(
-                name=name,
-                road_address=road_address,
-                jibun_address=display_name,
-                latitude=round(lat, 7),
-                longitude=round(lon, 7),
-            )
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        # 1) Keyword search (place names, buildings, etc.)
+        keyword_resp = await client.get(
+            KAKAO_KEYWORD_URL,
+            params={"query": query, "size": 10},
+            headers=headers,
         )
 
-    return GeocodingResponse(results=results)
+        if keyword_resp.status_code == 200:
+            for doc in keyword_resp.json().get("documents", []):
+                try:
+                    lat = float(doc["y"])
+                    lng = float(doc["x"])
+                except (KeyError, ValueError, TypeError):
+                    continue
+
+                coord_key = (round(lat, 5), round(lng, 5))
+                if coord_key in seen_coords:
+                    continue
+                seen_coords.add(coord_key)
+
+                results.append(
+                    GeocodingResult(
+                        name=doc.get("place_name"),
+                        road_address=doc.get("road_address_name") or None,
+                        jibun_address=doc.get("address_name") or None,
+                        latitude=round(lat, 7),
+                        longitude=round(lng, 7),
+                    )
+                )
+
+        # 2) Address search (road/jibun addresses)
+        if len(results) < 5:
+            addr_resp = await client.get(
+                KAKAO_ADDRESS_URL,
+                params={"query": query, "size": 5},
+                headers=headers,
+            )
+
+            if addr_resp.status_code == 200:
+                for doc in addr_resp.json().get("documents", []):
+                    try:
+                        lat = float(doc["y"])
+                        lng = float(doc["x"])
+                    except (KeyError, ValueError, TypeError):
+                        continue
+
+                    coord_key = (round(lat, 5), round(lng, 5))
+                    if coord_key in seen_coords:
+                        continue
+                    seen_coords.add(coord_key)
+
+                    road = doc.get("road_address")
+                    jibun = doc.get("address")
+
+                    results.append(
+                        GeocodingResult(
+                            name=doc.get("address_name"),
+                            road_address=road.get("address_name") if road else None,
+                            jibun_address=jibun.get("address_name") if jibun else None,
+                            latitude=round(lat, 7),
+                            longitude=round(lng, 7),
+                        )
+                    )
+
+    return GeocodingResponse(results=results[:10])

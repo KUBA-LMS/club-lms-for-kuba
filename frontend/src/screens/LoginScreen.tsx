@@ -60,8 +60,7 @@ export default function LoginScreen() {
   };
 
   const handleForgotPassword = () => {
-    // TODO: Navigate to forgot password screen
-    Alert.alert('Info', 'Password reset feature coming soon');
+    navigation.navigate('ForgotPassword');
   };
 
   return (

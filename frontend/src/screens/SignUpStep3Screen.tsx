@@ -263,7 +263,7 @@ export default function SignUpStep3Screen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<SignUpStep3NavigationProp>();
   const route = useRoute<SignUpStep3RouteProp>();
-  const { username, name, profileImage } = route.params;
+  const { username, name, email, profileImage } = route.params;
 
   const [studentId, setStudentId] = useState('');
   const [nationality, setNationality] = useState('');
@@ -286,6 +286,7 @@ export default function SignUpStep3Screen() {
       navigation.navigate('SignUpStep4', {
         username,
         name,
+        email,
         profileImage,
         studentId,
         nationality,

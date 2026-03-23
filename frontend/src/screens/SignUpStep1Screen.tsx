@@ -57,8 +57,10 @@ export default function SignUpStep1Screen() {
 
   const [username, setUsername] = useState('');
   const [legalName, setLegalName] = useState('');
-  const [focusedField, setFocusedField] = useState<'username' | 'legalName' | null>(null);
+  const [email, setEmail] = useState('');
+  const [focusedField, setFocusedField] = useState<'username' | 'legalName' | 'email' | null>(null);
   const [usernameValid, setUsernameValid] = useState(false);
+  const [emailValid, setEmailValid] = useState(false);
 
   // Responsive scaling
   const baseWidth = 402;
@@ -77,11 +79,17 @@ export default function SignUpStep1Screen() {
     validateUsername(value);
   };
 
-  const isFormValid = usernameValid && legalName.trim().length > 0;
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    setEmailValid(valid);
+  };
+
+  const isFormValid = usernameValid && legalName.trim().length > 0 && emailValid;
 
   const handleNext = () => {
     if (isFormValid) {
-      navigation.navigate('SignUpStep2', { username, name: legalName.trim() });
+      navigation.navigate('SignUpStep2', { username, name: legalName.trim(), email: email.trim() });
     }
   };
 
@@ -209,6 +217,40 @@ export default function SignUpStep1Screen() {
                   autoCapitalize="words"
                   autoCorrect={false}
                 />
+              </View>
+            </View>
+
+            {/* Email Input */}
+            <View style={styles.inputWrapper}>
+              <View
+                style={[
+                  styles.inputField,
+                  focusedField === 'email' && styles.inputFieldFocused,
+                ]}
+              >
+                {(focusedField === 'email' || email) && (
+                  <Text style={styles.inputLabel}>Email</Text>
+                )}
+                <TextInput
+                  style={[
+                    styles.input,
+                    (focusedField === 'email' || email) && styles.inputWithLabel,
+                  ]}
+                  placeholder={focusedField === 'email' || email ? '' : 'Enter Email'}
+                  placeholderTextColor={colors.gray400}
+                  value={email}
+                  onChangeText={handleEmailChange}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                />
+                {emailValid && (
+                  <View style={styles.validIcon}>
+                    <CheckIcon size={16} color="#1C1C1E" />
+                  </View>
+                )}
               </View>
             </View>
           </View>

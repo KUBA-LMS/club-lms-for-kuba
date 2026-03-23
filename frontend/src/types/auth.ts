@@ -36,6 +36,7 @@ export interface LoginResponse {
 export interface SignUpRequest {
   username: string;
   legal_name: string;
+  email: string;
   password: string;
   profile_image?: string;
   student_id?: string;

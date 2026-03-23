@@ -229,7 +229,7 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const countdown = useCountdown(event?.paymentDeadline);
 
-    const snapPoints = useMemo(() => ['75%'], []);
+    const snapPoints = useMemo(() => ['75%', '95%'], []);
     const [descExpanded, setDescExpanded] = useState(false);
     const [imageModalVisible, setImageModalVisible] = useState(false);
     const [bankModalVisible, setBankModalVisible] = useState(false);
@@ -621,7 +621,7 @@ export default EventDetailBottomSheet;
 
 const styles = StyleSheet.create({
   bottomSheetBackground: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.white,
   },
   handleContainer: {
     position: 'absolute',
@@ -639,6 +639,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    backgroundColor: colors.white,
   },
 
   // Image Section
@@ -646,11 +647,12 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 3 / 4,
     position: 'relative',
+    backgroundColor: colors.gray50,
   },
   eventImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   imagePlaceholder: {
     flex: 1,

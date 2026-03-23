@@ -275,7 +275,10 @@ export default function OnePassScreen({ navigation, route }: Props) {
           </View>
         </View>
       ) : showEventInfo && activeTicket ? (
-        <EventInfoPanel ticket={activeTicket} />
+        <EventInfoPanel
+          ticket={activeTicket}
+          onDetailsPress={() => navigation.navigate('EventDetail', { eventId: activeTicket.event.id })}
+        />
       ) : null}
     </View>
   );
