@@ -528,6 +528,7 @@ club-lms-for-kuba/
 | [성능 및 스케일링](docs/05-PERFORMANCE-AND-SCALING.md) | 성능 최적화 |
 | [프로덕션 운영](docs/06-PRODUCTION-OPERATIONS.md) | 운영 가이드 |
 | [실기기 테스트](docs/07-PHYSICAL-DEVICE-TESTING.md) | 디바이스 테스트 |
+| [프론트엔드 코드베이스 가이드](docs/09-FRONTEND-CODEBASE-GUIDE.md) | 프론트엔드 전체 구조 및 파일별 역할 |
 
 ---
 
