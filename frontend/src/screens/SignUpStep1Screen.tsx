@@ -15,27 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
 import { colors, font, spacing, screenPadding } from '../constants';
-
-// Check icon component
-function CheckIcon({ size = 16, color = '#1C1C1E' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={[checkStyles.check, { borderColor: color }]} />
-    </View>
-  );
-}
-
-const checkStyles = StyleSheet.create({
-  check: {
-    width: 8,
-    height: 14,
-    borderWidth: 2,
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    transform: [{ rotate: '45deg' }],
-    marginTop: -4,
-  },
-});
+import { CheckIcon } from '../components/icons';
 
 // Progress Bar component
 function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {

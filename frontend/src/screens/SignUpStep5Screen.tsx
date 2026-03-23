@@ -17,28 +17,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, GenderType } from '../types/auth';
-import { colors, spacing, layout, screenPadding } from '../constants';
-
-// Check icon component
-function CheckIcon({ size = 16, color = '#c5c5c5' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={[checkStyles.check, { borderColor: color }]} />
-    </View>
-  );
-}
-
-const checkStyles = StyleSheet.create({
-  check: {
-    width: 8,
-    height: 14,
-    borderWidth: 2,
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    transform: [{ rotate: '45deg' }],
-    marginTop: -4,
-  },
-});
+import { colors, font, spacing, layout, screenPadding } from '../constants';
+import { CheckIcon } from '../components/icons';
 
 // Progress Bar component
 function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
@@ -233,7 +213,7 @@ export default function SignUpStep5Screen() {
             activeOpacity={0.7}
           >
             <Text style={styles.agreementText}>[Required] View Terms of Service</Text>
-            <CheckIcon size={16} color={termsAgreed ? '#1C1C1E' : '#c5c5c5'} />
+            <CheckIcon size={16} color={termsAgreed ? '#1C1C1E' : colors.gray300} />
           </TouchableOpacity>
 
           {/* Privacy Policy */}
@@ -243,7 +223,7 @@ export default function SignUpStep5Screen() {
             activeOpacity={0.7}
           >
             <Text style={styles.agreementText}>[Required] View Privacy Policy</Text>
-            <CheckIcon size={16} color={privacyAgreed ? '#1C1C1E' : '#c5c5c5'} />
+            <CheckIcon size={16} color={privacyAgreed ? '#1C1C1E' : colors.gray300} />
           </TouchableOpacity>
 
           {/* Agree to All Button */}
@@ -309,12 +289,12 @@ const styles = StyleSheet.create({
   },
   stepText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
     letterSpacing: 0.2,
   },
@@ -325,16 +305,16 @@ const styles = StyleSheet.create({
   },
   startOverIcon: {
     fontSize: 17,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   startOverText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 10,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
   },
   titleContainer: {
@@ -356,8 +336,8 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontWeight: '700',
@@ -371,8 +351,8 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
@@ -380,8 +360,8 @@ const styles = StyleSheet.create({
   },
   guideLink: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 12,
@@ -395,7 +375,7 @@ const styles = StyleSheet.create({
   },
   agreementItem: {
     height: 54,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -405,8 +385,8 @@ const styles = StyleSheet.create({
   },
   agreementText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 15,
@@ -424,8 +404,8 @@ const styles = StyleSheet.create({
   },
   agreeAllText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
@@ -447,8 +427,8 @@ const styles = StyleSheet.create({
   },
   completeButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,

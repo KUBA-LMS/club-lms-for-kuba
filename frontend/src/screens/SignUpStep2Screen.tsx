@@ -15,7 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, spacing, layout, screenPadding } from '../constants';
+import { colors, font, spacing, layout, screenPadding } from '../constants';
+import { EditIcon } from '../components/icons';
 
 // User icon placeholder component
 function UserIcon({ size = 100, color = '#000000' }: { size?: number; color?: string }) {
@@ -81,23 +82,6 @@ function UploadIcon({ size = 15, color = '#000000' }: { size?: number; color?: s
           }}
         />
       </View>
-    </View>
-  );
-}
-
-// Edit icon component
-function EditIcon({ size = 12, color = '#000000' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View
-        style={{
-          width: size * 0.8,
-          height: size * 0.25,
-          backgroundColor: color,
-          transform: [{ rotate: '-45deg' }],
-          borderRadius: 1,
-        }}
-      />
     </View>
   );
 }
@@ -452,12 +436,12 @@ const styles = StyleSheet.create({
   },
   stepText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
     letterSpacing: 0.2,
   },
@@ -468,16 +452,16 @@ const styles = StyleSheet.create({
   },
   startOverIcon: {
     fontSize: 17,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   startOverText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 10,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
   },
   titleContainer: {
@@ -499,8 +483,8 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontWeight: '700',
@@ -514,8 +498,8 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
@@ -523,8 +507,8 @@ const styles = StyleSheet.create({
   },
   guideLink: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 12,
@@ -552,8 +536,8 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 13,
@@ -577,8 +561,8 @@ const styles = StyleSheet.create({
   },
   editText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 15,
@@ -602,8 +586,8 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,
@@ -617,8 +601,8 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,
@@ -634,8 +618,8 @@ const styles = StyleSheet.create({
   },
   backActionButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,
@@ -646,8 +630,8 @@ const styles = StyleSheet.create({
   },
   doneButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,

@@ -20,39 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { AuthStackParamList } from '../navigation/types';
 import { ApiError } from '../types/auth';
 import { colors, font, spacing, layout, screenPadding } from '../constants';
-
-// Eye icon component for password visibility toggle
-function EyeOffIcon({ size = 16, color = '#1e1e1e' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={[eyeStyles.line, { backgroundColor: color }]} />
-      <View style={[eyeStyles.circle, { borderColor: color }]} />
-      <View style={[eyeStyles.slash, { backgroundColor: color }]} />
-    </View>
-  );
-}
-
-const eyeStyles = StyleSheet.create({
-  line: {
-    position: 'absolute',
-    width: 12,
-    height: 1.5,
-    borderRadius: 1,
-  },
-  circle: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    borderWidth: 1.5,
-  },
-  slash: {
-    position: 'absolute',
-    width: 14,
-    height: 1.5,
-    borderRadius: 1,
-    transform: [{ rotate: '45deg' }],
-  },
-});
+import { EyeOffIcon } from '../components/icons';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
