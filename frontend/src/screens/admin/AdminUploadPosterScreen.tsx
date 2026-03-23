@@ -12,16 +12,11 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Path } from 'react-native-svg';
 import { MainStackParamList } from '../../navigation/types';
+import AdminHeader from '../../components/admin/AdminHeader';
+import { ArrowBackIcon } from '../../components/icons';
+import { colors } from '../../constants';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'AdminUploadPoster'>;
-
-function BackIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18L9 12L15 6" stroke="#000000" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function ImagePlaceholderIcon({ color = '#C0C0C0' }: { color?: string }) {
   return (
@@ -78,18 +73,16 @@ export default function AdminUploadPosterScreen({ navigation, route }: Props) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <BackIcon />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerLabel}>OPTIONAL</Text>
-          <Text style={styles.headerTitle}>Event Poster</Text>
-        </View>
-        <TouchableOpacity onPress={handleBack} style={styles.skipButton}>
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
-      </View>
+      <AdminHeader
+        title="OPTIONAL"
+        subtitle="Event Poster"
+        onBack={handleBack}
+        right={
+          <TouchableOpacity onPress={handleBack}>
+            <Text style={styles.skipText}>Skip</Text>
+          </TouchableOpacity>
+        }
+      />
 
       {/* Poster area */}
       <TouchableOpacity
@@ -127,7 +120,7 @@ export default function AdminUploadPosterScreen({ navigation, route }: Props) {
       {/* Action Buttons */}
       <View style={[styles.buttonRow, { paddingBottom: insets.bottom + 20 }]}>
         <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <BackIcon />
+          <ArrowBackIcon size={22} color={colors.black} />
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
 
@@ -149,38 +142,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerCenter: {
-    alignItems: 'center',
-  },
-  headerLabel: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 10,
-    color: '#AEAEB2',
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  headerTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 15,
-    color: '#000000',
-  },
-  skipButton: {
-    width: 50,
-    alignItems: 'flex-end',
   },
   skipText: {
     fontFamily: 'Inter-Regular',

@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../../navigation/types';
 import { getMyGroups, MyGroup } from '../../services/clubs';
-import { ArrowBackIcon } from '../../components/icons';
+import AdminHeader from '../../components/admin/AdminHeader';
 import MemberCard from '../../components/admin/MemberCard';
 import MemberSearchSection from '../../components/admin/MemberSearchSection';
 import OrganizationSection from '../../components/admin/OrganizationSection';
@@ -562,13 +562,7 @@ export default function AdminHubScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <ArrowBackIcon size={24} color={colors.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>ADMIN HUB</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <AdminHeader title="ADMIN HUB" />
 
       {/* Club Selector */}
       {renderClubSelector()}
@@ -615,24 +609,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 60,
-    backgroundColor: colors.white,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.gray100,
-  },
-  headerTitle: {
-    fontFamily: 'Gafata-Regular',
-    fontSize: 11,
-    color: '#1C1C1E',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-
   // Club Selector
   clubSelector: {
     flexGrow: 0,

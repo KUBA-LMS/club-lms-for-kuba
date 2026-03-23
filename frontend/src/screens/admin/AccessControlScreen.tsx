@@ -12,8 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../../navigation/types';
 import { colors } from '../../constants';
+import AdminHeader from '../../components/admin/AdminHeader';
 import {
-  AccessControlHeader,
   ScannerArea,
   EventSelector,
   EventSearchDropdown,
@@ -249,7 +249,7 @@ export default function AccessControlScreen({ navigation }: Props) {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <AccessControlHeader onBack={() => navigation.goBack()} />
+        <AdminHeader title="ACCESS CONTROL" />
 
         {mode === 'entry_control' && (
           <ScannerArea

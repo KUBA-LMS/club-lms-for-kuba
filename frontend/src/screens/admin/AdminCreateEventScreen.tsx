@@ -27,7 +27,7 @@ import TypeSelectorBottomSheet from "../../components/admin/TypeSelectorBottomSh
 import RegistrationPeriodBottomSheet from "../../components/admin/RegistrationPeriodBottomSheet";
 import ProviderSelectorBottomSheet from "../../components/admin/ProviderSelectorBottomSheet";
 import PostVisibilityBottomSheet from "../../components/admin/PostVisibilityBottomSheet";
-import { SearchIcon, ArrowUpCircleIcon, CheckIcon } from "../../components/icons";
+import { SearchIcon, ArrowUpCircleIcon, CheckIcon, ArrowBackIcon } from "../../components/icons";
 import AddressSearchBottomSheet from "../../components/admin/AddressSearchBottomSheet";
 import { listEvents } from "../../services/events";
 import { EventWithStatus } from "../../types/event";
@@ -456,7 +456,7 @@ export default function AdminCreateEventScreen() {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>{"<"}</Text>
+          <ArrowBackIcon size={24} color="#1C1C1E" />
         </TouchableOpacity>
       </View>
 
@@ -847,11 +847,6 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: "center",
     justifyContent: "center",
-  },
-  backButtonText: {
-    fontSize: 26,
-    color: "#1C1C1E",
-    fontWeight: "300",
   },
   headerBox: {
     flexDirection: "row",
