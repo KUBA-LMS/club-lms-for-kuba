@@ -42,4 +42,4 @@ async def send_password_reset_email(to_email: str, reset_token: str) -> None:
       </p>
     </div>
     """
-    await send_email(to_email, "[KUBA] 비밀번호 재설정 안내", html)
+    await send_email(to_email, "[ClubX] 비밀번호 재설정 안내", html)

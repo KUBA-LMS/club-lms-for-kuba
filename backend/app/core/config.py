@@ -53,9 +53,9 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    EMAIL_FROM: str = "noreply@kuba.kr"
-    EMAIL_FROM_NAME: str = "KUBA LMS"
-    FRONTEND_BASE_URL: str = "https://kuba.kr"
+    EMAIL_FROM: str = "noreply@clubx.app"
+    EMAIL_FROM_NAME: str = "ClubX"
+    FRONTEND_BASE_URL: str = "https://clubx.app"
 
     # Naver Cloud Platform (Map SDK + Geocoding)
     NAVER_MAP_CLIENT_ID: str = ""

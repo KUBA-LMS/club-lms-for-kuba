@@ -1,7 +1,7 @@
-# KUBA LMS - Club Event Management Platform
+# ClubX - Club Event Management Platform
 
 <div align="center">
-<h3>KUBA 동아리 이벤트 관리 및 커뮤니티 플랫폼</h3>
+<h3>ClubX 동아리 이벤트 관리 및 커뮤니티 플랫폼</h3>
 <p>동아리 이벤트 생성, 티켓 발급, 실시간 채팅, 정산까지 하나의 앱에서 관리합니다</p>
 </div>
 
@@ -36,7 +36,7 @@
 
 ## 프로젝트 개요
 
-**KUBA LMS**는 대학교 동아리를 위한 올인원 이벤트 관리 플랫폼입니다.
+**ClubX**는 대학교 동아리를 위한 올인원 이벤트 관리 플랫폼입니다.
 
 이벤트 생성부터 참가 신청, 바코드 티켓 발급, 현장 체크인, 실시간 채팅, 정산까지 동아리 운영에 필요한 모든 기능을 하나의 모바일 앱과 관리자 웹 대시보드에서 제공합니다.
 
@@ -285,86 +285,113 @@
 
 - Node.js 18+
 - Python 3.11+
-- Docker (PostgreSQL, Redis)
+- Docker Desktop (PostgreSQL, Redis 컨테이너용)
 - Xcode (iOS 빌드) / Android Studio (Android 빌드)
 - CocoaPods (iOS)
 
-### 1. 인프라 실행
+### 로컬 개발 전체 흐름
 
-```bash
-# PostgreSQL + Redis 컨테이너 시작
-docker-compose up -d
+로컬에서 앱을 실행하려면 아래 4가지를 순서대로 띄워야 합니다:
+
+```
+1. Docker (PostgreSQL + Redis)  -->  2. Backend (FastAPI)  -->  3. Frontend (Expo Dev Client)
+                                                                       |
+                                                              4. 시뮬레이터/실기기 실행
 ```
 
-### 2. Backend 설정
+### 1. Docker 컨테이너 실행
+
+PostgreSQL(port 5434)과 Redis(port 6379)를 Docker로 띄웁니다. Docker Desktop이 실행 중이어야 합니다.
+
+```bash
+# 프로젝트 루트에서
+docker-compose up -d
+
+# 컨테이너 상태 확인
+docker ps
+# club-lms-postgres (port 5434)
+# club-lms-redis    (port 6379)
+```
+
+컨테이너가 정상적으로 뜨지 않으면 Docker Desktop을 먼저 실행하세요.
+
+### 2. Backend 실행
+
+터미널을 하나 열어서 백엔드 서버를 실행합니다.
 
 ```bash
 cd backend
 
-# 가상환경 생성 및 활성화
-python -m venv venv
-source venv/bin/activate    # Mac/Linux
+# 가상환경 활성화 (최초 1회: python -m venv venv)
+source venv/bin/activate
 
-# 의존성 설치
+# 의존성 설치 (최초 1회 또는 requirements.txt 변경 시)
 pip install -r requirements.txt
 
-# 환경변수 설정
-cp .env.example .env
-# .env 파일 수정 (DATABASE_URL, SECRET_KEY 등)
-
-# DB 마이그레이션
+# DB 마이그레이션 (최초 1회 또는 모델 변경 시)
 alembic upgrade head
 
 # 서버 실행
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 3. Frontend 설정
+서버가 뜨면 http://localhost:8000/docs 에서 API 문서를 확인할 수 있습니다.
+
+### 3. Frontend 빌드 및 실행
 
 > **Expo Go 사용 불가**: Naver Maps SDK, Vision Camera 등 네이티브 모듈을 사용하기 때문에
-> Expo Go 앱으로는 실행할 수 없습니다. 반드시 네이티브 빌드(`expo run:ios` / `expo run:android`)가 필요합니다.
+> Expo Go 앱으로는 실행할 수 없습니다. 반드시 네이티브 빌드가 필요합니다.
+
+별도 터미널을 열어서 프론트엔드를 실행합니다.
 
 ```bash
 cd frontend
 
-# 의존성 설치
+# 의존성 설치 (최초 1회 또는 package.json 변경 시)
 npm install
 
-# 환경변수 설정
+# 환경변수 설정 (최초 1회)
 cp .env.example .env
 # EXPO_PUBLIC_API_URL을 로컬 IP로 설정 (예: http://192.168.0.10:8000/api/v1)
 ```
 
-#### iOS 실행
+#### 최초 실행 또는 네이티브 코드 변경 시
+
+네이티브 모듈 추가, app.json 수정, 스플래시/아이콘 변경 등이 있으면 prebuild부터 해야 합니다.
 
 ```bash
-# iOS 네이티브 빌드 (최초 1회 또는 네이티브 모듈 변경 시)
-npx expo run:ios
+# iOS
+npx expo prebuild --clean
+npx expo run:ios --device "iPhone 17 Pro"    # 시뮬레이터 지정
+npx expo run:ios --device                    # 실기기 (USB 연결)
 
-# 시뮬레이터 선택 실행
-npx expo run:ios --simulator "iPhone 16 Pro"
-
-# 실제 디바이스 (USB 연결 필요)
-npx expo run:ios --device
-```
-
-#### Android 실행
-
-```bash
-# Android 네이티브 빌드
+# Android
+npx expo prebuild --clean
 npx expo run:android
-
-# 실제 디바이스 (USB 연결 필요)
-npx expo run:android --device
+npx expo run:android --device                # 실기기 (USB 연결)
 ```
 
-#### 이후 JS 코드만 수정할 경우
+#### JS/TS 코드만 수정할 경우 (일반적인 개발)
 
-네이티브 빌드가 완료된 후에는 Metro 번들러만 띄워서 빠르게 개발할 수 있습니다:
+네이티브 빌드가 한번 완료되면, 이후에는 Metro 번들러만 띄우면 됩니다. 훨씬 빠릅니다.
 
 ```bash
+# Metro 번들러 시작
 npx expo start --dev-client
+
+# 시뮬레이터에서 앱 열기: Metro 터미널에서 i (iOS) 또는 a (Android) 입력
+# 실기기: 기기에서 개발 빌드 앱을 열면 자동 연결
 ```
+
+#### 언제 네이티브 리빌드가 필요한가?
+
+| 변경 사항 | 리빌드 필요 여부 |
+|-----------|-----------------|
+| JS/TS 코드 수정 | X (Hot Reload) |
+| 스타일, 컴포넌트 수정 | X (Hot Reload) |
+| app.json 수정 (스플래시, 아이콘 등) | O (prebuild --clean) |
+| 네이티브 모듈 추가/제거 | O (prebuild --clean) |
+| iOS Info.plist, Android manifest 변경 | O (prebuild --clean) |
 
 > **네트워크 이동 시 주의**: Wi-Fi가 바뀌면 (집 -> 학교 등) `.env`의 `EXPO_PUBLIC_API_URL` IP를
 > 현재 네트워크 IP로 변경하고 Metro를 재시작해야 합니다.
@@ -396,6 +423,19 @@ CORS_ORIGINS=["http://localhost:3000","http://localhost:8081"]
 ```bash
 NAVER_MAP_CLIENT_ID=<Naver Map Client ID>
 EXPO_PUBLIC_API_URL=http://<your-local-ip>:8000/api/v1
+```
+
+### 빠른 시작 (한줄 요약)
+
+```bash
+# 터미널 1: Docker
+docker-compose up -d
+
+# 터미널 2: Backend
+cd backend && source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# 터미널 3: Frontend
+cd frontend && npx expo start --dev-client
 ```
 
 ---
@@ -532,4 +572,4 @@ club-lms-for-kuba/
 
 ## 라이선스
 
-본 프로젝트는 교육 목적으로 개발되었습니다.
+본 프로젝트는 비공개 프로젝트입니다. 무단 복제 및 배포를 금지합니다.

@@ -91,7 +91,7 @@ async def scan_barcode(
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
 
-    # Find ticket by barcode (try as-is first, then with KUBA- prefix for legacy)
+    # Find ticket by barcode (try as-is first, then with CLX-/KUBA- prefix for legacy)
     barcode_value = scan_data.barcode
     ticket_result = await db.execute(
         select(Ticket)
@@ -99,7 +99,7 @@ async def scan_barcode(
             selectinload(Ticket.registration).selectinload(Registration.user).selectinload(User.clubs),
             selectinload(Ticket.registration).selectinload(Registration.event),
         )
-        .where(Ticket.barcode.in_([barcode_value, f"KUBA-{barcode_value}"]))
+        .where(Ticket.barcode.in_([barcode_value, f"CLX-{barcode_value}", f"KUBA-{barcode_value}"]))
     )
     ticket = ticket_result.scalar_one_or_none()
 
