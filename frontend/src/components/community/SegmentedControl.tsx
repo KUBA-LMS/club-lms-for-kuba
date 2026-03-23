@@ -7,6 +7,7 @@ import {
   Animated,
   LayoutChangeEvent,
 } from 'react-native';
+import { colors, font } from '../../constants';
 
 interface SegmentedControlProps {
   segments: string[];
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     left: 4,
     backgroundColor: '#1C1C1E',
     borderRadius: 20,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -102,13 +103,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   label: {
-    fontFamily: 'Inter-Medium',
+    fontFamily: font.medium,
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.gray500,
     letterSpacing: -0.08,
   },
   labelSelected: {
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    fontFamily: font.semibold,
+    color: colors.white,
   },
 });

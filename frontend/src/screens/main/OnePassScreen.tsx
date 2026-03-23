@@ -17,6 +17,7 @@ import { MainStackParamList } from '../../navigation/types';
 import { OnePassTicket, OnePassScreenState } from '../../types/onepass';
 import { getOnePassTickets } from '../../services/onepass';
 import { useAuth } from '../../context/AuthContext';
+import { colors, font } from '../../constants';
 import {
   OnePassHeader,
   UserProfile,
@@ -168,18 +169,18 @@ export default function OnePassScreen({ navigation, route }: Props) {
   }, [screenState, activeTicket]);
 
   const statusColor = useMemo(() => {
-    if (screenState === 'checked_in') return '#34C759';
-    if (activeTicket?.is_used) return '#8E8E93';
+    if (screenState === 'checked_in') return colors.success;
+    if (activeTicket?.is_used) return colors.gray500;
     return undefined;
   }, [screenState, activeTicket]);
 
   if (isLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.black} />
         <OnePassHeader onBack={handleBack} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+          <ActivityIndicator size="large" color={colors.white} />
           <Text style={styles.loadingText}>Loading tickets...</Text>
         </View>
       </View>
@@ -189,7 +190,7 @@ export default function OnePassScreen({ navigation, route }: Props) {
   if (tickets.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.black} />
         <OnePassHeader onBack={handleBack} />
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No tickets available</Text>
@@ -212,7 +213,7 @@ export default function OnePassScreen({ navigation, route }: Props) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.black} />
 
       <OnePassHeader onBack={handleBack} />
 
@@ -283,7 +284,7 @@ export default function OnePassScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.black,
   },
   loadingContainer: {
     flex: 1,
@@ -291,9 +292,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.white,
     marginTop: 12,
     opacity: 0.6,
   },
@@ -304,15 +305,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
-    color: '#FFFFFF',
+    color: colors.white,
     marginBottom: 8,
   },
   emptySubtext: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.white,
     opacity: 0.5,
     textAlign: 'center',
   },
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
     height: 28,
   },
   scanInfoText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
     color: 'rgba(255,255,255,0.65)',
     textAlign: 'center',

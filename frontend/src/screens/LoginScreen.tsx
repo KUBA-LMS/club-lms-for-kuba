@@ -19,7 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { AuthStackParamList } from '../navigation/types';
 import { ApiError } from '../types/auth';
-import { colors, spacing, layout, screenPadding } from '../constants';
+import { colors, font, spacing, layout, screenPadding } from '../constants';
 
 // Eye icon component for password visibility toggle
 function EyeOffIcon({ size = 16, color = '#1e1e1e' }: { size?: number; color?: string }) {
@@ -149,7 +149,7 @@ export default function LoginScreen() {
                   (focusedField === 'email' || email) && styles.inputWithLabel,
                 ]}
                 placeholder={focusedField === 'email' || email ? '' : 'Enter ID or Email'}
-                placeholderTextColor="#AEAEB2"
+                placeholderTextColor={colors.gray400}
                 value={email}
                 onChangeText={setEmail}
                 onFocus={() => setFocusedField('email')}
@@ -179,7 +179,7 @@ export default function LoginScreen() {
                   (focusedField === 'password' || password) && styles.inputWithLabel,
                 ]}
                 placeholder={focusedField === 'password' || password ? '' : 'Enter Password'}
-                placeholderTextColor="#AEAEB2"
+                placeholderTextColor={colors.gray400}
                 value={password}
                 onChangeText={setPassword}
                 onFocus={() => setFocusedField('password')}
@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontWeight: '700',
@@ -266,8 +266,8 @@ const styles = StyleSheet.create({
   },
   newUserText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 12,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   inputField: {
     height: 54,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
@@ -306,10 +306,10 @@ const styles = StyleSheet.create({
     top: 8,
     left: spacing.md,
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
   },
@@ -318,8 +318,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#1C1C1E',
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     paddingRight: 30,
@@ -339,12 +339,12 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   signInButton: {
     height: 54,
@@ -359,8 +359,8 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 16,

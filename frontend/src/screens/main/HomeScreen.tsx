@@ -723,7 +723,7 @@ export default function HomeScreen() {
             >
               <FilterBadge
                 label="Bookmark"
-                icon={<StarsIcon size={16} color={bookmarkFilterActive ? '#FFFFFF' : '#212121'} />}
+                icon={<StarsIcon size={16} color={bookmarkFilterActive ? colors.white : colors.gray900} />}
                 isActive={bookmarkFilterActive}
                 onPress={handleToggleBookmarkFilter}
               />
@@ -1154,7 +1154,7 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   eventDivider: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     paddingHorizontal: 16,
     paddingVertical: 6,
   },

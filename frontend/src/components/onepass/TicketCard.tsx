@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, StyleSheet, Platform } from 'react-native';
+import { colors } from '../../constants';
 
 interface TicketCardProps {
   imageUri?: string;
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 24 },
         shadowOpacity: 0.6,
         shadowRadius: 24,

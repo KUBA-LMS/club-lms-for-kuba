@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ScanResult } from '../../types/accessControl';
+import { colors, font } from '../../constants';
 
 interface ScanResultBannerProps {
   scanResult: ScanResult | null;
@@ -13,33 +14,33 @@ const BANNER_CONFIG: Record<
 > = {
   entry_approved: {
     text: 'ENTRY APPROVED',
-    backgroundColor: '#34C759',
-    textColor: '#FFFFFF',
+    backgroundColor: colors.success,
+    textColor: colors.white,
   },
   entry_denied_pending: {
     text: 'ENTRY DENIED',
     backgroundColor: '#FF383C',
-    textColor: '#FFFFFF',
+    textColor: colors.white,
   },
   entry_denied_no_ticket: {
     text: 'ENTRY DENIED',
     backgroundColor: '#FF383C',
-    textColor: '#FFFFFF',
+    textColor: colors.white,
   },
   double_checked_in: {
     text: 'Double Checked-in',
     backgroundColor: '#FFCC00',
-    textColor: '#000000',
+    textColor: colors.black,
   },
   waiting: {
     text: 'WAITING SCAN',
-    backgroundColor: '#E5E5EA',
-    textColor: '#8E8E93',
+    backgroundColor: colors.gray100,
+    textColor: colors.gray500,
   },
   no_event: {
     text: 'SELECT EVENT FIRST',
-    backgroundColor: '#E5E5EA',
-    textColor: '#8E8E93',
+    backgroundColor: colors.gray100,
+    textColor: colors.gray500,
   },
 };
 
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
     letterSpacing: 1,
   },

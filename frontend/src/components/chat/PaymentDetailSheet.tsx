@@ -19,6 +19,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PaymentRequest, PaymentSplit } from '../../types/chat';
 import * as chatApi from '../../services/chat';
+import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
 
 interface PaymentDetailSheetProps {
@@ -76,11 +77,11 @@ function formatAmount(amount: number): string {
 function getStatusColor(status: string): string {
   switch (status) {
     case 'confirmed':
-      return '#34C759';
+      return colors.success;
     case 'sent':
-      return '#FF9500';
+      return colors.warning;
     default:
-      return '#8E8E93';
+      return colors.gray500;
   }
 }
 
@@ -231,7 +232,7 @@ const PaymentDetailSheet = forwardRef<BottomSheetModal, PaymentDetailSheetProps>
       >
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#8E8E93" />
+            <ActivityIndicator size="large" color={colors.gray500} />
           </View>
         ) : paymentReq ? (
           <BottomSheetScrollView
@@ -309,7 +310,7 @@ const PaymentDetailSheet = forwardRef<BottomSheetModal, PaymentDetailSheetProps>
                   activeOpacity={0.7}
                 >
                   {actionLoading === 'mark-sent' ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color={colors.white} />
                   ) : (
                     <Text style={styles.markSentText}>I've sent it</Text>
                   )}
@@ -370,7 +371,7 @@ const PaymentDetailSheet = forwardRef<BottomSheetModal, PaymentDetailSheetProps>
                     activeOpacity={0.7}
                   >
                     {actionLoading === split.id ? (
-                      <ActivityIndicator size="small" color="#FFFFFF" />
+                      <ActivityIndicator size="small" color={colors.white} />
                     ) : (
                       <Text style={styles.confirmButtonText}>Confirm</Text>
                     )}
@@ -395,7 +396,7 @@ export default PaymentDetailSheet;
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -410,18 +411,18 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   content: {
     paddingHorizontal: 20,
     paddingTop: 8,
   },
   sheetTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 20,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 16,
   },
   amountCard: {
@@ -431,15 +432,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   totalLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginBottom: 4,
   },
   totalAmount: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 32,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 8,
   },
   perPersonRow: {
@@ -449,14 +450,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   perPersonLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   perPersonAmount: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 15,
-    color: '#000000',
+    color: colors.black,
   },
   progressRow: {
     flexDirection: 'row',
@@ -466,19 +467,19 @@ const styles = StyleSheet.create({
   progressBar: {
     flex: 1,
     height: 6,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.gray100,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#34C759',
+    backgroundColor: colors.success,
     borderRadius: 3,
   },
   progressText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   bankCard: {
     backgroundColor: '#F0F6FF',
@@ -487,28 +488,28 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 8,
   },
   bankName: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#007AFF',
+    color: colors.primary,
     marginBottom: 2,
   },
   accountNumber: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 18,
-    color: '#000000',
+    color: colors.black,
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   holderName: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   actionSection: {
     gap: 10,
@@ -522,9 +523,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tossButtonText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   kakaoButton: {
     backgroundColor: '#FEE500',
@@ -534,38 +535,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   kakaoButtonText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
     color: '#191919',
   },
   copyButton: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 12,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
   copyButtonText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#000000',
+    color: colors.black,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.gray100,
     marginVertical: 4,
   },
   markSentButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: colors.success,
     borderRadius: 12,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
   markSentText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   statusBadge: {
     backgroundColor: '#FFF3E0',
@@ -575,15 +576,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statusBadgeText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#FF9500',
+    color: colors.warning,
   },
   confirmedBadge: {
     backgroundColor: '#E8F5E9',
   },
   confirmedBadgeText: {
-    color: '#34C759',
+    color: colors.success,
   },
   participantRow: {
     flexDirection: 'row',
@@ -597,27 +598,27 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   avatarEmpty: {
-    backgroundColor: '#8E8E93',
+    backgroundColor: colors.gray500,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   participantInfo: {
     flex: 1,
   },
   participantName: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
   },
   participantAmount: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   statusPill: {
     borderRadius: 10,
@@ -625,18 +626,18 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   statusPillText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
   },
   confirmButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
   confirmButtonText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
   },
 });

@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, spacing, screenPadding } from '../constants';
+import { colors, font, spacing, screenPadding } from '../constants';
 
 // Check icon component
 function CheckIcon({ size = 16, color = '#1C1C1E' }: { size?: number; color?: string }) {
@@ -188,7 +188,7 @@ export default function SignUpStep1Screen() {
                     (focusedField === 'username' || username) && styles.inputWithLabel,
                   ]}
                   placeholder={focusedField === 'username' || username ? '' : 'Enter Username'}
-                  placeholderTextColor="#AEAEB2"
+                  placeholderTextColor={colors.gray400}
                   value={username}
                   onChangeText={handleUsernameChange}
                   onFocus={() => setFocusedField('username')}
@@ -221,7 +221,7 @@ export default function SignUpStep1Screen() {
                     (focusedField === 'legalName' || legalName) && styles.inputWithLabel,
                   ]}
                   placeholder={focusedField === 'legalName' || legalName ? '' : 'Enter Legal Name(Full name)'}
-                  placeholderTextColor="#AEAEB2"
+                  placeholderTextColor={colors.gray400}
                   value={legalName}
                   onChangeText={setLegalName}
                   onFocus={() => setFocusedField('legalName')}
@@ -286,12 +286,12 @@ const styles = StyleSheet.create({
   },
   stepText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
     letterSpacing: 0.2,
   },
@@ -302,16 +302,16 @@ const styles = StyleSheet.create({
   },
   startOverIcon: {
     fontSize: 17,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   startOverText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 10,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
   },
   titleContainer: {
@@ -333,8 +333,8 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontWeight: '700',
@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 12,
@@ -357,8 +357,8 @@ const styles = StyleSheet.create({
   },
   guideLink: {
     fontFamily: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 12,
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   },
   inputField: {
     height: 54,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
@@ -389,10 +389,10 @@ const styles = StyleSheet.create({
     top: 6,
     left: spacing.md,
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
   },
@@ -401,8 +401,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.black,
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     paddingRight: 30,
@@ -432,8 +432,8 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: font.regular,
+      android: font.regular,
       default: 'System',
     }),
     fontSize: 16,

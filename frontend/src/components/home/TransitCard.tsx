@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
 
 // Icons
-const SearchIcon = ({ size = 14, color = '#212121' }: { size?: number; color?: string }) => (
+const SearchIcon = ({ size = 14, color = colors.gray900 }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
     <Path
       d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
@@ -16,7 +16,7 @@ const SearchIcon = ({ size = 14, color = '#212121' }: { size?: number; color?: s
   </Svg>
 );
 
-const BusIcon = ({ size = 18, color = '#000000' }: { size?: number; color?: string }) => (
+const BusIcon = ({ size = 18, color = colors.black }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 6C4 4.34315 5.34315 3 7 3H17C18.6569 3 20 4.34315 20 6V16C20 17.1046 19.1046 18 18 18H6C4.89543 18 4 17.1046 4 16V6Z"
@@ -29,7 +29,7 @@ const BusIcon = ({ size = 18, color = '#000000' }: { size?: number; color?: stri
   </Svg>
 );
 
-const CarIcon = ({ size = 18, color = '#000000' }: { size?: number; color?: string }) => (
+const CarIcon = ({ size = 18, color = colors.black }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M5 11L6.5 6.5C6.78 5.59 7.63 5 8.59 5H15.41C16.37 5 17.22 5.59 17.5 6.5L19 11M5 11V17C5 17.55 5.45 18 6 18H7C7.55 18 8 17.55 8 17V16H16V17C16 17.55 16.45 18 17 18H18C18.55 18 19 17.55 19 17V11M5 11H19"
@@ -43,7 +43,7 @@ const CarIcon = ({ size = 18, color = '#000000' }: { size?: number; color?: stri
   </Svg>
 );
 
-const WalkIcon = ({ size = 18, color = '#000000' }: { size?: number; color?: string }) => (
+const WalkIcon = ({ size = 18, color = colors.black }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Circle cx="12" cy="4.5" r="2" stroke={color} strokeWidth={2} />
     <Path
@@ -75,24 +75,24 @@ export default function TransitCard({
         <Text style={styles.fromLabel}>From:</Text>
         <Text style={styles.fromValue}>Current Location</Text>
         <TouchableOpacity style={styles.searchButton} onPress={onSearchPress}>
-          <SearchIcon size={14} color="#212121" />
+          <SearchIcon size={14} color={colors.gray900} />
         </TouchableOpacity>
       </View>
       <View style={styles.transitOptions}>
         <View style={styles.transitOption}>
-          <BusIcon size={17} color="#000000" />
+          <BusIcon size={17} color={colors.black} />
           <Text style={styles.transitLabel}>Public Transit</Text>
           <Text style={styles.transitTime}>{publicTransitTime}</Text>
         </View>
         <View style={styles.transitDivider} />
         <View style={styles.transitOption}>
-          <CarIcon size={17} color="#000000" />
+          <CarIcon size={17} color={colors.black} />
           <Text style={styles.transitLabel}>Car</Text>
           <Text style={styles.transitTime}>{carTime}</Text>
         </View>
         <View style={styles.transitDivider} />
         <View style={styles.transitOption}>
-          <WalkIcon size={17} color="#000000" />
+          <WalkIcon size={17} color={colors.black} />
           <Text style={styles.transitLabel}>Walk</Text>
           <Text style={styles.transitTime}>{walkTime}</Text>
         </View>
@@ -117,12 +117,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fromLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
     color: colors.gray900,
   },
   fromValue: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 12,
     color: '#00C0E8',
   },
@@ -145,14 +145,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   transitLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
     color: colors.black,
     marginTop: 2,
     textAlign: 'center',
   },
   transitTime: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
     color: colors.success,
   },

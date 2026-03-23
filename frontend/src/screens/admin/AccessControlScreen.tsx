@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../../navigation/types';
+import { colors } from '../../constants';
 import {
   AccessControlHeader,
   ScannerArea,
@@ -183,7 +184,7 @@ export default function AccessControlScreen({ navigation }: Props) {
           setSelectedParticipant(res.participant);
           setHighlightedId(res.participant.user_id);
           const colorMap: Record<ScanResult, string> = {
-            entry_approved: '#34C759',
+            entry_approved: colors.success,
             entry_denied_pending: '#FF383C',
             entry_denied_no_ticket: '#FF383C',
             double_checked_in: '#FFCC00',
@@ -327,11 +328,11 @@ export default function AccessControlScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   flex: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.surface,
   },
   bannerSection: {
     marginTop: 8,

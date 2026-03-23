@@ -21,6 +21,7 @@ import { MainStackParamList } from '../../navigation/types';
 import { ArrowBackIcon } from '../../components/icons';
 import * as userApi from '../../services/user';
 import { colors } from '../../constants/colors';
+import { font } from '../../constants/typography';
 import { shadows } from '../../constants/shadows';
 
 type Nav = NativeStackNavigationProp<MainStackParamList>;
@@ -129,7 +130,7 @@ export default function SettingsScreen() {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <ArrowBackIcon size={24} color="#000" />
+          <ArrowBackIcon size={24} color={colors.black} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={styles.headerSide} />
@@ -147,7 +148,7 @@ export default function SettingsScreen() {
             <Switch
               value={notifEvents}
               onValueChange={setNotifEvents}
-              trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+              trackColor={{ false: colors.gray100, true: colors.success }}
             />
           </View>
           <View style={styles.divider} />
@@ -156,7 +157,7 @@ export default function SettingsScreen() {
             <Switch
               value={notifChat}
               onValueChange={setNotifChat}
-              trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+              trackColor={{ false: colors.gray100, true: colors.success }}
             />
           </View>
         </View>
@@ -181,7 +182,7 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           {bankLoading ? (
             <View style={styles.row}>
-              <ActivityIndicator size="small" color="#8E8E93" />
+              <ActivityIndicator size="small" color={colors.gray500} />
             </View>
           ) : bankAccount?.bank_name ? (
             <>
@@ -268,7 +269,7 @@ export default function SettingsScreen() {
             <TextInput
               style={styles.input}
               placeholder="Enter account number"
-              placeholderTextColor="#AEAEB2"
+              placeholderTextColor={colors.gray400}
               value={accountNumber}
               onChangeText={setAccountNumber}
               keyboardType="number-pad"
@@ -278,7 +279,7 @@ export default function SettingsScreen() {
             <TextInput
               style={styles.input}
               placeholder="Enter holder name"
-              placeholderTextColor="#AEAEB2"
+              placeholderTextColor={colors.gray400}
               value={holderName}
               onChangeText={setHolderName}
             />
@@ -296,7 +297,7 @@ export default function SettingsScreen() {
                 disabled={bankSaving}
               >
                 {bankSaving ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <Text style={styles.modalSaveText}>Save</Text>
                 )}
@@ -312,18 +313,18 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
-  flex: { flex: 1, backgroundColor: '#F8F9FA' },
+  flex: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     height: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: colors.border.light,
   },
   headerSide: {
     width: 40,
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   headerTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 17,
     color: '#1C1C1E',
   },
@@ -346,9 +347,9 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   groupLabel: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 8,
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 16,
     overflow: 'hidden',
     ...shadows.sm,
@@ -369,23 +370,23 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   rowText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 16,
     color: '#1C1C1E',
   },
   rowValue: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 15,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   arrow: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 18,
-    color: '#C5C5C5',
+    color: colors.gray300,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     marginLeft: 18,
   },
   logoutBtn: {
@@ -396,14 +397,14 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   logoutText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   bankDetail: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginTop: 2,
   },
   modalOverlay: {
@@ -412,21 +413,21 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
   },
   modalTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 16,
   },
   inputLabel: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginBottom: 6,
     marginTop: 12,
   },
@@ -439,29 +440,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     marginRight: 8,
   },
   bankChipSelected: {
     backgroundColor: colors.primary,
   },
   bankChipText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
   },
   bankChipTextSelected: {
-    color: '#FFFFFF',
-    fontFamily: 'Inter-SemiBold',
+    color: colors.white,
+    fontFamily: font.semibold,
   },
   input: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 16,
-    color: '#000000',
+    color: colors.black,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -470,15 +471,15 @@ const styles = StyleSheet.create({
   },
   modalCancelBtn: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   modalCancelText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#000000',
+    color: colors.black,
   },
   modalSaveBtn: {
     flex: 1,
@@ -488,8 +489,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSaveText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
 });

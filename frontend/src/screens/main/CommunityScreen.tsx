@@ -19,7 +19,7 @@ import FriendSearchTab from '../../components/community/FriendSearchTab';
 import FriendRequestsTab from '../../components/community/FriendRequestsTab';
 import FriendManageTab from '../../components/community/FriendManageTab';
 import JoinGroupsTab from '../../components/community/JoinGroupsTab';
-import { colors, screenPadding } from '../../constants';
+import { colors, font, screenPadding } from '../../constants';
 import { MainStackParamList } from '../../navigation/types';
 import { useChatList } from '../../hooks/useChat';
 import { useMyClubs } from '../../hooks/useMyClubs';
@@ -94,9 +94,9 @@ function SubTabBar({
 const subTabStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: colors.gray100,
   },
   tab: {
     flex: 1,
@@ -110,7 +110,7 @@ const subTabStyles = StyleSheet.create({
     gap: 5,
   },
   badge: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
     borderRadius: 8,
     minWidth: 18,
     height: 18,
@@ -119,17 +119,17 @@ const subTabStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   label: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#AEAEB2',
+    color: colors.gray400,
   },
   labelActive: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     color: '#1C1C1E',
   },
   underline: {
@@ -225,7 +225,7 @@ export default function CommunityScreen() {
           />
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#8E8E93" />
+              <ActivityIndicator size="large" color={colors.gray500} />
             </View>
           ) : (
             <FlatList
@@ -276,7 +276,7 @@ export default function CommunityScreen() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.6}
         >
-          <ArrowBackIcon size={24} color="#000000" />
+          <ArrowBackIcon size={24} color={colors.black} />
         </TouchableOpacity>
         <Text style={styles.title}>COMMUNITY</Text>
         <TouchableOpacity
@@ -284,7 +284,7 @@ export default function CommunityScreen() {
           onPress={() => navigation.navigate('CreateGroupChat')}
           activeOpacity={0.6}
         >
-          <PlusIcon size={24} color="#000000" />
+          <PlusIcon size={24} color={colors.black} />
         </TouchableOpacity>
       </View>
 
@@ -306,7 +306,7 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   header: {
     flexDirection: 'row',
@@ -353,12 +353,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeholderText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
     color: colors.gray500,
   },
   placeholderSubtext: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray400,
     marginTop: 8,

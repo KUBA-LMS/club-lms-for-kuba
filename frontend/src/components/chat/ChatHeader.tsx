@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ArrowBackIcon } from '../icons';
+import Avatar from '../common/Avatar';
 import { ChatMember } from '../../types/chat';
-import { resolveImageUrl } from '../../utils/image';
+import { colors, font } from '../../constants';
 
 interface ChatHeaderProps {
   members: ChatMember[];
@@ -25,7 +26,7 @@ export default function ChatHeader({
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.6}>
-        <ArrowBackIcon size={22} color="#1C1C1E" />
+        <ArrowBackIcon size={22} color={colors.text.primary} />
       </TouchableOpacity>
 
       <View style={styles.centerSection}>
@@ -40,30 +41,16 @@ export default function ChatHeader({
                     { marginLeft: i > 0 ? -10 : 0, zIndex: 2 - i },
                   ]}
                 >
-                  {member.profile_image ? (
-                    <Image source={{ uri: resolveImageUrl(member.profile_image) }} style={styles.avatar} />
-                  ) : (
-                    <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                      <Text style={styles.avatarInitial}>
-                        {member.username.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
+                  <Avatar uri={member.profile_image} size={36} name={member.username} />
                 </View>
               ))}
             </View>
           ) : (
-            <>
-              {otherMembers[0]?.profile_image ? (
-                <Image source={{ uri: resolveImageUrl(otherMembers[0].profile_image) }} style={styles.avatar} />
-              ) : (
-                <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                  <Text style={styles.avatarInitial}>
-                    {otherMembers[0]?.username?.charAt(0).toUpperCase() || '?'}
-                  </Text>
-                </View>
-              )}
-            </>
+            <Avatar
+              uri={otherMembers[0]?.profile_image}
+              size={36}
+              name={otherMembers[0]?.username || '?'}
+            />
           )}
         </View>
 
@@ -88,9 +75,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     height: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: colors.gray100,
   },
   backButton: {
     width: 40,
@@ -114,36 +101,21 @@ const styles = StyleSheet.create({
   },
   groupAvatarWrapper: {
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: colors.white,
     borderRadius: 20,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#E0E0E0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    color: '#6E6E73',
   },
   nameSection: {
     flex: 1,
   },
   name: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#1C1C1E',
+    color: colors.text.primary,
   },
   memberCount: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginTop: 1,
   },
   rightPlaceholder: {

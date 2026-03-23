@@ -18,6 +18,7 @@ import { User } from '../../types/auth';
 import { updateProfile, UserUpdateData } from '../../services/user';
 import { uploadImage } from '../../services/upload';
 import { ArrowBackIcon } from '../../components/icons';
+import { colors, font } from '../../constants';
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -83,7 +84,7 @@ export default function EditProfileScreen() {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <ArrowBackIcon size={24} color="#000" />
+          <ArrowBackIcon size={24} color={colors.black} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
         <TouchableOpacity
@@ -92,7 +93,7 @@ export default function EditProfileScreen() {
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator size="small" color="#007AFF" />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <Text style={styles.saveText}>Save</Text>
           )}
@@ -130,7 +131,7 @@ export default function EditProfileScreen() {
             value={editData.username || ''}
             onChangeText={(v) => setEditData((p) => ({ ...p, username: v }))}
             autoCapitalize="none"
-            placeholderTextColor="#C5C5C5"
+            placeholderTextColor={colors.gray300}
           />
         </View>
 
@@ -140,7 +141,7 @@ export default function EditProfileScreen() {
             style={styles.input}
             value={editData.legal_name || ''}
             onChangeText={(v) => setEditData((p) => ({ ...p, legal_name: v }))}
-            placeholderTextColor="#C5C5C5"
+            placeholderTextColor={colors.gray300}
           />
         </View>
 
@@ -152,7 +153,7 @@ export default function EditProfileScreen() {
             onChangeText={(v) => setEditData((p) => ({ ...p, email: v }))}
             keyboardType="email-address"
             autoCapitalize="none"
-            placeholderTextColor="#C5C5C5"
+            placeholderTextColor={colors.gray300}
           />
         </View>
 
@@ -162,7 +163,7 @@ export default function EditProfileScreen() {
             style={styles.input}
             value={editData.student_id || ''}
             onChangeText={(v) => setEditData((p) => ({ ...p, student_id: v }))}
-            placeholderTextColor="#C5C5C5"
+            placeholderTextColor={colors.gray300}
           />
         </View>
 
@@ -174,7 +175,7 @@ export default function EditProfileScreen() {
             onChangeText={(v) =>
               setEditData((p) => ({ ...p, nationality: v }))
             }
-            placeholderTextColor="#C5C5C5"
+            placeholderTextColor={colors.gray300}
           />
         </View>
       </ScrollView>
@@ -185,7 +186,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   flex: { flex: 1 },
   header: {
@@ -202,18 +203,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 17,
-    color: '#000000',
+    color: colors.black,
   },
   saveText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#007AFF',
+    color: colors.primary,
   },
   headerDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#C5C5C5',
+    backgroundColor: colors.gray300,
   },
   scrollContent: {
     padding: 20,
@@ -233,48 +234,48 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitial: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 32,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   avatarBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#000000',
+    backgroundColor: colors.black,
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
   avatarBadgeText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   field: {
     gap: 6,
   },
   label: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
     color: '#595959',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 16,
-    color: '#000000',
+    color: colors.black,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
+    borderColor: colors.border.light,
   },
 });

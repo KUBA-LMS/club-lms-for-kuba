@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { Participant } from '../../types/accessControl';
+import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
 
 interface ParticipantDetailCardProps {
@@ -8,9 +9,9 @@ interface ParticipantDetailCardProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  registered: '#000000',
+  registered: colors.black,
   requested: '#FF8D28',
-  checked_in: '#34C759',
+  checked_in: colors.success,
   not_applied: '#FF383C',
 };
 
@@ -24,7 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function ParticipantDetailCard({
   participant,
 }: ParticipantDetailCardProps) {
-  const statusColor = STATUS_COLORS[participant.ticket_status] || '#000000';
+  const statusColor = STATUS_COLORS[participant.ticket_status] || colors.black;
 
   return (
     <View style={styles.container}>
@@ -96,12 +97,12 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: colors.black,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -121,25 +122,25 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   avatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 20,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   nameSection: {
     flex: 1,
   },
   username: {
-    fontFamily: 'Inter-Bold',
+    fontFamily: font.bold,
     fontSize: 21,
-    color: '#000000',
+    color: colors.black,
   },
   legalName: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
     color: '#595959',
     marginTop: 2,
@@ -148,12 +149,12 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   statusText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
   },
   detailsGrid: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: colors.gray100,
     paddingTop: 10,
   },
   detailRow: {
@@ -162,14 +163,14 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   detailLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   detailValue: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 13,
-    color: '#000000',
+    color: colors.black,
     textAlign: 'right',
     flex: 1,
     marginLeft: 12,

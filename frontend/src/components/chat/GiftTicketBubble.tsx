@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { GiftIcon } from '../icons';
 import ReadReceipt from './ReadReceipt';
+import Avatar from '../common/Avatar';
 import { Message } from '../../types/chat';
-import { resolveImageUrl } from '../../utils/image';
+import { colors, font } from '../../constants';
 
 interface GiftTicketBubbleProps {
   message: Message;
@@ -40,11 +41,7 @@ export default function GiftTicketBubble({
   return (
     <View style={[styles.row, isOwn && styles.ownRow]}>
       {!isOwn && showAvatar ? (
-        message.sender.profile_image ? (
-          <Image source={{ uri: resolveImageUrl(message.sender.profile_image) }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]} />
-        )
+        <Avatar uri={message.sender.profile_image} size={32} name={message.sender.username} style={{ marginRight: 8 }} />
       ) : !isOwn ? (
         <View style={styles.avatarSpacer} />
       ) : null}
@@ -89,23 +86,14 @@ const styles = StyleSheet.create({
   ownRow: {
     justifyContent: 'flex-end',
   },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 8,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#FF9500',
-  },
   avatarSpacer: {
     width: 32,
     marginRight: 8,
   },
   senderName: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginBottom: 3,
     marginLeft: 4,
   },
@@ -117,7 +105,7 @@ const styles = StyleSheet.create({
     borderColor: '#8B5CF6',
     borderRadius: 16,
     padding: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   titleRow: {
     flexDirection: 'row',
@@ -125,27 +113,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 15,
     color: '#8B5CF6',
     marginLeft: 6,
   },
   ticketPreview: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: colors.gray900,
     borderRadius: 10,
     padding: 14,
     marginBottom: 10,
   },
   ticketTitle: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.white,
     marginBottom: 4,
   },
   ticketSubtitle: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 12,
-    color: '#AEAEB2',
+    color: colors.gray400,
   },
   acceptButton: {
     backgroundColor: '#8B5CF6',
@@ -154,9 +142,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   acceptText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   timeMeta: {
     flexDirection: 'row',
@@ -165,8 +153,8 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   time: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
 });

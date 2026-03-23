@@ -13,6 +13,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomSheetModal, BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { MainStackParamList } from '../../navigation/types';
+import { colors } from '../../constants';
 import { useAuth } from '../../context/AuthContext';
 import { useChatRoom } from '../../hooks/useChat';
 import { Message, TicketBrief } from '../../types/chat';
@@ -188,7 +189,7 @@ export default function ChatRoomScreen() {
   if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#8E8E93" />
+        <ActivityIndicator size="large" color={colors.gray500} />
       </View>
     );
   }
@@ -220,7 +221,7 @@ export default function ChatRoomScreen() {
         onEndReachedThreshold={0.3}
         ListHeaderComponent={
           isLoadingMore ? (
-            <ActivityIndicator size="small" color="#8E8E93" style={{ paddingVertical: 10 }} />
+            <ActivityIndicator size="small" color={colors.gray500} style={{ paddingVertical: 10 }} />
           ) : null
         }
         onContentSizeChange={() => {
@@ -270,17 +271,17 @@ export default function ChatRoomScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
   messageList: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.surface,
   },
   messageListContent: {
     paddingVertical: 16,

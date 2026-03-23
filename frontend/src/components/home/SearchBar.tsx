@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, Platform, Pressable, TextInput as RNTextInput } from 'react-native';
 import { SearchIcon } from '../icons';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
 
 interface SearchBarProps {
   value?: string;
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 16,
     color: colors.text.primary,
     padding: 0,

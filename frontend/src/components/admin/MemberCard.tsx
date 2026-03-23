@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Switch,
   Platform,
 } from 'react-native';
 import { ChevronDownIcon, TrashIcon } from '../icons';
 import { AdminMember, DepositTransactionInfo } from '../../services/adminHub';
-import { resolveImageUrl } from '../../utils/image';
+import { colors, font } from '../../constants';
+import Avatar from '../common/Avatar';
 
 interface MemberCardProps {
   member: AdminMember;
@@ -51,15 +51,7 @@ export default function MemberCard({
       {/* Top row: avatar + username + trash */}
       <View style={styles.topRow}>
         <View style={styles.profileSection}>
-          {member.profile_image ? (
-            <Image source={{ uri: resolveImageUrl(member.profile_image) }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatarText}>
-                {member.username.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          <Avatar uri={member.profile_image} size={44} name={member.username} />
           <View style={styles.nameSection}>
             <Text style={styles.username}>{member.username}</Text>
           </View>
@@ -77,7 +69,7 @@ export default function MemberCard({
           onPress={() => onRemove(member.id)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <TrashIcon size={18} color="#FF383C" />
+          <TrashIcon size={18} color={colors.error} />
         </TouchableOpacity>
       </View>
 
@@ -104,9 +96,9 @@ export default function MemberCard({
           <Switch
             value={member.is_admin}
             onValueChange={() => onToggleAdmin(member.id)}
-            trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-            thumbColor="#FFFFFF"
-            ios_backgroundColor="#E5E5EA"
+            trackColor={{ false: colors.gray100, true: colors.success }}
+            thumbColor={colors.white}
+            ios_backgroundColor={colors.gray100}
           />
         </View>
         <View style={styles.toggleItem}>
@@ -114,9 +106,9 @@ export default function MemberCard({
           <Switch
             value={member.club_role === 'lead'}
             onValueChange={() => onToggleLead(member.id)}
-            trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-            thumbColor="#FFFFFF"
-            ios_backgroundColor="#E5E5EA"
+            trackColor={{ false: colors.gray100, true: colors.success }}
+            thumbColor={colors.white}
+            ios_backgroundColor={colors.gray100}
           />
         </View>
       </View>
@@ -158,7 +150,7 @@ export default function MemberCard({
             >
               <Text style={styles.historyToggleText}>Transaction History</Text>
               <View style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}>
-                <ChevronDownIcon size={14} color="#8E8E93" />
+                <ChevronDownIcon size={14} color={colors.gray500} />
               </View>
             </TouchableOpacity>
 
@@ -173,7 +165,7 @@ export default function MemberCard({
                       <Text
                         style={[
                           styles.historyAmount,
-                          { color: tx.amount >= 0 ? '#34C759' : '#FF383C' },
+                          { color: tx.amount >= 0 ? colors.success : colors.error },
                         ]}
                       >
                         {formatAmount(tx.amount)}
@@ -198,7 +190,7 @@ export default function MemberCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -213,47 +205,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#E8E8ED',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 18,
-    color: '#8E8E93',
-  },
   nameSection: {
     marginLeft: 10,
   },
   username: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 21,
-    color: '#1C1C1E',
+    color: colors.text.primary,
   },
   separator: {
     width: StyleSheet.hairlineWidth,
     height: 30,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.gray100,
     marginHorizontal: 12,
   },
   legalSection: {
     flex: 1,
   },
   legalName: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 13,
-    color: '#1C1C1E',
+    color: colors.text.primary,
   },
   studentId: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginTop: 2,
   },
   infoRow: {
@@ -262,20 +239,20 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   infoBox: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   infoLabel: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   infoValue: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 12,
-    color: '#1C1C1E',
+    color: colors.text.primary,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -289,9 +266,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   toggleLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 14,
-    color: '#1C1C1E',
+    color: colors.text.primary,
   },
   depositRow: {
     flexDirection: 'row',
@@ -301,26 +278,26 @@ const styles = StyleSheet.create({
   },
   depositBox: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.gray900,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
   depositLabel: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#AEAEB2',
+    color: colors.gray400,
   },
   depositAmount: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 20,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   deductCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -328,14 +305,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FF383C',
+    backgroundColor: colors.error,
     alignItems: 'center',
     justifyContent: 'center',
   },
   circleText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 24,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   depositSection: {
     marginTop: 4,
@@ -348,9 +325,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   historyToggleText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   historyList: {
     marginTop: 8,
@@ -358,7 +335,7 @@ const styles = StyleSheet.create({
   historyItem: {
     paddingVertical: 6,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#F0F0F5',
+    borderTopColor: colors.gray50,
   },
   historyRow1: {
     flexDirection: 'row',
@@ -372,24 +349,24 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   historyDesc: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 12,
-    color: '#1C1C1E',
+    color: colors.text.primary,
     flex: 1,
     marginRight: 8,
   },
   historyBalance: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   historyDate: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   historyAmount: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 14,
   },
 });

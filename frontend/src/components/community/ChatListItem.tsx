@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
 
 interface ChatListItemProps {
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 76,
     paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   avatarContainer: {
     width: 50,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarInitial: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
     color: '#6E6E73',
   },
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   groupCircleBack: {},
   groupCircleInitial: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 20,
     color: '#6E6E73',
   },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   name: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
     color: '#1C1C1E',
     flexShrink: 1,
@@ -177,12 +177,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   timestamp: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray500,
   },
   unreadBadge: {
-    backgroundColor: '#34C759',
+    backgroundColor: colors.success,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -191,17 +191,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   unreadText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   message: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray500,
   },
   messageUnread: {
-    fontFamily: 'Inter-Medium',
+    fontFamily: font.medium,
     color: '#1C1C1E',
   },
   separator: {

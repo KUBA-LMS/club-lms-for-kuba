@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
+import Avatar from '../common/Avatar';
 
 interface CommonGroup {
   name: string;
@@ -37,13 +38,7 @@ export default function UserListItem({
       onPress={onToggle}
       activeOpacity={0.6}
     >
-      <View style={styles.avatarContainer}>
-        {avatar ? (
-          <Image source={{ uri: resolveImageUrl(avatar) }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]} />
-        )}
-      </View>
+      <Avatar uri={avatar} size={50} name={username} style={{ marginRight: 13 }} />
       <View style={styles.content}>
         <Text style={styles.username}>{username}</Text>
         <Text style={styles.groupsLabel}>Groups in common:</Text>
@@ -80,33 +75,20 @@ const styles = StyleSheet.create({
     height: 90,
     paddingHorizontal: 15,
   },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    marginRight: 13,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
-  },
   content: {
     flex: 1,
     justifyContent: 'center',
   },
   username: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 17,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 4,
   },
   groupsLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 4,
   },
   badgeRow: {
@@ -118,7 +100,7 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: colors.white,
   },
   checkboxContainer: {
     width: 30,
@@ -142,9 +124,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxNumber: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   separator: {
     position: 'absolute',

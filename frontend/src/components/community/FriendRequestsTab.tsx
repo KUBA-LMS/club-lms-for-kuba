@@ -8,8 +8,9 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { colors } from '../../constants';
+import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
+import Avatar from '../common/Avatar';
 import {
   getFriendRequests,
   acceptFriendRequest,
@@ -79,13 +80,7 @@ function RequestItem({ request, onHandled }: RequestItemProps) {
 
   return (
     <View style={styles.itemContainer}>
-      <View style={styles.avatarContainer}>
-        {sender.profile_image ? (
-          <Image source={{ uri: resolveImageUrl(sender.profile_image) }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]} />
-        )}
-      </View>
+      <Avatar uri={sender.profile_image} size={50} name={sender.username} style={{ marginRight: 13 }} />
       <View style={styles.content}>
         <Text style={styles.username}>{sender.username}</Text>
         {request.common_clubs.length > 0 && (
@@ -103,7 +98,7 @@ function RequestItem({ request, onHandled }: RequestItemProps) {
           disabled={loading !== null}
         >
           {loading === 'accept' ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={colors.white} />
           ) : (
             <Text style={styles.acceptText}>Accept</Text>
           )}
@@ -209,7 +204,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
     color: colors.gray400,
   },
@@ -220,33 +215,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    marginRight: 13,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#E5E5EA',
-  },
   content: {
     flex: 1,
     justifyContent: 'center',
   },
   username: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 17,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 2,
   },
   groupsLabel: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 11,
-    color: '#000000',
+    color: colors.black,
     marginBottom: 4,
   },
   badgeRow: {
@@ -260,24 +242,24 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   clubBadgePlaceholder: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.gray50,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.gray200,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
   },
   clubBadgeText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
-    color: '#333',
+    color: colors.gray700,
   },
   actionRow: {
     flexDirection: 'row',
     gap: 8,
   },
   acceptButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: colors.success,
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -286,9 +268,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   acceptText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   rejectButton: {
     borderRadius: 14,
@@ -301,7 +283,7 @@ const styles = StyleSheet.create({
     borderColor: colors.error,
   },
   rejectText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 12,
     color: colors.error,
   },

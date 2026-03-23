@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { TrashIcon } from '../icons';
 import { ChatMember } from '../../types/chat';
+import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
 
 interface RequestSplitModalProps {
@@ -87,7 +88,7 @@ export default function RequestSplitModal({
               onPress={() => handleRemoveMember(item.id)}
               activeOpacity={0.6}
             >
-              <TrashIcon size={16} color="#FF3B30" />
+              <TrashIcon size={16} color={colors.error} />
             </TouchableOpacity>
           )}
         </View>
@@ -112,7 +113,7 @@ export default function RequestSplitModal({
               value={amountText}
               onChangeText={setAmountText}
               placeholder="0"
-              placeholderTextColor="#C5C5C5"
+              placeholderTextColor={colors.gray300}
               keyboardType="number-pad"
               maxLength={10}
             />
@@ -165,16 +166,16 @@ const styles = StyleSheet.create({
     padding: 30,
   },
   dialog: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 20,
     width: '100%',
     maxHeight: '80%',
     padding: 20,
   },
   title: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 20,
-    color: '#000000',
+    color: colors.black,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -186,24 +187,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   amountInput: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 32,
-    color: '#000000',
+    color: colors.black,
     textAlign: 'right',
     minWidth: 80,
     paddingVertical: 4,
     borderBottomWidth: 2,
-    borderBottomColor: '#000000',
+    borderBottomColor: colors.black,
   },
   currencyLabel: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 18,
-    color: '#8E8E93',
+    color: colors.gray500,
   },
   toLabel: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.gray500,
     marginBottom: 10,
   },
   memberList: {
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: colors.gray100,
   },
   memberLeft: {
     flexDirection: 'row',
@@ -230,12 +231,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   memberAvatarPlaceholder: {
-    backgroundColor: '#FF9500',
+    backgroundColor: colors.warning,
   },
   memberName: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 15,
-    color: '#000000',
+    color: colors.black,
   },
   memberNameMe: {
     color: '#00C0E8',
@@ -246,9 +247,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   splitAmountText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#000000',
+    color: colors.black,
   },
   removeButton: {
     width: 32,
@@ -262,32 +263,32 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   cancelText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   proceedButton: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.black,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   proceedButtonDisabled: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.gray100,
   },
   proceedText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   proceedTextDisabled: {
-    color: '#8E8E93',
+    color: colors.gray500,
   },
 });

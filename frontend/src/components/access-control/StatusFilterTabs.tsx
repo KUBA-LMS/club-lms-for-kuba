@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { TicketStatus } from '../../types/accessControl';
+import { colors, font } from '../../constants';
 
 interface StatusFilterTabsProps {
   activeFilter: TicketStatus;
@@ -9,9 +10,9 @@ interface StatusFilterTabsProps {
 }
 
 const FILTERS: { key: TicketStatus; label: string; color: string }[] = [
-  { key: 'registered', label: 'Registered', color: '#000000' },
-  { key: 'requested', label: 'Requested', color: '#FF8D28' },
-  { key: 'checked_in', label: 'Checked-in', color: '#34C759' },
+  { key: 'registered', label: 'Registered', color: colors.black },
+  { key: 'requested', label: 'Requested', color: colors.status.requested },
+  { key: 'checked_in', label: 'Checked-in', color: colors.success },
   { key: 'not_applied', label: 'Not Applied', color: '#FF383C' },
 ];
 
@@ -63,14 +64,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 6,
     borderRadius: 14,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.gray50,
   },
   tabText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.semibold,
     fontSize: 11,
     textAlign: 'center',
   },
   tabTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
 });

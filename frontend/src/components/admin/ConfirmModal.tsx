@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
 
 interface ConfirmModalProps {
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '85%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -80,16 +81,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 18,
     color: '#1C1C1E',
     textAlign: 'center',
     marginBottom: 8,
   },
   message: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: font.regular,
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.gray500,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -108,9 +109,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backButtonText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   proceedButton: {
     flex: 1,
@@ -121,8 +122,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   proceedButtonText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: font.bold,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
   },
 });
