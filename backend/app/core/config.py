@@ -45,8 +45,8 @@ class Settings(BaseSettings):
     # Admin dashboard IP whitelist (comma-separated; empty = allow all)
     ADMIN_IP_WHITELIST: str = ""
 
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379"
+    # Redis (empty = disable Redis features)
+    REDIS_URL: str = ""
 
     # Email (SMTP)
     SMTP_HOST: str = "smtp.gmail.com"

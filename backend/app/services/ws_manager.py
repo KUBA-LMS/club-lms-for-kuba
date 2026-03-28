@@ -35,7 +35,10 @@ class ConnectionManager:
 
     async def start(self):
         self._running = True
-        self._subscriber_task = asyncio.create_task(self._redis_subscriber())
+        if settings.REDIS_URL:
+            self._subscriber_task = asyncio.create_task(self._redis_subscriber())
+        else:
+            logger.warning("REDIS_URL not set, running without Redis pub/sub")
         logger.info("WebSocket manager started")
 
     async def stop(self):
@@ -101,6 +104,9 @@ class ConnectionManager:
         try:
             from app.core.redis import get_redis
             r = await get_redis()
+            if r is None:
+                await self._broadcast_local(channel, message)
+                return
             payload = json.dumps({"channel": channel, "message": message})
             await r.publish(f"ws:{channel}", payload)
         except Exception as e:

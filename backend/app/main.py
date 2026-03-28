@@ -155,7 +155,8 @@ async def health_check():
     # Redis check
     try:
         r = await get_redis()
-        await r.ping()
+        if r is not None:
+            await r.ping()
     except Exception as e:
         errors["redis"] = str(e)
 
