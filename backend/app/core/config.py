@@ -74,8 +74,13 @@ class Settings(BaseSettings):
         # Fly.io sets postgres:// but asyncpg needs postgresql+asyncpg://
         if v.startswith("postgres://"):
             v = v.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif v.startswith("postgresql://"):
+        elif v.startswith("postgresql://") and not v.startswith("postgresql+"):
             v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        # asyncpg doesn't support sslmode param, remove it
+        if "?sslmode=" in v:
+            v = v.split("?sslmode=")[0]
+        elif "&sslmode=" in v:
+            v = v.replace("&sslmode=disable", "").replace("&sslmode=require", "")
         return v
 
     @field_validator("CORS_ORIGINS", mode="before")
