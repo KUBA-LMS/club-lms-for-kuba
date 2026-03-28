@@ -65,7 +65,8 @@ async def lifespan(app: FastAPI):
         await init_db()
         logger.info("Database initialized")
     except Exception as e:
-        logger.error("Database initialization failed: %s", e)
+        logger.error("Database initialization failed: %s: %s", type(e).__name__, e)
+        logger.error("DATABASE_URL scheme: %s", settings.DATABASE_URL.split("@")[0].split("://")[0] if "://" in settings.DATABASE_URL else "unknown")
     try:
         await manager.start()
     except Exception as e:
@@ -150,7 +151,7 @@ async def health_check():
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
     except Exception as e:
-        errors["database"] = str(e)
+        errors["database"] = f"{type(e).__name__}: {e}"
 
     # Redis check
     try:
