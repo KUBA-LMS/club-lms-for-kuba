@@ -6,6 +6,8 @@ engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     future=True,
+    pool_timeout=5,
+    connect_args={"timeout": 5},
 )
 
 AsyncSessionLocal = async_sessionmaker(
