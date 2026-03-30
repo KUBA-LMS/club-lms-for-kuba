@@ -216,16 +216,8 @@ async def create_club(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Create a new club/group. Top-level clubs require superadmin. Subgroups require admin/lead of parent."""
+    """Create a new club/group. Any user can create a top-level club. Subgroups require admin/lead of parent."""
     from app.core.security import verify_club_admin
-
-    # Top-level club: superadmin only
-    if not club_data.parent_id:
-        if current_user.role != "superadmin":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only superadmins can create top-level clubs",
-            )
 
     # Subgroup: verify user is admin/lead of the parent club
     if club_data.parent_id:
