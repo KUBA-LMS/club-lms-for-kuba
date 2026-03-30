@@ -1158,3 +1158,59 @@ async def update_user_role(
     await db.commit()
 
     return {"message": f"User '{user.username}' role updated to '{role}'", "role": role}
+
+
+@router.post("/clubs", status_code=status.HTTP_201_CREATED)
+async def admin_create_club(
+    name: str = Query(...),
+    university: str = Query(None),
+    description: str = Query(None),
+    parent_id: UUID = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_superadmin),
+):
+    """Create a new club or subgroup (superadmin only)."""
+    if parent_id:
+        parent = await db.execute(select(Club).where(Club.id == parent_id))
+        if not parent.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Parent club not found")
+
+    club = Club(
+        name=name,
+        university=university,
+        description=description,
+        parent_id=parent_id,
+    )
+    db.add(club)
+    await db.commit()
+    await db.refresh(club)
+
+    return {"id": str(club.id), "name": club.name, "message": "Club created"}
+
+
+@router.delete("/clubs/{club_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def admin_delete_club(
+    club_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_superadmin),
+):
+    """Delete a club (superadmin only). Fails if club has members."""
+    result = await db.execute(select(Club).where(Club.id == club_id))
+    club = result.scalar_one_or_none()
+    if not club:
+        raise HTTPException(status_code=404, detail="Club not found")
+
+    member_count = (
+        await db.execute(select(func.count()).where(user_club.c.club_id == club_id))
+    ).scalar()
+    if member_count > 0:
+        raise HTTPException(status_code=400, detail=f"Cannot delete club with {member_count} members. Remove all members first.")
+
+    subgroup_count = (
+        await db.execute(select(func.count(Club.id)).where(Club.parent_id == club_id))
+    ).scalar()
+    if subgroup_count > 0:
+        raise HTTPException(status_code=400, detail=f"Cannot delete club with {subgroup_count} subgroups. Remove subgroups first.")
+
+    await db.delete(club)
+    await db.commit()
