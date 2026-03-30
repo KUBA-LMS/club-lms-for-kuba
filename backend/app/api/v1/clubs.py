@@ -195,12 +195,12 @@ async def create_club(
     current_user: User = Depends(get_current_user),
 ):
     """Create a new club/group. Top-level clubs require admin. Subgroups require membership in parent club."""
-    # Top-level club: admin only
+    # Top-level club: admin or superadmin only
     if not club_data.parent_id:
-        if current_user.role != "admin":
+        if current_user.role not in ("admin", "superadmin"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only app admins can create top-level clubs",
+                detail="Only admins can create top-level clubs",
             )
 
     # Subgroup: verify user is a member of the parent club

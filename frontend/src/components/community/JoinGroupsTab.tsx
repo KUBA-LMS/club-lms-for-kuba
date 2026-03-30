@@ -270,9 +270,9 @@ export default function JoinGroupsTab() {
     [fetchGroups],
   );
 
-  // --- Create group (subgroup under a club) ---
+  // --- Create group/club ---
   const handleCreateGroup = useCallback(
-    async (name: string, logoUri: string | null, parentId: string) => {
+    async (name: string, logoUri: string | null, parentId: string | null) => {
       setIsCreating(true);
       try {
         await createGroup(name, logoUri, parentId);

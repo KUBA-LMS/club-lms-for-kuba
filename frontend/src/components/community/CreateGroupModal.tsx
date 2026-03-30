@@ -32,7 +32,7 @@ interface CreateGroupModalProps {
   isCreating: boolean;
   clubs: ClubOption[];
   onBack: () => void;
-  onProceed: (name: string, logoUri: string | null, parentId: string) => void;
+  onProceed: (name: string, logoUri: string | null, parentId: string | null) => void;
 }
 
 export default function CreateGroupModal({
@@ -47,7 +47,8 @@ export default function CreateGroupModal({
   const [isNameFocused, setIsNameFocused] = useState(false);
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
 
-  const isValid = name.trim().length > 0 && selectedClubId !== null;
+  const hasClubs = clubs.length > 0;
+  const isValid = name.trim().length > 0 && (hasClubs ? selectedClubId !== null : true);
 
   const handlePickImage = useCallback(async () => {
     if (!ImagePicker) return;
@@ -83,7 +84,7 @@ export default function CreateGroupModal({
   }, [onBack]);
 
   const handleProceed = useCallback(() => {
-    if (!isValid || isCreating || !selectedClubId) return;
+    if (!isValid || isCreating) return;
     onProceed(name.trim(), logoUri, selectedClubId);
   }, [isValid, isCreating, name, logoUri, selectedClubId, onProceed]);
 
@@ -91,57 +92,61 @@ export default function CreateGroupModal({
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>Create New Group</Text>
+          <Text style={styles.title}>{hasClubs ? 'Create New Group' : 'Create New Club'}</Text>
 
-          {/* Club Picker */}
-          <Text style={styles.sectionLabel}>Select Club</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.clubPickerContent}
-            style={styles.clubPicker}
-          >
-            {clubs.map((club) => {
-              const isSelected = club.id === selectedClubId;
-              return (
-                <TouchableOpacity
-                  key={club.id}
-                  style={styles.clubPickerItem}
-                  onPress={() => setSelectedClubId(club.id)}
-                  activeOpacity={0.7}
-                >
-                  <View
-                    style={[
-                      styles.clubPickerImageWrapper,
-                      isSelected && styles.clubPickerImageSelected,
-                    ]}
-                  >
-                    {club.logo_image ? (
-                      <Image
-                        source={{ uri: resolveImageUrl(club.logo_image) }}
-                        style={styles.clubPickerImg}
-                      />
-                    ) : (
-                      <View style={[styles.clubPickerImg, styles.clubPickerPlaceholder]}>
-                        <Text style={styles.clubPickerPlaceholderText}>
-                          {club.name.charAt(0).toUpperCase()}
-                        </Text>
+          {/* Club Picker - only show when clubs exist */}
+          {hasClubs && (
+            <>
+              <Text style={styles.sectionLabel}>Select Club</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.clubPickerContent}
+                style={styles.clubPicker}
+              >
+                {clubs.map((club) => {
+                  const isSelected = club.id === selectedClubId;
+                  return (
+                    <TouchableOpacity
+                      key={club.id}
+                      style={styles.clubPickerItem}
+                      onPress={() => setSelectedClubId(club.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        style={[
+                          styles.clubPickerImageWrapper,
+                          isSelected && styles.clubPickerImageSelected,
+                        ]}
+                      >
+                        {club.logo_image ? (
+                          <Image
+                            source={{ uri: resolveImageUrl(club.logo_image) }}
+                            style={styles.clubPickerImg}
+                          />
+                        ) : (
+                          <View style={[styles.clubPickerImg, styles.clubPickerPlaceholder]}>
+                            <Text style={styles.clubPickerPlaceholderText}>
+                              {club.name.charAt(0).toUpperCase()}
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.clubPickerLabel,
-                      isSelected && styles.clubPickerLabelSelected,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {club.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+                      <Text
+                        style={[
+                          styles.clubPickerLabel,
+                          isSelected && styles.clubPickerLabelSelected,
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {club.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </>
+          )}
 
           {/* Logo Upload */}
           <TouchableOpacity
