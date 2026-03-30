@@ -1182,6 +1182,14 @@ async def admin_create_club(
         parent_id=parent_id,
     )
     db.add(club)
+    await db.flush()
+
+    # Auto-add creator as lead
+    await db.execute(
+        user_club.insert().values(
+            user_id=current_user.id, club_id=club.id, role="lead"
+        )
+    )
     await db.commit()
     await db.refresh(club)
 
