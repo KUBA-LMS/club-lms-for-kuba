@@ -43,7 +43,11 @@ class User(Base, TimestampMixin):
     account_holder_name = Column(String(100), nullable=True)
 
     # Relationships
-    clubs = relationship("Club", secondary=user_club, back_populates="members")
+    clubs = relationship(
+        "Club", secondary=user_club, back_populates="members",
+        primaryjoin="User.id == user_club.c.user_id",
+        secondaryjoin="user_club.c.club_id == Club.id",
+    )
     friends = relationship(
         "User",
         secondary=friendship,

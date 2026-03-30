@@ -18,7 +18,11 @@ class Club(Base, TimestampMixin):
     parent_id = Column(UUID(as_uuid=True), ForeignKey("clubs.id"), nullable=True)
 
     # Relationships
-    members = relationship("User", secondary=user_club, back_populates="clubs")
+    members = relationship(
+        "User", secondary=user_club, back_populates="clubs",
+        primaryjoin="Club.id == user_club.c.club_id",
+        secondaryjoin="user_club.c.user_id == User.id",
+    )
     events = relationship("Event", foreign_keys="Event.club_id", back_populates="club")
     parent = relationship("Club", remote_side=[id], back_populates="subgroups")
     subgroups = relationship("Club", back_populates="parent")
