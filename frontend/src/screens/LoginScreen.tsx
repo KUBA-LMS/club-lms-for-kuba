@@ -51,7 +51,14 @@ export default function LoginScreen() {
       // Navigation to main screen will be handled by App.tsx based on auth state
     } catch (error) {
       const apiError = error as ApiError;
-      Alert.alert('Login Failed', apiError.detail || 'Please check your credentials');
+      Alert.alert(
+        'Login Failed',
+        apiError.detail || 'Please check your credentials',
+        [
+          { text: 'Try Again', style: 'cancel' },
+          { text: 'Sign Up', onPress: () => navigation.navigate('SignUpStep1') },
+        ]
+      );
     }
   };
 

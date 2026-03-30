@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -139,24 +140,51 @@ export default function SignUpStep2Screen() {
   // Profile picture size
   const profileSize = Math.min(170 * scale, width - 120);
 
+  const pickFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setTempImage(result.assets[0].uri);
+      setIsCropping(true);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow access to your camera.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setTempImage(result.assets[0].uri);
+      setIsCropping(true);
+    }
+  };
+
   const handleUploadPress = () => {
-    // TODO: Implement image picker
-    // For now, simulate selecting an image
     Alert.alert(
       'Upload Picture',
       'Choose an option',
       [
-        { text: 'Take Photo', onPress: () => simulateImageSelection() },
-        { text: 'Choose from Library', onPress: () => simulateImageSelection() },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Library', onPress: pickFromLibrary },
         { text: 'Cancel', style: 'cancel' },
       ]
     );
-  };
-
-  const simulateImageSelection = () => {
-    // Simulate image selection - in real app, use expo-image-picker
-    setTempImage('https://picsum.photos/300/300');
-    setIsCropping(true);
   };
 
   const handleCropDone = () => {

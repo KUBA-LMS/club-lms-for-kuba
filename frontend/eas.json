@@ -12,21 +12,26 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba.fly.dev/api/v1",
+        "NAVER_MAP_CLIENT_ID": "31t54pbm6t"
+      }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.example.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba.fly.dev/api/v1",
+        "NAVER_MAP_CLIENT_ID": "31t54pbm6t"
       }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "hnseongmin11@gmail.com",
+        "ascAppId": "6761349162",
+        "appleTeamId": "45JS5XMNVC"
       }
     }
   }
