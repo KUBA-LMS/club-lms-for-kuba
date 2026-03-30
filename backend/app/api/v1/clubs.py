@@ -25,6 +25,28 @@ from app.schemas.club import (
 router = APIRouter()
 
 
+@router.get("/me/admin")
+async def get_my_admin_clubs(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return clubs where the current user is admin or lead."""
+    if current_user.role == "superadmin":
+        result = await db.execute(select(Club.id, Club.name).order_by(Club.name))
+        return [{"id": str(cid), "name": cname} for cid, cname in result.fetchall()]
+
+    result = await db.execute(
+        select(Club.id, Club.name, user_club.c.role)
+        .join(user_club, user_club.c.club_id == Club.id)
+        .where(
+            user_club.c.user_id == current_user.id,
+            user_club.c.role.in_(["admin", "lead"]),
+        )
+        .order_by(Club.name)
+    )
+    return [{"id": str(cid), "name": cname, "role": role} for cid, cname, role in result.fetchall()]
+
+
 @router.get("/me", response_model=list[MyClubResponse])
 async def get_my_clubs(
     db: AsyncSession = Depends(get_db),
@@ -194,16 +216,18 @@ async def create_club(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Create a new club/group. Top-level clubs require admin. Subgroups require membership in parent club."""
-    # Top-level club: admin or superadmin only
+    """Create a new club/group. Top-level clubs require superadmin. Subgroups require admin/lead of parent."""
+    from app.core.security import verify_club_admin
+
+    # Top-level club: superadmin only
     if not club_data.parent_id:
-        if current_user.role not in ("admin", "superadmin"):
+        if current_user.role != "superadmin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only admins can create top-level clubs",
+                detail="Only superadmins can create top-level clubs",
             )
 
-    # Subgroup: verify user is a member of the parent club
+    # Subgroup: verify user is admin/lead of the parent club
     if club_data.parent_id:
         parent_result = await db.execute(
             select(Club).where(Club.id == club_data.parent_id)
@@ -213,17 +237,7 @@ async def create_club(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Parent club not found",
             )
-        membership = await db.execute(
-            select(user_club).where(
-                (user_club.c.user_id == current_user.id)
-                & (user_club.c.club_id == club_data.parent_id)
-            )
-        )
-        if not membership.first():
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You must be a member of the parent club to create a subgroup",
-            )
+        await verify_club_admin(db, current_user, club_data.parent_id)
 
     # Check if club name already exists
     result = await db.execute(select(Club).where(Club.name == club_data.name))
@@ -264,9 +278,11 @@ async def update_club(
     club_id: UUID,
     club_update: ClubUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_user),
 ):
-    """Update a club (admin only)."""
+    """Update a club (admin/lead of this club only)."""
+    from app.core.security import verify_club_admin
+    await verify_club_admin(db, current_user, club_id)
     result = await db.execute(select(Club).where(Club.id == club_id))
     club = result.scalar_one_or_none()
 
@@ -307,9 +323,11 @@ async def update_club(
 async def delete_club(
     club_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_user),
 ):
-    """Delete a club (admin only)."""
+    """Delete a club (admin/lead of this club only)."""
+    from app.core.security import verify_club_admin
+    await verify_club_admin(db, current_user, club_id)
     result = await db.execute(select(Club).where(Club.id == club_id))
     club = result.scalar_one_or_none()
 

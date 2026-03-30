@@ -12,6 +12,7 @@ user_club = Table(
     Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True),
     Column("club_id", UUID(as_uuid=True), ForeignKey("clubs.id"), primary_key=True),
     Column("role", String(20), server_default="member", nullable=False),
+    Column("supervisor_id", UUID(as_uuid=True), ForeignKey("users.id"), nullable=True),
 )
 
 # Association table for friendships

@@ -85,11 +85,15 @@ async def scan_barcode(
     current_admin: User = Depends(get_current_admin_user),
 ):
     """Scan a barcode at event entrance for check-in."""
+    from app.core.security import verify_club_admin
+
     # Verify event exists
     event_result = await db.execute(select(Event).where(Event.id == event_id))
     event = event_result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    await verify_club_admin(db, current_admin, event.club_id)
 
     # Find ticket by barcode (try as-is first, then with CLX-/KUBA- prefix for legacy)
     barcode_value = scan_data.barcode
@@ -222,11 +226,15 @@ async def get_participants(
     current_admin: User = Depends(get_current_admin_user),
 ):
     """Get all participants for an event with their check-in status."""
+    from app.core.security import verify_club_admin
+
     # Verify event exists
     event_result = await db.execute(select(Event).where(Event.id == event_id))
     event = event_result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    await verify_club_admin(db, current_admin, event.club_id)
 
     # Get all non-cancelled registrations with user + clubs
     query = (
@@ -274,7 +282,16 @@ async def override_registration(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    """Override a pending registration to confirmed (admin only)."""
+    """Override a pending registration to confirmed (admin/lead of event's club only)."""
+    from app.core.security import verify_club_admin
+
+    # Verify event and permissions
+    event_result = await db.execute(select(Event).where(Event.id == event_id))
+    event = event_result.scalar_one_or_none()
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+    await verify_club_admin(db, current_admin, event.club_id)
+
     # Get registration with relations
     result = await db.execute(
         select(Registration)
@@ -370,12 +387,16 @@ async def walk_in_register(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    """Walk-in: register + confirm + ticket + check-in in one step (admin only)."""
+    """Walk-in: register + confirm + ticket + check-in in one step (admin/lead only)."""
+    from app.core.security import verify_club_admin
+
     # Verify event
     event_result = await db.execute(select(Event).where(Event.id == event_id))
     event = event_result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    await verify_club_admin(db, current_admin, event.club_id)
 
     # Verify user
     user_result = await db.execute(

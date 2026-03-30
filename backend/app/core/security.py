@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.models.user import User
+from app.models.user import User, user_club
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
@@ -89,11 +89,10 @@ async def get_current_user(
 async def get_current_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in ("admin", "superadmin"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
-        )
+    """Deprecated: use verify_club_admin for per-group checks.
+    Kept for backward compat -- allows superadmin or any authenticated user
+    (actual permission is checked by _verify_admin_club_access in admin.py).
+    """
     return current_user
 
 
@@ -106,3 +105,25 @@ async def get_current_superadmin(
             detail="Superadmin access required",
         )
     return current_user
+
+
+async def verify_club_admin(
+    db: AsyncSession, user: User, club_id
+) -> None:
+    """Raise 403 if user is not admin/lead of the specific club. Superadmins bypass."""
+    from uuid import UUID
+    if user.role == "superadmin":
+        return
+    cid = club_id if isinstance(club_id, UUID) else UUID(str(club_id))
+    result = await db.execute(
+        select(user_club.c.role).where(
+            user_club.c.user_id == user.id,
+            user_club.c.club_id == cid,
+        )
+    )
+    row = result.first()
+    if not row or row[0] not in ("admin", "lead"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin or lead role required for this club",
+        )

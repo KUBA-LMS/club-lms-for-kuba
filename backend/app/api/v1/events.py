@@ -344,7 +344,9 @@ async def create_event(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
 ):
-    """Create a new event (admin only)."""
+    """Create a new event (admin/lead of the club only)."""
+    from app.core.security import verify_club_admin
+
     # Verify club exists
     club_result = await db.execute(select(Club).where(Club.id == event_data.club_id))
     if not club_result.scalar_one_or_none():
@@ -352,6 +354,8 @@ async def create_event(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Club not found",
         )
+
+    await verify_club_admin(db, current_user, event_data.club_id)
 
     # Validate dates
     if event_data.registration_end <= event_data.registration_start:
@@ -412,7 +416,9 @@ async def update_event(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
 ):
-    """Update an event (admin only)."""
+    """Update an event (admin/lead of the event's club only)."""
+    from app.core.security import verify_club_admin
+
     result = await db.execute(
         select(Event)
         .options(
@@ -430,6 +436,8 @@ async def update_event(
             detail="Event not found",
         )
 
+    await verify_club_admin(db, current_user, event.club_id)
+
     update_data = event_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(event, field, value)
@@ -446,7 +454,9 @@ async def delete_event(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
 ):
-    """Delete an event (admin only)."""
+    """Delete an event (admin/lead of the event's club only)."""
+    from app.core.security import verify_club_admin
+
     result = await db.execute(select(Event).where(Event.id == event_id))
     event = result.scalar_one_or_none()
 
@@ -456,6 +466,7 @@ async def delete_event(
             detail="Event not found",
         )
 
+    await verify_club_admin(db, current_user, event.club_id)
     await db.delete(event)
     await db.commit()
 

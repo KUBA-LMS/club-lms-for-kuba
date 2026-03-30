@@ -122,7 +122,7 @@ export default function HomeScreen() {
   const { height: screenHeight } = useWindowDimensions();
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
-  const { clubs: myClubs, refresh: refreshClubs } = useMyClubs();
+  const { clubs: myClubs, refresh: refreshClubs, isAdminOfAny } = useMyClubs();
 
   // Flat list: parent clubs + their subgroups
   const flatClubs = useMemo(() => {
@@ -142,8 +142,8 @@ export default function HomeScreen() {
     setSelectedClubId((prev) => (prev === clubId ? null : clubId));
   }, []);
 
-  // Check if user is admin
-  const isAdmin = (user as User | null)?.role === "admin";
+  // Check if user is admin/lead in any club, or superadmin
+  const isAdmin = isAdminOfAny || (user as User | null)?.role === "superadmin";
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
 
   // Current location

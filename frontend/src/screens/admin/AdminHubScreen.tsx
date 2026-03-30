@@ -112,7 +112,8 @@ export default function AdminHubScreen() {
     (async () => {
       try {
         const data = await getMyGroups();
-        setClubs(data);
+        const adminClubs = data.filter((c) => c.role === 'admin' || c.role === 'lead');
+        setClubs(adminClubs);
         if (data.length > 0) {
           setSelectedClubId(data[0].id);
         }

@@ -61,20 +61,21 @@ async def _verify_club_exists(db: AsyncSession, club_id: UUID) -> Club:
 
 
 async def _verify_admin_club_access(db: AsyncSession, club_id: UUID, current_user: User) -> None:
-    """Verify that the admin user is a member of the given club.
+    """Verify that the user is admin/lead of the given club.
     Superadmins have unrestricted access."""
     if current_user.role == "superadmin":
         return
-    membership = await db.execute(
-        select(user_club).where(
+    result = await db.execute(
+        select(user_club.c.role).where(
             user_club.c.user_id == current_user.id,
             user_club.c.club_id == club_id,
         )
     )
-    if not membership.first():
+    row = result.first()
+    if not row or row[0] not in ("admin", "lead"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have access to this club",
+            detail="Admin or lead role required for this club",
         )
 
 
@@ -167,7 +168,7 @@ async def get_club_members(
                 nationality=user.nationality,
                 gender=user.gender,
                 club_role=club_role,
-                is_admin=user.role == "admin",
+                is_admin=club_role in ("admin", "lead"),
                 deposit=AdminMemberDepositInfo(
                     deposit_id=deposit_id,
                     balance=balance,
@@ -186,7 +187,7 @@ async def toggle_admin_role(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
 ):
-    """Toggle User.role between 'admin' and 'member'."""
+    """Toggle user_club.role between 'admin' and 'member' for the specific club."""
     await _verify_club_exists(db, club_id)
     await _verify_admin_club_access(db, club_id, current_user)
 
@@ -194,28 +195,36 @@ async def toggle_admin_role(
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    # Verify user is a member of this club
-    membership = await db.execute(
-        select(user_club).where(
-            user_club.c.user_id == user_id, user_club.c.club_id == club_id
-        )
-    )
-    if not membership.first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not a member of this club")
-
     if user.role == "superadmin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot modify superadmin role")
 
-    new_role = "member" if user.role == "admin" else "admin"
-    user.role = new_role
+    # Get current club role
+    membership = await db.execute(
+        select(user_club.c.role).where(
+            user_club.c.user_id == user_id, user_club.c.club_id == club_id
+        )
+    )
+    row = membership.first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not a member of this club")
+
+    current_role = row[0]
+    if current_role == "lead":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot change lead role via admin toggle")
+
+    new_role = "member" if current_role == "admin" else "admin"
+    await db.execute(
+        user_club.update()
+        .where(user_club.c.user_id == user_id, user_club.c.club_id == club_id)
+        .values(role=new_role)
+    )
     await db.commit()
 
     logger.info(
         "admin_toggle: actor=%s club=%s target=%s new_role=%s",
         current_user.id, club_id, user_id, new_role,
     )
-    return {"is_admin": user.role == "admin"}
+    return {"is_admin": new_role in ("admin", "lead"), "club_role": new_role}
 
 
 @router.put("/clubs/{club_id}/members/{user_id}/lead-toggle")
@@ -486,11 +495,14 @@ async def add_member_to_club(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is already a member")
 
     await db.execute(
-        user_club.insert().values(user_id=user_id, club_id=club_id, role="member")
+        user_club.insert().values(
+            user_id=user_id, club_id=club_id, role="member",
+            supervisor_id=current_user.id,
+        )
     )
     await db.commit()
 
-    logger.info("add_member: actor=%s club=%s added=%s", current_user.id, club_id, user_id)
+    logger.info("add_member: actor=%s club=%s added=%s supervisor=%s", current_user.id, club_id, user_id, current_user.id)
     return {"message": "Member added successfully"}
 
 
@@ -528,15 +540,14 @@ async def get_organization(
     subgroup_cards = []
 
     for sg in subgroups:
-        # Count members by role
+        # Count members by club role
         members_result = await db.execute(
-            select(User.role, func.count(User.id))
-            .join(user_club, user_club.c.user_id == User.id)
+            select(user_club.c.role, func.count(user_club.c.user_id))
             .where(user_club.c.club_id == sg.id)
-            .group_by(User.role)
+            .group_by(user_club.c.role)
         )
         role_counts = dict(members_result.fetchall())
-        admin_count = role_counts.get("admin", 0)
+        admin_count = role_counts.get("admin", 0) + role_counts.get("lead", 0)
         normal_count = role_counts.get("member", 0)
         member_count = admin_count + normal_count
 
@@ -568,10 +579,9 @@ async def get_organization(
 
     # Also count members in the parent club itself for stats
     parent_members_result = await db.execute(
-        select(User.role, func.count(User.id))
-        .join(user_club, user_club.c.user_id == User.id)
+        select(user_club.c.role, func.count(user_club.c.user_id))
         .where(user_club.c.club_id == club_id)
-        .group_by(User.role)
+        .group_by(user_club.c.role)
     )
     parent_role_counts = dict(parent_members_result.fetchall())
 
@@ -653,7 +663,7 @@ async def get_subgroup_members(
                 id=user.id,
                 username=user.username,
                 profile_image=user.profile_image,
-                is_admin=user.role == "admin",
+                is_admin=club_role in ("admin", "lead"),
                 club_role=crole,
                 deposit_balance=balance,
             )

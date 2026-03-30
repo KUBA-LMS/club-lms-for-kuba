@@ -9,7 +9,7 @@ export interface User {
   nationality?: string;
   gender?: GenderType;
   profile_image?: string;
-  role: 'member' | 'admin';
+  role: 'member' | 'admin' | 'superadmin';
   is_active: boolean;
   created_at: string;
   updated_at: string;

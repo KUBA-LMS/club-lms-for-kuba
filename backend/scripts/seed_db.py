@@ -17,7 +17,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models.base import Base
-from app.models.user import User
+from app.models.user import User, user_club
 from app.models.club import Club
 from app.models.event import Event
 from app.models.registration import Registration
@@ -133,11 +133,18 @@ async def seed_database():
             hashed_password=get_password_hash("admin123!"),
             legal_name="Admin User",
             student_id="2023000000",
-            role="admin",
+            role="member",
             is_active=True,
         )
         session.add(admin_user)
         print("Created test admin (username: admin, password: admin123!)")
+
+        # Add admin user to KUBA club as admin role
+        await session.execute(
+            user_club.insert().values(
+                user_id=ADMIN_USER_ID, club_id=KUBA_CLUB_ID, role="admin"
+            )
+        )
 
         test_user = User(
             id=TEST_USER_ID,
