@@ -18,6 +18,8 @@ import { AuthStackParamList } from '../navigation/types';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, GenderType } from '../types/auth';
 import { colors, font, spacing, layout, screenPadding } from '../constants';
+import { uploadImage } from '../services/upload';
+import { userService } from '../services/user';
 import { CheckIcon } from '../components/icons';
 
 // Progress Bar component
@@ -62,7 +64,7 @@ export default function SignUpStep5Screen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<SignUpStep5NavigationProp>();
   const route = useRoute<SignUpStep5RouteProp>();
-  const { signUp, isLoading } = useAuth();
+  const { signUp, login, isLoading } = useAuth();
   const { username, name, email, profileImage, studentId, nationality, gender, password } = route.params;
 
   const [termsAgreed, setTermsAgreed] = useState(false);
@@ -112,7 +114,6 @@ export default function SignUpStep5Screen() {
     if (!isFormValid) return;
 
     try {
-      // Clean up data - only include non-empty values
       const signUpData: any = {
         username,
         legal_name: name,
@@ -120,8 +121,7 @@ export default function SignUpStep5Screen() {
         password,
       };
 
-      // Only add optional fields if they have values
-      if (profileImage) signUpData.profile_image = profileImage;
+      // Don't send local file:// URI as profile_image during signup
       if (studentId) signUpData.student_id = studentId;
       if (nationality) signUpData.nationality = nationality;
       if (gender && ['male', 'female', 'other'].includes(gender)) {
@@ -129,6 +129,17 @@ export default function SignUpStep5Screen() {
       }
 
       await signUp(signUpData);
+
+      // If user selected a profile image, login temporarily to upload it
+      if (profileImage) {
+        try {
+          await login({ username_or_email: email, password });
+          const uploadedUrl = await uploadImage(profileImage);
+          await userService.updateProfile({ profile_image: uploadedUrl });
+        } catch {
+          // Profile image upload failed, but account was created
+        }
+      }
 
       Alert.alert(
         'Success',
