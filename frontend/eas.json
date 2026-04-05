@@ -14,14 +14,14 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba.fly.dev/api/v1",
+        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba-production.up.railway.app/api/v1",
         "NAVER_MAP_CLIENT_ID": "31t54pbm6t"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba.fly.dev/api/v1",
+        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba-production.up.railway.app/api/v1",
         "NAVER_MAP_CLIENT_ID": "31t54pbm6t"
       }
     }
