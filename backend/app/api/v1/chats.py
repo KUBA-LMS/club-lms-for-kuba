@@ -130,20 +130,33 @@ async def _publish_message_notifications(
         payment_request_id=message.payment_request_id,
     )
 
-    # Publish to user channels for each OTHER member (chat list updates)
+    # Publish to user channels for each OTHER member (chat list updates + push)
     members_query = select(ChatMember.user_id).where(
         (ChatMember.chat_id == chat_id) & (ChatMember.user_id != sender.id)
     )
     members_result = await db.execute(members_query)
-    for row in members_result.fetchall():
+    other_member_ids = [row[0] for row in members_result.fetchall()]
+
+    for uid in other_member_ids:
         await notify_chat_list_update(
-            user_id=row[0],
+            user_id=uid,
             chat_id=chat_id,
             last_message=message.content,
             last_message_type=message.type,
             sender_username=sender.username,
             timestamp=created_at_str,
         )
+
+    # Send push notifications to offline members
+    from app.services.push import send_push_to_users
+    body = message.content if message.type == "text" else f"[{message.type}]"
+    await send_push_to_users(
+        db, other_member_ids,
+        title=sender.username,
+        body=body,
+        data={"type": "chat_message", "chat_id": str(chat_id)},
+        exclude_user_id=sender.id,
+    )
 
 
 @router.get("/", response_model=ChatListResponse)

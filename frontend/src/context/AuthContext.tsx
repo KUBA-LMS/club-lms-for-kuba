@@ -3,6 +3,11 @@ import { authService } from '../services/auth';
 import { storage } from '../services/storage';
 import { setTokenRefreshCallback } from '../services/api';
 import {
+  registerForPushNotifications,
+  sendPushTokenToServer,
+  removePushTokenFromServer,
+} from '../services/notifications';
+import {
   User,
   LoginRequest,
   SignUpRequest,
@@ -57,6 +62,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
               isLoading: false,
               isAuthenticated: true,
             });
+            // Register push token on auth restore
+            registerForPushNotifications().then((token) => {
+              if (token) sendPushTokenToServer(token);
+            });
           } catch {
             // Token invalid, clear storage
             await storage.clearAuth();
@@ -91,6 +100,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isLoading: false,
         isAuthenticated: true,
       });
+      // Register push token on login
+      registerForPushNotifications().then((token) => {
+        if (token) sendPushTokenToServer(token);
+      });
     } catch (error) {
       setState((prev) => ({ ...prev, isLoading: false }));
       throw error;
@@ -111,6 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
     try {
+      await removePushTokenFromServer();
       await authService.logout();
     } finally {
       setState({

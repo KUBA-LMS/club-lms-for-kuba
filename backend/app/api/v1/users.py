@@ -248,6 +248,32 @@ async def delete_bank_account(
     await db.commit()
 
 
+# --- Push token ---
+
+
+@router.put("/me/push-token", status_code=status.HTTP_200_OK)
+async def update_push_token(
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Register or update the user's Expo push token."""
+    token = payload.get("push_token")
+    current_user.push_token = token
+    await db.commit()
+    return {"status": "ok"}
+
+
+@router.delete("/me/push-token", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_push_token(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Remove the user's push token (e.g. on logout)."""
+    current_user.push_token = None
+    await db.commit()
+
+
 # --- Friends list ---
 
 @router.get("/me/friends", response_model=UserFriendListResponse)
@@ -385,6 +411,14 @@ async def send_friend_request(
         from_profile_image=current_user.profile_image,
     )
 
+    from app.services.push import send_push_to_user
+    await send_push_to_user(
+        db, friend_id,
+        title="Friend Request",
+        body=f"{current_user.username} sent you a friend request",
+        data={"type": "friend_request", "request_id": str(req.id)},
+    )
+
     return {"message": "Friend request sent", "request_id": str(req.id)}
 
 
@@ -456,6 +490,14 @@ async def _accept_request(db: AsyncSession, req: FriendRequest, current_user: Us
         by_user_id=current_user.id,
         by_username=current_user.username,
         by_profile_image=current_user.profile_image,
+    )
+
+    from app.services.push import send_push_to_user
+    await send_push_to_user(
+        db, req.from_user_id,
+        title="Friend Request Accepted",
+        body=f"{current_user.username} accepted your friend request",
+        data={"type": "friend_request_accepted", "by_user_id": str(current_user.id)},
     )
 
     return {"message": "Friend request accepted"}

@@ -41,6 +41,7 @@ class User(Base, TimestampMixin):
     bank_name = Column(String(50), nullable=True)
     bank_account_number = Column(String(50), nullable=True)
     account_holder_name = Column(String(100), nullable=True)
+    push_token = Column(String(255), nullable=True)
 
     # Relationships
     clubs = relationship(
