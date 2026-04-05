@@ -25,6 +25,7 @@ interface QRCodeModalProps {
   groupId: string;
   groupName: string;
   onClose: () => void;
+  isAdmin?: boolean;
 }
 
 export default function QRCodeModal({
@@ -32,7 +33,9 @@ export default function QRCodeModal({
   groupId,
   groupName,
   onClose,
+  isAdmin = false,
 }: QRCodeModalProps) {
+  const [inviteAsAdmin, setInviteAsAdmin] = React.useState(false);
   const scale = useSharedValue(0.8);
   const opacity = useSharedValue(0);
 
@@ -60,11 +63,30 @@ export default function QRCodeModal({
             {groupName}
           </Text>
 
+          {/* Admin invite toggle */}
+          {isAdmin && (
+            <TouchableOpacity
+              style={[
+                styles.adminToggle,
+                inviteAsAdmin && styles.adminToggleActive,
+              ]}
+              onPress={() => setInviteAsAdmin((v) => !v)}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.adminToggleText,
+                inviteAsAdmin && styles.adminToggleTextActive,
+              ]}>
+                Invite as Admin
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* QR Code */}
           <View style={styles.qrContainer}>
             {QRCode && groupId ? (
               <QRCode
-                value={groupId}
+                value={JSON.stringify({ club_id: groupId, role: inviteAsAdmin ? 'admin' : 'member' })}
                 size={200}
                 color="#000000"
                 backgroundColor="#FFFFFF"
@@ -153,6 +175,26 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 15,
+    color: '#FFFFFF',
+  },
+  adminToggle: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#C5C5C5',
+    marginBottom: 16,
+  },
+  adminToggleActive: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  adminToggleText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 13,
+    color: '#8E8E93',
+  },
+  adminToggleTextActive: {
     color: '#FFFFFF',
   },
 });

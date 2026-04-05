@@ -34,8 +34,9 @@ export async function createGroup(
 
 export async function joinGroup(
   clubId: string,
+  role: string = 'member',
 ): Promise<{ message: string; club: { id: string; name: string } }> {
-  const response = await api.post(`/clubs/${clubId}/join`);
+  const response = await api.post(`/clubs/${clubId}/join?role=${role}`);
   return response.data;
 }
 

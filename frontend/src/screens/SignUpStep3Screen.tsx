@@ -134,8 +134,8 @@ function PickerModal({
               contentContainerStyle={pickerStyles.listContent}
               initialScrollIndex={selectedIndex > 0 ? selectedIndex : 0}
               getItemLayout={(_, index) => ({
-                length: 40,
-                offset: 40 * index,
+                length: 44,
+                offset: 44 * index,
                 index,
               })}
             />
@@ -189,7 +189,7 @@ const pickerStyles = StyleSheet.create({
   },
   separatorTop: {
     position: 'absolute',
-    top: 80,
+    top: 88,
     left: 60,
     right: 60,
     height: StyleSheet.hairlineWidth,
@@ -198,7 +198,7 @@ const pickerStyles = StyleSheet.create({
   },
   separatorBottom: {
     position: 'absolute',
-    top: 124,
+    top: 132,
     left: 60,
     right: 60,
     height: StyleSheet.hairlineWidth,
@@ -206,7 +206,7 @@ const pickerStyles = StyleSheet.create({
     zIndex: 1,
   },
   listContent: {
-    paddingVertical: 66,
+    paddingVertical: 88,
   },
   option: {
     height: 44,

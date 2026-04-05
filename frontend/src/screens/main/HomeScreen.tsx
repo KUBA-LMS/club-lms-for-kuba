@@ -342,11 +342,15 @@ export default function HomeScreen() {
     fetchEvents(activeFilter, filter);
   }, [activeFilter, fetchEvents]);
 
-  // Fetch events and clubs on mount and whenever the screen comes back into focus
+  // Fetch events and clubs on mount only
+  const hasMounted = React.useRef(false);
   useFocusEffect(
     useCallback(() => {
-      fetchEvents();
-      refreshClubs();
+      if (!hasMounted.current) {
+        hasMounted.current = true;
+        fetchEvents();
+        refreshClubs();
+      }
     }, [fetchEvents, refreshClubs]),
   );
 
@@ -625,7 +629,7 @@ export default function HomeScreen() {
   const animatedPosition = useSharedValue(0);
 
   // 바텀시트가 멈추는 지점들
-  const snapPoints = useMemo(() => ["15%", "27%", "40%", "60%", "70%", "92%"], []);
+  const snapPoints = useMemo(() => ["25%", "40%", "60%", "75%", "92%"], []);
 
   // 탭바 높이(80) + bottom safe area
   const bottomPadding = layout.tabBarHeight + insets.bottom;
@@ -926,8 +930,7 @@ export default function HomeScreen() {
         {/* Floating OnePass Button */}
         <View
           style={[styles.floatingOnePass, {
-            bottom: bottomPadding - 4,
-            right: isAdmin ? 16 + 52 + 12 : screenPadding.horizontal,
+            bottom: bottomPadding + 8,
           }]}
           pointerEvents="box-none"
         >
@@ -937,7 +940,7 @@ export default function HomeScreen() {
         {/* Admin FAB — same bottom level as OnePass, right side */}
         {isAdmin && (
           <View
-            style={[styles.adminColumn, { bottom: bottomPadding - 4 }]}
+            style={[styles.adminColumn, { bottom: bottomPadding + 8 }]}
             pointerEvents="box-none"
           >
             <AdminFaceFab

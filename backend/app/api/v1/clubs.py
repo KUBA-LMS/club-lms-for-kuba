@@ -336,10 +336,11 @@ async def delete_club(
 @router.post("/{club_id}/join", status_code=status.HTTP_201_CREATED)
 async def join_club(
     club_id: UUID,
+    role: str = Query("member", pattern="^(member|admin)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Join a club."""
+    """Join a club. Pass role=admin to join as admin (via admin QR invite)."""
     # Check if club exists
     result = await db.execute(select(Club).where(Club.id == club_id))
     club = result.scalar_one_or_none()
@@ -353,7 +354,7 @@ async def join_club(
     # Insert with ON CONFLICT DO NOTHING to handle race conditions atomically
     result = await db.execute(
         pg_insert(user_club)
-        .values(user_id=current_user.id, club_id=club_id, role="member")
+        .values(user_id=current_user.id, club_id=club_id, role=role)
         .on_conflict_do_nothing(index_elements=["user_id", "club_id"])
         .returning(user_club.c.user_id)
     )

@@ -279,13 +279,17 @@ export default function CommunityScreen() {
           <ArrowBackIcon size={24} color={colors.black} />
         </TouchableOpacity>
         <Text style={styles.title}>COMMUNITY</Text>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.navigate('CreateGroupChat')}
-          activeOpacity={0.6}
-        >
-          <PlusIcon size={24} color={colors.black} />
-        </TouchableOpacity>
+        {segmentIndex === 0 ? (
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('CreateGroupChat')}
+            activeOpacity={0.6}
+          >
+            <PlusIcon size={24} color={colors.black} />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.headerButton} />
+        )}
       </View>
 
       {/* Segmented Control */}

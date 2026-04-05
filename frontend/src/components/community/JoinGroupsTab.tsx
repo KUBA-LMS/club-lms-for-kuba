@@ -252,13 +252,27 @@ export default function JoinGroupsTab() {
     async (barcode: string) => {
       setShowQRScanner(false);
 
-      if (!UUID_REGEX.test(barcode)) {
+      let clubId = barcode;
+      let role = 'member';
+
+      // Try parsing JSON QR format: { club_id, role }
+      try {
+        const parsed = JSON.parse(barcode);
+        if (parsed.club_id) {
+          clubId = parsed.club_id;
+          role = parsed.role || 'member';
+        }
+      } catch {
+        // Not JSON, treat as plain club ID
+      }
+
+      if (!UUID_REGEX.test(clubId)) {
         Alert.alert('Invalid QR Code', 'This QR code is not a valid group.');
         return;
       }
 
       try {
-        const result = await joinGroup(barcode);
+        const result = await joinGroup(clubId, role);
         Alert.alert('Joined!', `You joined ${result.club.name}.`);
         fetchGroups();
       } catch (err: any) {

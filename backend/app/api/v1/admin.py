@@ -238,6 +238,13 @@ async def toggle_lead_role(
     await _verify_club_exists(db, club_id)
     await _verify_admin_club_access(db, club_id, current_user)
 
+    # Prevent lead from toggling their own lead role
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot toggle your own lead role",
+        )
+
     result = await db.execute(
         select(user_club.c.role).where(
             user_club.c.user_id == user_id, user_club.c.club_id == club_id
@@ -302,9 +309,23 @@ async def adjust_deposit(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
 ):
-    """Top up or deduct deposit for a member."""
+    """Top up or deduct deposit for a member. Lead can only adjust their own deposit."""
     await _verify_club_exists(db, club_id)
     await _verify_admin_club_access(db, club_id, current_user)
+
+    # Lead can only adjust their own deposit (not other members')
+    if current_user.role != "superadmin" and user_id != current_user.id:
+        actor_role_result = await db.execute(
+            select(user_club.c.role).where(
+                user_club.c.user_id == current_user.id, user_club.c.club_id == club_id
+            )
+        )
+        actor_role = actor_role_result.scalar_one_or_none()
+        if actor_role == "lead":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Lead can only adjust their own deposit",
+            )
 
     # Verify membership
     membership = await db.execute(

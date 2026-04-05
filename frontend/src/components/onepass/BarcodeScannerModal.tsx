@@ -63,7 +63,7 @@ function CameraScannerInner({
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.permissionText}>
-          Camera permission is required to scan barcodes
+          Camera permission is required to scan QR codes
         </Text>
         <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
           <Text style={styles.permissionButtonText}>Grant Permission</Text>
@@ -77,7 +77,7 @@ function CameraScannerInner({
       style={styles.camera}
       facing="back"
       barcodeScannerSettings={{
-        barcodeTypes: ['code128', 'code39', 'code93', 'ean13', 'ean8', 'qr'],
+        barcodeTypes: ['qr'],
       }}
       onBarcodeScanned={onBarcodeScanned}
     >
@@ -89,7 +89,7 @@ function CameraScannerInner({
           <View style={[styles.corner, styles.bottomRight]} />
         </View>
         <Text style={styles.instructionText}>
-          Align barcode within the frame
+          Align QR code within the frame
         </Text>
       </View>
     </CameraView>
@@ -129,7 +129,7 @@ export default function BarcodeScannerModal({
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Text style={styles.closeText}>Close</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Scan Barcode</Text>
+          <Text style={styles.headerTitle}>Scan QR Code</Text>
           <View style={styles.closeButton} />
         </View>
         <CameraScanner onBarcodeScanned={handleBarcodeScanned} />
@@ -207,8 +207,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scanFrame: {
-    width: 280,
-    height: 160,
+    width: 250,
+    height: 250,
     position: 'relative',
   },
   corner: {
