@@ -40,10 +40,13 @@ export async function overrideRegistration(
   return response.data;
 }
 
-export async function searchUsers(query: string): Promise<UserSearchItem[]> {
+export async function searchUsers(
+  clubId: string,
+  query: string,
+): Promise<UserSearchItem[]> {
   const response = await api.get<UserSearchItem[]>(
     '/access-control/users/search',
-    { params: { q: query } },
+    { params: { club_id: clubId, q: query } },
   );
   return response.data;
 }

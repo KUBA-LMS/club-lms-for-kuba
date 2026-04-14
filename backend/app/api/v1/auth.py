@@ -13,6 +13,8 @@ from app.core.security import (
     create_reset_token,
     get_current_user,
     verify_token,
+    revoke_token,
+    oauth2_scheme,
 )
 from app.core.email import send_password_reset_email
 from app.models.user import User
@@ -30,33 +32,125 @@ from app.schemas.user import UserSignUp, UserResponse
 router = APIRouter()
 
 
+@router.get("/check-username")
+@limiter.limit("30/minute")
+async def check_username(
+    request: Request,
+    username: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Check whether a username is available for signup.
+
+    Applies the same format rules as signup (Instagram-style: 3-30 chars,
+    lowercase alphanumeric plus `.` and `_`, no leading/trailing/consecutive
+    periods) and does a case-insensitive existence check. ``reason`` is
+    informational so the client can render the correct message.
+    """
+    import re
+    from sqlalchemy import func as sa_func
+
+    candidate = (username or "").strip()
+    if not candidate or len(candidate) < 3:
+        return {"available": False, "reason": "too_short"}
+    if len(candidate) > 30:
+        return {"available": False, "reason": "too_long"}
+    if not re.fullmatch(r"[a-z0-9._]+", candidate):
+        return {"available": False, "reason": "invalid_chars"}
+    if candidate.startswith("."):
+        return {"available": False, "reason": "leading_period"}
+    if candidate.endswith("."):
+        return {"available": False, "reason": "trailing_period"}
+    if ".." in candidate:
+        return {"available": False, "reason": "consecutive_periods"}
+
+    result = await db.execute(
+        select(User).where(sa_func.lower(User.username) == candidate.lower())
+    )
+    if result.scalar_one_or_none():
+        return {"available": False, "reason": "taken"}
+    return {"available": True}
+
+
+@router.get("/check-email")
+@limiter.limit("20/minute")
+async def check_email(
+    request: Request,
+    email: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Check whether an email is available for signup.
+
+    Format-validates the same way signup does (local@domain.tld with a
+    2+ char TLD) and runs a case-insensitive existence check. Stricter
+    rate limit than username check because email enumeration is a more
+    sensitive signal than handle enumeration.
+    """
+    import re
+    from sqlalchemy import func as sa_func
+
+    candidate = (email or "").strip().lower()
+    if not candidate:
+        return {"available": False, "reason": "empty"}
+    if len(candidate) > 255:
+        return {"available": False, "reason": "too_long"}
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]{2,}", candidate):
+        return {"available": False, "reason": "invalid_format"}
+
+    result = await db.execute(
+        select(User).where(sa_func.lower(User.email) == candidate)
+    )
+    if result.scalar_one_or_none():
+        return {"available": False, "reason": "taken"}
+    return {"available": True}
+
+
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def signup(request: Request, user_data: UserSignUp, db: AsyncSession = Depends(get_db)):
-    """Register a new user."""
-    # Check if username already exists
-    result = await db.execute(select(User).where(User.username == user_data.username))
+    """Register a new user.
+
+    Usernames and emails are matched case-insensitively to prevent near-duplicate
+    accounts (``john`` vs ``John``, ``a@X.com`` vs ``a@x.com``). Emails are stored
+    lowercased; usernames preserve the submitted casing for display.
+    """
+    from sqlalchemy.exc import IntegrityError
+    from sqlalchemy import func as sa_func
+
+    username_norm = user_data.username.strip()
+    legal_name_norm = user_data.legal_name.strip()
+    email_norm = (user_data.email or "").strip().lower() or None
+
+    if not username_norm:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username is required")
+    if not legal_name_norm:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Legal name is required")
+
+    # Case-insensitive uniqueness checks
+    result = await db.execute(
+        select(User).where(sa_func.lower(User.username) == username_norm.lower())
+    )
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already taken",
         )
 
-    # Check if email already exists
-    result = await db.execute(select(User).where(User.email == user_data.email))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+    if email_norm is not None:
+        result = await db.execute(
+            select(User).where(sa_func.lower(User.email) == email_norm)
         )
+        if result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered",
+            )
 
-    # Create new user
     hashed_password = get_password_hash(user_data.password)
     new_user = User(
-        username=user_data.username,
+        username=username_norm,
         hashed_password=hashed_password,
-        legal_name=user_data.legal_name,
-        email=user_data.email,
+        legal_name=legal_name_norm,
+        email=email_norm,
         student_id=user_data.student_id,
         profile_image=user_data.profile_image,
         nationality=user_data.nationality,
@@ -64,7 +158,15 @@ async def signup(request: Request, user_data: UserSignUp, db: AsyncSession = Dep
     )
 
     db.add(new_user)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        # Race: another concurrent signup took the username/email between our check and commit.
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username or email already taken",
+        )
     await db.refresh(new_user)
 
     return new_user
@@ -73,12 +175,20 @@ async def signup(request: Request, user_data: UserSignUp, db: AsyncSession = Dep
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("10/minute")
 async def login(request: Request, login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """Login with username/email and password."""
-    # Try to find user by email or username
+    """Login with username/email and password. Match is case-insensitive on both."""
+    from sqlalchemy import func as sa_func
+
+    candidate = (login_data.username_or_email or "").strip()
+    if not candidate:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username or email is required",
+        )
+
     result = await db.execute(
         select(User).where(
-            (User.email == login_data.username_or_email) |
-            (User.username == login_data.username_or_email)
+            (sa_func.lower(User.email) == candidate.lower())
+            | (sa_func.lower(User.username) == candidate.lower())
         )
     )
     user = result.scalar_one_or_none()
@@ -147,10 +257,18 @@ async def get_current_user_profile(current_user: User = Depends(get_current_user
 
 
 @router.post("/logout")
-async def logout(current_user: User = Depends(get_current_user)):
-    """Logout current user."""
-    # In a stateless JWT system, logout is handled client-side by removing tokens
-    # For additional security, you could implement token blacklisting here
+async def logout(
+    token: str = Depends(oauth2_scheme),
+    current_user: User = Depends(get_current_user),
+):
+    """Logout current user and revoke the current access token.
+
+    The token is stored (as a sha256 fingerprint) in Redis with a TTL equal to
+    its remaining lifetime. If Redis is unavailable the call degrades gracefully
+    to the previous stateless behaviour -- the client is still expected to
+    discard the token.
+    """
+    await revoke_token(token)
     return {"message": "Successfully logged out"}
 
 
@@ -160,7 +278,12 @@ async def forgot_password(
     request: Request, data: PasswordForgotRequest, db: AsyncSession = Depends(get_db)
 ):
     """Request password reset email."""
-    result = await db.execute(select(User).where(User.email == data.email))
+    from sqlalchemy import func as sa_func
+
+    normalized_email = (data.email or "").strip().lower()
+    result = await db.execute(
+        select(User).where(sa_func.lower(User.email) == normalized_email)
+    )
     user = result.scalar_one_or_none()
 
     # Always return success to prevent email enumeration

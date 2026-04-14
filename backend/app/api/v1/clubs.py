@@ -432,6 +432,11 @@ async def restore_club(
             detail="You can only restore clubs you deleted",
         )
 
+    # Treat any naive datetime coming back from the DB as UTC. We always write
+    # ``datetime.now(timezone.utc)`` on delete, so this branch only triggers when
+    # the driver returns naive values -- assuming UTC then is correct by
+    # construction and keeps the 3-day window from drifting on hosts with
+    # non-UTC system time.
     deleted_at = club.deleted_at
     if deleted_at.tzinfo is None:
         deleted_at = deleted_at.replace(tzinfo=timezone.utc)
@@ -505,18 +510,42 @@ async def leave_club(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Leave a club."""
-    # Check if member
+    """Leave a club. The last admin/lead cannot leave without transferring ownership
+    or deleting the club first -- otherwise the club becomes orphaned."""
+    # Check membership and role
     existing = await db.execute(
-        select(user_club).where(
-            (user_club.c.user_id == current_user.id) & (user_club.c.club_id == club_id)
+        select(user_club.c.role).where(
+            (user_club.c.user_id == current_user.id)
+            & (user_club.c.club_id == club_id)
         )
     )
-    if not existing.first():
+    row = existing.first()
+    if not row:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Not a member of this club",
         )
+    my_role = row[0]
+
+    # If leaving as the sole admin/lead, require at least one other admin/lead to remain.
+    if my_role in ("admin", "lead"):
+        other_admin_count = await db.execute(
+            select(func.count())
+            .select_from(user_club)
+            .where(
+                user_club.c.club_id == club_id,
+                user_club.c.user_id != current_user.id,
+                user_club.c.role.in_(["admin", "lead"]),
+            )
+        )
+        if (other_admin_count.scalar() or 0) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "You are the only admin/lead of this club. Promote another "
+                    "member to admin/lead before leaving, or delete the club."
+                ),
+            )
 
     await db.execute(
         user_club.delete().where(
@@ -534,7 +563,7 @@ async def get_club_members(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Get members of a club."""
+    """Get members of a club. Viewer must be a member of the club (or superadmin)."""
     offset = (page - 1) * limit
 
     # Check if club exists and is not deleted
@@ -546,6 +575,20 @@ async def get_club_members(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Club not found",
         )
+
+    # Membership gate: only club members (or superadmin) can see the member list.
+    if current_user.role != "superadmin":
+        membership = await db.execute(
+            select(user_club).where(
+                user_club.c.user_id == current_user.id,
+                user_club.c.club_id == club_id,
+            )
+        )
+        if not membership.first():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You must be a member of this club to view its members",
+            )
 
     # Get member user IDs
     member_ids_query = (

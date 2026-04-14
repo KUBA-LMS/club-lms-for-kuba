@@ -144,7 +144,12 @@ async def self_checkin(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Self check-in by scanning barcode."""
+    """Self check-in by scanning barcode.
+
+    Uses ``with_for_update`` to serialize concurrent scans of the same barcode
+    so that the second scanner receives "already used" instead of both writing
+    ``is_used = True`` successfully.
+    """
     result = await db.execute(
         select(Ticket)
         .options(
@@ -152,15 +157,21 @@ async def self_checkin(
             selectinload(Ticket.registration).selectinload(Registration.user),
         )
         .where(Ticket.barcode == checkin_data.barcode)
+        .with_for_update()
     )
     ticket = result.scalar_one_or_none()
 
     if not ticket:
         return CheckinResponse(success=False, message="Ticket not found")
 
-    # Admin can check in anyone's ticket; regular users can only check in their own
-    if ticket.registration.user_id != current_user.id and current_user.role != "admin":
-        return CheckinResponse(success=False, message="This ticket does not belong to you")
+    # Regular users can self-checkin their own ticket.
+    # Admins/leads of the event's club can also check-in on behalf of a user.
+    if ticket.registration.user_id != current_user.id:
+        from app.core.security import verify_club_admin
+        try:
+            await verify_club_admin(db, current_user, ticket.registration.event.club_id)
+        except HTTPException:
+            return CheckinResponse(success=False, message="This ticket does not belong to you")
 
     if ticket.is_used:
         return CheckinResponse(
@@ -227,12 +238,10 @@ async def get_ticket(
             detail="Ticket not found",
         )
 
-    # Check ownership
-    if ticket.registration.user_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view this ticket",
-        )
+    # Check ownership or club admin/lead scope.
+    if ticket.registration.user_id != current_user.id and current_user.role != "superadmin":
+        from app.core.security import verify_club_admin
+        await verify_club_admin(db, current_user, ticket.registration.event.club_id)
 
     return TicketResponse(
         id=ticket.id,
@@ -258,13 +267,6 @@ async def validate_ticket(
     current_user: User = Depends(get_current_user),
 ):
     """Validate a ticket by barcode (typically for check-in)."""
-    # Only admins can validate tickets
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can validate tickets",
-        )
-
     result = await db.execute(
         select(Ticket)
         .options(
@@ -282,6 +284,11 @@ async def validate_ticket(
             message="Ticket not found",
             ticket=None,
         )
+
+    # Only the event's club admin/lead (or superadmin) may validate this ticket.
+    if current_user.role != "superadmin":
+        from app.core.security import verify_club_admin
+        await verify_club_admin(db, current_user, ticket.registration.event.club_id)
 
     if ticket.is_used:
         return TicketValidateResponse(
@@ -355,16 +362,12 @@ async def use_ticket(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Mark a ticket as used (admin only)."""
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can use tickets",
-        )
-
+    """Mark a ticket as used (admin/lead of the event's club only)."""
     result = await db.execute(
         select(Ticket)
-        .options(selectinload(Ticket.registration))
+        .options(
+            selectinload(Ticket.registration).selectinload(Registration.event),
+        )
         .where(Ticket.id == ticket_id)
     )
     ticket = result.scalar_one_or_none()
@@ -374,6 +377,10 @@ async def use_ticket(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ticket not found",
         )
+
+    if current_user.role != "superadmin":
+        from app.core.security import verify_club_admin
+        await verify_club_admin(db, current_user, ticket.registration.event.club_id)
 
     if ticket.is_used:
         raise HTTPException(

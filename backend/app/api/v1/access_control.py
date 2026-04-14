@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import datetime, timezone
 
@@ -7,6 +8,8 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from uuid import UUID
+
+logger = logging.getLogger(__name__)
 
 from app.core.database import get_db
 from app.core.security import get_current_admin_user
@@ -109,17 +112,15 @@ async def scan_barcode(
 
     if not ticket:
         # Fallback: try interpreting barcode as user ID (auto_selection mode)
-        print(f"[SCAN DEBUG] barcode='{scan_data.barcode}' event_id={event_id}")
+        logger.debug("scan: event=%s no ticket for barcode", event_id)
         try:
             user_id = UUID(scan_data.barcode)
-        except (ValueError, AttributeError) as e:
-            print(f"[SCAN DEBUG] UUID parse failed: {e}")
+        except (ValueError, AttributeError):
             return ScanResponse(
                 result=ScanResultEnum.entry_denied_no_ticket,
                 message="Ticket not found",
             )
 
-        print(f"[SCAN DEBUG] parsed user_id={user_id}")
         reg_result = await db.execute(
             select(Registration)
             .options(
@@ -133,7 +134,6 @@ async def scan_barcode(
             )
         )
         registration = reg_result.scalar_one_or_none()
-        print(f"[SCAN DEBUG] registration={registration}, ticket={registration.ticket if registration else None}, status={registration.status if registration else None}")
 
         if not registration:
             return ScanResponse(
@@ -338,8 +338,10 @@ async def override_registration(
     )
     await notify_participants_changed(event_id)
 
-    print(f"[ACCESS CONTROL] Override by admin {current_admin.username}: "
-          f"registration {registration_id} -> confirmed (event {event_id})")
+    logger.info(
+        "access-control override: admin=%s registration=%s event=%s -> confirmed",
+        current_admin.username, registration_id, event_id,
+    )
 
     participant = _build_participant(registration.user, registration)
 
@@ -352,18 +354,31 @@ async def override_registration(
 
 @router.get("/users/search", response_model=list[UserSearchResponse])
 async def search_users(
+    club_id: UUID = Query(..., description="Scope the search to members of this specific club"),
     q: str = Query(..., min_length=1, description="Search by name, username, or student ID"),
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    """Search users by name, username, or student ID (admin only)."""
+    """Search members within a specific club (admin/lead of that club only).
+
+    Returns only users who are members of `club_id`. The caller must be an
+    admin/lead of that club (or a superadmin). This prevents admins of club A
+    from enumerating student IDs of unrelated users via a global search.
+    """
+    from app.core.security import verify_club_admin
+    from app.models.user import user_club
+
+    await verify_club_admin(db, current_admin, club_id)
+
     pattern = f"%{q}%"
     result = await db.execute(
         select(User)
+        .join(user_club, user_club.c.user_id == User.id)
         .where(
+            user_club.c.club_id == club_id,
             (User.username.ilike(pattern))
             | (User.legal_name.ilike(pattern))
-            | (User.student_id.ilike(pattern))
+            | (User.student_id.ilike(pattern)),
         )
         .limit(10)
     )
@@ -452,8 +467,10 @@ async def walk_in_register(
     await notify_checkin(event_id, data.user_id, user.username)
     await notify_participants_changed(event_id)
 
-    print(f"[ACCESS CONTROL] Walk-in by admin {current_admin.username}: "
-          f"user {user.username} -> checked_in (event {event_id})")
+    logger.info(
+        "access-control walk-in: admin=%s user=%s event=%s -> checked_in",
+        current_admin.username, user.username, event_id,
+    )
 
     participant = _build_participant(user, registration)
 

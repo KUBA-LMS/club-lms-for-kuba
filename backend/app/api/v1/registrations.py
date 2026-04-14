@@ -240,12 +240,11 @@ async def get_registration(
             detail="Registration not found",
         )
 
-    # Only allow owner or admin to view
-    if registration.user_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view this registration",
-        )
+    # Only allow owner, superadmin, or admin/lead of the event's club to view.
+    if registration.user_id != current_user.id and current_user.role != "superadmin":
+        from app.core.security import verify_club_admin
+        # verify_club_admin raises 403 when the caller is not admin/lead of this club
+        await verify_club_admin(db, current_user, registration.event.club_id)
 
     return build_registration_response(registration)
 

@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
@@ -9,12 +10,51 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.redis import get_redis
 from app.models.user import User, user_club
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 ALGORITHM = "HS256"
+
+# Redis key prefix for revoked JWT ids. The full key stores a sha256 of the raw token.
+_REVOKE_PREFIX = "auth:revoked:"
+
+
+def _token_fingerprint(token: str) -> str:
+    """Stable, short, one-way identifier for a raw JWT. Used as Redis key."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+async def revoke_token(token: str) -> None:
+    """Mark a JWT as revoked until its natural expiry.
+
+    Stores the token's sha256 fingerprint in Redis with a TTL equal to the
+    remaining lifetime of the token. Safe no-op when Redis is unavailable
+    (falls back to the previous stateless behaviour).
+    """
+    payload = verify_token(token)
+    if not payload:
+        return
+    exp = payload.get("exp")
+    if exp is None:
+        return
+    remaining = int(exp - datetime.now(timezone.utc).replace(tzinfo=None).timestamp())
+    if remaining <= 0:
+        return
+
+    redis_client = await get_redis()
+    if redis_client is None:
+        return
+    await redis_client.set(f"{_REVOKE_PREFIX}{_token_fingerprint(token)}", "1", ex=remaining)
+
+
+async def is_token_revoked(token: str) -> bool:
+    redis_client = await get_redis()
+    if redis_client is None:
+        return False
+    return await redis_client.exists(f"{_REVOKE_PREFIX}{_token_fingerprint(token)}") > 0
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -75,6 +115,9 @@ async def get_current_user(
         if user_id is None:
             raise credentials_exception
     except JWTError:
+        raise credentials_exception
+
+    if await is_token_revoked(token):
         raise credentials_exception
 
     result = await db.execute(select(User).where(User.id == user_id))

@@ -279,6 +279,51 @@ async def get_event(
             detail="Event not found",
         )
 
+    # Visibility gate: non-superadmins must be a member of the event's club to view details.
+    # visibility_type 'friends_only' further narrows to friends of the poster (checked below).
+    if current_user.role != "superadmin":
+        membership = await db.execute(
+            select(user_club).where(
+                user_club.c.user_id == current_user.id,
+                user_club.c.club_id == event.club_id,
+            )
+        )
+        is_member = membership.first() is not None
+        if not is_member:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You must be a member of the event's club to view this event",
+            )
+
+        # friends_only: event is visible only to the poster and their accepted friends
+        if event.visibility_type == "friends_only" and event.posted_by_id != current_user.id:
+            from app.models.user import friendship
+            friend_q = await db.execute(
+                select(friendship).where(
+                    friendship.c.user_id == current_user.id,
+                    friendship.c.friend_id == event.posted_by_id,
+                )
+            )
+            if not friend_q.first():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="This event is restricted to friends of the poster",
+                )
+
+        # club-scoped visibility: some events can be restricted to a specific subgroup
+        if event.visibility_type == "club" and event.visibility_club_id is not None:
+            sub_membership = await db.execute(
+                select(user_club).where(
+                    user_club.c.user_id == current_user.id,
+                    user_club.c.club_id == event.visibility_club_id,
+                )
+            )
+            if not sub_membership.first():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="This event is restricted to a specific subgroup",
+                )
+
     # Get user's registration for this event
     reg_result = await db.execute(
         select(Registration).where(
@@ -369,6 +414,36 @@ async def create_event(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Event date must be after registration end",
         )
+
+    # New events must take place in the future. A 5-minute grace window is
+    # allowed so that an admin can publish an event that starts "now".
+    now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    def _as_naive_utc(dt: datetime) -> datetime:
+        if dt.tzinfo is not None:
+            from datetime import timezone as tz
+            return dt.astimezone(tz.utc).replace(tzinfo=None)
+        return dt
+
+    if _as_naive_utc(event_data.event_date) < now_utc - timedelta(minutes=5):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Event date cannot be in the past",
+        )
+
+    # Enforce positive cost for paid/split events; free events must have zero/none.
+    if event_data.cost_type == "free":
+        if event_data.cost_amount is not None and event_data.cost_amount != 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Free events must not specify a cost amount",
+            )
+    else:
+        if event_data.cost_amount is None or event_data.cost_amount <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Paid or split events require a positive cost amount",
+            )
 
     def to_naive_utc(dt):
         """Convert timezone-aware datetime to naive UTC for TIMESTAMP WITHOUT TIME ZONE columns."""

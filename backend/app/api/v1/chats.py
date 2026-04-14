@@ -288,6 +288,25 @@ async def create_chat(
         if event_row:
             resolved_club_id = event_row[0]
 
+    # When the chat is scoped to a club, enforce that every member belongs to
+    # that club. Without this an admin of club A could drag a member of club B
+    # into a club-A chat and leak club-A's conversation history.
+    if resolved_club_id is not None:
+        from app.models.user import user_club
+        memberships = await db.execute(
+            select(user_club.c.user_id).where(
+                user_club.c.club_id == resolved_club_id,
+                user_club.c.user_id.in_(member_ids),
+            )
+        )
+        club_member_ids = {row[0] for row in memberships.fetchall()}
+        outsiders = [uid for uid in member_ids if uid not in club_member_ids]
+        if outsiders:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="All chat members must belong to the club",
+            )
+
     # Create chat
     new_chat = Chat(
         type=chat_data.type,
