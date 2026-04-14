@@ -1,10 +1,15 @@
+import json
 import logging
 import logging.config
 from contextlib import asynccontextmanager
-
+from datetime import date, datetime, timezone
+from decimal import Decimal
 from pathlib import Path
+from typing import Any
+from uuid import UUID
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +23,58 @@ from app.core.redis import close_redis
 from app.services.ws_manager import manager
 from app.services.message_cleanup import cleanup_service
 from app.api.v1 import api_router
+
+
+# ---------------------------------------------------------------------------
+# Time-zone contract
+# ---------------------------------------------------------------------------
+# Backend stores every datetime as UTC (timezone-aware or naive-UTC). The API
+# must always emit ISO-8601 strings *with* an explicit UTC marker so that any
+# client -- native apps, browsers, third-party integrators -- parses them as
+# UTC and renders in the user's device timezone via standard platform APIs.
+#
+# ``jsonable_encoder`` serializes naive datetimes without a tz suffix, which
+# JavaScript then parses as LOCAL time. ``UTCJSONResponse`` rewrites that
+# encoding so naive datetimes gain a ``+00:00`` offset on the wire.
+
+
+def _utc_aware(dt: datetime) -> datetime:
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+
+def _encode_for_json(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return _utc_aware(value).isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, dict):
+        return {k: _encode_for_json(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_encode_for_json(v) for v in value]
+    return value
+
+
+class UTCJSONResponse(JSONResponse):
+    """Default response class for the app.
+
+    Runs content through ``jsonable_encoder`` first (to turn Pydantic models
+    and ORM objects into primitives) and then into our own encoder which
+    guarantees every datetime is UTC-tagged.
+    """
+
+    def render(self, content: Any) -> bytes:
+        encoded = jsonable_encoder(content)
+        encoded = _encode_for_json(encoded)
+        return json.dumps(
+            encoded,
+            ensure_ascii=False,
+            allow_nan=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -88,6 +145,7 @@ app = FastAPI(
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
     lifespan=lifespan,
+    default_response_class=UTCJSONResponse,
 )
 
 # Rate limiter
@@ -107,6 +165,23 @@ async def limit_request_size(request: Request, call_next):
             content={"detail": "Request body too large. Maximum size is 10 MB."},
         )
     return await call_next(request)
+
+
+# ---------------------------------------------------------------------------
+# Middleware: security headers
+# ---------------------------------------------------------------------------
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # HSTS only meaningful behind TLS; safe no-op on plain HTTP clients.
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # Baseline CSP: static files only need img-src self; API is JSON.
+    response.headers["Content-Security-Policy"] = "default-src 'none'; img-src 'self' data: blob:; connect-src 'self'"
+    return response
 
 # ---------------------------------------------------------------------------
 # CORS
