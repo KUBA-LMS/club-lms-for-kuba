@@ -265,10 +265,9 @@ export default function SignUpStep3Screen() {
   const route = useRoute<SignUpStep3RouteProp>();
   const { username, name, email, profileImage } = route.params;
 
-  const [studentId, setStudentId] = useState('');
   const [nationality, setNationality] = useState('');
   const [gender, setGender] = useState('');
-  const [focusedField, setFocusedField] = useState<'studentId' | 'nationality' | 'gender' | null>(null);
+  const [focusedField, setFocusedField] = useState<'nationality' | 'gender' | null>(null);
   const [showNationalityPicker, setShowNationalityPicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
 
@@ -277,9 +276,7 @@ export default function SignUpStep3Screen() {
   const scale = Math.min(width / baseWidth, 1.2);
   const inputWidth = Math.min(313 * scale, width - 80);
 
-  // Validate student ID (10 digits for KU student ID)
-  const isStudentIdValid = /^\d{10}$/.test(studentId);
-  const isFormValid = isStudentIdValid && nationality !== '' && gender !== '';
+  const isFormValid = nationality !== '';
 
   const handleNext = () => {
     if (isFormValid) {
@@ -288,9 +285,8 @@ export default function SignUpStep3Screen() {
         name,
         email,
         profileImage,
-        studentId,
         nationality,
-        gender,
+        gender: gender || undefined,
       });
     }
   };
@@ -371,34 +367,6 @@ export default function SignUpStep3Screen() {
 
           {/* Input Fields */}
           <View style={styles.inputContainer}>
-            {/* Student ID Input */}
-            <View style={styles.inputWrapper}>
-              <View
-                style={[
-                  styles.inputField,
-                  focusedField === 'studentId' && styles.inputFieldFocused,
-                ]}
-              >
-                {(focusedField === 'studentId' || studentId) && (
-                  <Text style={styles.inputLabel}>Enter student ID(KU)</Text>
-                )}
-                <TextInput
-                  style={[
-                    styles.input,
-                    (focusedField === 'studentId' || studentId) && styles.inputWithLabel,
-                  ]}
-                  placeholder={focusedField === 'studentId' || studentId ? '' : 'Enter student ID(KU)'}
-                  placeholderTextColor="#AEAEB2"
-                  value={studentId}
-                  onChangeText={setStudentId}
-                  onFocus={() => setFocusedField('studentId')}
-                  onBlur={() => setFocusedField(null)}
-                  keyboardType="number-pad"
-                  maxLength={10}
-                />
-              </View>
-            </View>
-
             {/* Nationality Picker */}
             <View style={styles.inputWrapper}>
               <TouchableOpacity
@@ -434,11 +402,11 @@ export default function SignUpStep3Screen() {
               >
                 {gender ? (
                   <>
-                    <Text style={styles.inputLabel}>Select Gender</Text>
+                    <Text style={styles.inputLabel}>Select Gender (Optional)</Text>
                     <Text style={styles.pickerValueText}>{gender}</Text>
                   </>
                 ) : (
-                  <Text style={styles.placeholderText}>Select Gender</Text>
+                  <Text style={styles.placeholderText}>Select Gender (Optional)</Text>
                 )}
               </TouchableOpacity>
             </View>

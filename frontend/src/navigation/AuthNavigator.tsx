@@ -9,6 +9,8 @@ import SignUpStep3Screen from '../screens/SignUpStep3Screen';
 import SignUpStep4Screen from '../screens/SignUpStep4Screen';
 import SignUpStep5Screen from '../screens/SignUpStep5Screen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -27,6 +29,8 @@ export default function AuthNavigator() {
       <Stack.Screen name="SignUpStep3" component={SignUpStep3Screen} />
       <Stack.Screen name="SignUpStep4" component={SignUpStep4Screen} />
       <Stack.Screen name="SignUpStep5" component={SignUpStep5Screen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }

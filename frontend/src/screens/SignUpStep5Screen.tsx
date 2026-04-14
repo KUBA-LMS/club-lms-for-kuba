@@ -7,7 +7,6 @@ import {
   Platform,
   ScrollView,
   useWindowDimensions,
-  Linking,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -56,16 +55,13 @@ const progressStyles = StyleSheet.create({
 type SignUpStep5NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'SignUpStep5'>;
 type SignUpStep5RouteProp = RouteProp<AuthStackParamList, 'SignUpStep5'>;
 
-const TERMS_OF_SERVICE_URL = 'https://robust-haumea-616.notion.site/Terms-of-Service-32c78b1d4e7780b1af86e186f61ccde4';
-const PRIVACY_POLICY_URL = 'https://robust-haumea-616.notion.site/Privacy-Policy-32c78b1d4e7780e6910ae55ba43b39dd';
-
 export default function SignUpStep5Screen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<SignUpStep5NavigationProp>();
   const route = useRoute<SignUpStep5RouteProp>();
   const { signUp, login, isLoading } = useAuth();
-  const { username, name, email, profileImage, studentId, nationality, gender, password } = route.params;
+  const { username, name, email, profileImage, nationality, gender, password } = route.params;
 
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
@@ -77,24 +73,14 @@ export default function SignUpStep5Screen() {
 
   const isFormValid = termsAgreed && privacyAgreed;
 
-  const handleTermsPress = async () => {
-    try {
-      await Linking.openURL(TERMS_OF_SERVICE_URL);
-      setTermsAgreed(true);
-    } catch (error) {
-      console.warn('Failed to open Terms of Service URL');
-      setTermsAgreed(true);
-    }
+  const handleTermsPress = () => {
+    navigation.navigate('TermsOfService');
+    setTermsAgreed(true);
   };
 
-  const handlePrivacyPress = async () => {
-    try {
-      await Linking.openURL(PRIVACY_POLICY_URL);
-      setPrivacyAgreed(true);
-    } catch (error) {
-      console.warn('Failed to open Privacy Policy URL');
-      setPrivacyAgreed(true);
-    }
+  const handlePrivacyPress = () => {
+    navigation.navigate('PrivacyPolicy');
+    setPrivacyAgreed(true);
   };
 
   const handleAgreeToAll = () => {
@@ -122,7 +108,6 @@ export default function SignUpStep5Screen() {
       };
 
       // Don't send local file:// URI as profile_image during signup
-      if (studentId) signUpData.student_id = studentId;
       if (nationality) signUpData.nationality = nationality;
       if (gender && ['male', 'female', 'other'].includes(gender)) {
         signUpData.gender = gender as GenderType;

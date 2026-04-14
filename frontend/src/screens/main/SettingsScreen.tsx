@@ -12,7 +12,6 @@ import {
   TextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -281,6 +280,19 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        <Text style={styles.groupLabel}>Safety</Text>
+        <View style={styles.card}>
+          <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('BlockedUsers')}>
+            <Text style={styles.rowText}>Blocked Users</Text>
+            <Text style={styles.arrow}>{'>'}</Text>
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('RecentlyDeleted')}>
+            <Text style={styles.rowText}>Recently Deleted</Text>
+            <Text style={styles.arrow}>{'>'}</Text>
+          </TouchableOpacity>
+        </View>
+
         <Text style={styles.groupLabel}>About</Text>
         <View style={styles.card}>
           <View style={styles.row}>
@@ -288,12 +300,12 @@ export default function SettingsScreen() {
             <Text style={styles.rowValue}>1.0.0</Text>
           </View>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://robust-haumea-616.notion.site/Terms-of-Service-32c78b1d4e7780b1af86e186f61ccde4')}>
+          <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('TermsOfService')}>
             <Text style={styles.rowText}>Terms of Service</Text>
             <Text style={styles.arrow}>{'>'}</Text>
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://robust-haumea-616.notion.site/Privacy-Policy-32c78b1d4e7780e6910ae55ba43b39dd')}>
+          <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('PrivacyPolicy')}>
             <Text style={styles.rowText}>Privacy Policy</Text>
             <Text style={styles.arrow}>{'>'}</Text>
           </TouchableOpacity>

@@ -10,6 +10,10 @@ import ChatRoomScreen from '../screens/main/ChatRoomScreen';
 import EditProfileScreen from '../screens/main/EditProfileScreen';
 import SettingsScreen from '../screens/main/SettingsScreen';
 import EventDetailScreen from '../screens/main/EventDetailScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
+import BlockedUsersScreen from '../screens/main/BlockedUsersScreen';
+import RecentlyDeletedScreen from '../screens/main/RecentlyDeletedScreen';
 import { AdminCreateEventScreen, AdminUploadPosterScreen, AccessControlScreen, AdminHubScreen, AdminHubSubgroupDetailScreen, AdminHubMemberDetailScreen } from '../screens/admin';
 import { useWebSocketConnection } from '../hooks/useWebSocket';
 
@@ -49,6 +53,10 @@ export default function MainNavigator() {
       />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+      <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
+      <Stack.Screen name="RecentlyDeleted" component={RecentlyDeletedScreen} />
     </Stack.Navigator>
   );
 }

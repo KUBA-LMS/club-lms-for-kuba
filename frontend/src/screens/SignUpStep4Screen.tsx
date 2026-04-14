@@ -56,7 +56,7 @@ export default function SignUpStep4Screen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<SignUpStep4NavigationProp>();
   const route = useRoute<SignUpStep4RouteProp>();
-  const { username, name, email, profileImage, studentId, nationality, gender } = route.params;
+  const { username, name, email, profileImage, nationality, gender } = route.params;
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -91,7 +91,6 @@ export default function SignUpStep4Screen() {
         name,
         email,
         profileImage,
-        studentId,
         nationality,
         gender,
         password,

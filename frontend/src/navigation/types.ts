@@ -5,9 +5,8 @@ export interface SignUpData {
   username: string;
   name: string;
   profileImage?: string;
-  studentId: string;
   nationality: string;
-  gender: string;
+  gender?: string;
   password: string;
 }
 
@@ -16,9 +15,11 @@ export type AuthStackParamList = {
   SignUpStep1: undefined;
   SignUpStep2: { username: string; name: string; email: string };
   SignUpStep3: { username: string; name: string; email: string; profileImage?: string };
-  SignUpStep4: { username: string; name: string; email: string; profileImage?: string; studentId: string; nationality: string; gender: string };
-  SignUpStep5: { username: string; name: string; email: string; profileImage?: string; studentId: string; nationality: string; gender: string; password: string };
+  SignUpStep4: { username: string; name: string; email: string; profileImage?: string; nationality: string; gender?: string };
+  SignUpStep5: { username: string; name: string; email: string; profileImage?: string; nationality: string; gender?: string; password: string };
   ForgotPassword: undefined;
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
 };
 
 // Event form data structure for admin
@@ -61,6 +62,10 @@ export type MainStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   Settings: undefined;
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
+  BlockedUsers: undefined;
+  RecentlyDeleted: undefined;
   // Admin screens
   AdminCreateEvent: { eventId?: string } | undefined;
   AdminUploadPoster: { onPosterSelected: (uri: string | undefined) => void } | undefined;

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   FlatList,
@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useChatRoom } from '../../hooks/useChat';
 import { Message, TicketBrief } from '../../types/chat';
 import * as chatApi from '../../services/chat';
+import moderation from '../../services/moderation';
 
 import ChatHeader from '../../components/chat/ChatHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
@@ -58,8 +59,28 @@ export default function ChatRoomScreen() {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [selectedPaymentRequestId, setSelectedPaymentRequestId] = useState<string | null>(null);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const flatListRef = useRef<FlatList>(null);
   const paymentSheetRef = useRef<BottomSheetModal>(null);
+
+  useEffect(() => {
+    moderation.getBlockedUsers().then((list) => {
+      setBlockedIds(new Set(list.map((u) => u.userId)));
+    });
+  }, []);
+
+  const visibleMessages = useMemo(
+    () => (blockedIds.size === 0 ? messages : messages.filter((m) => !blockedIds.has(m.sender.id))),
+    [messages, blockedIds],
+  );
+
+  const handleBlocked = useCallback((blockedUserId: string) => {
+    setBlockedIds((prev) => {
+      const next = new Set(prev);
+      next.add(blockedUserId);
+      return next;
+    });
+  }, []);
 
   const isGroup = chat ? chat.type === 'group' || chat.type === 'event' : false;
 
@@ -173,11 +194,12 @@ export default function ChatRoomScreen() {
               isOwn={isOwn}
               showAvatar={showAvatar}
               unreadCount={unreadCount}
+              onBlocked={handleBlocked}
             />
           );
       }
     },
-    [userId, shouldShowAvatar, getUnreadCount, paymentUpdateSignal, handleOpenPaymentDetail],
+    [userId, shouldShowAvatar, getUnreadCount, paymentUpdateSignal, handleOpenPaymentDetail, handleBlocked],
   );
 
   const handleEndReached = useCallback(() => {
@@ -211,7 +233,7 @@ export default function ChatRoomScreen() {
 
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={visibleMessages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.clientId || item.id}
         style={styles.messageList}

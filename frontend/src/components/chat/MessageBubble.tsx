@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useCallback } from 'react';
+import { Alert, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ReadReceipt from './ReadReceipt';
@@ -7,12 +7,14 @@ import Avatar from '../common/Avatar';
 import { Message } from '../../types/chat';
 import { MainStackParamList } from '../../navigation/types';
 import { colors, font } from '../../constants';
+import moderation, { REPORT_REASON_LABELS, ReportReason } from '../../services/moderation';
 
 interface MessageBubbleProps {
   message: Message;
   isOwn: boolean;
   showAvatar: boolean;
   unreadCount?: number;
+  onBlocked?: (userId: string) => void;
 }
 
 function formatTime(dateStr: string): string {
@@ -20,15 +22,87 @@ function formatTime(dateStr: string): string {
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
+const REPORT_REASONS: ReportReason[] = [
+  'harassment',
+  'hate_speech',
+  'sexual_content',
+  'violence',
+  'spam',
+  'impersonation',
+  'illegal',
+  'other',
+];
+
 export default function MessageBubble({
   message,
   isOwn,
   showAvatar,
   unreadCount = 0,
+  onBlocked,
 }: MessageBubbleProps) {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const isFailed = message.status === 'failed';
   const isSending = message.status === 'sending';
+
+  const submitReport = useCallback(
+    async (reason: ReportReason) => {
+      await moderation.submitReport({
+        targetType: 'message',
+        targetId: message.id,
+        targetOwnerId: message.sender.id,
+        reason,
+      });
+      Alert.alert(
+        'Report received',
+        'Thank you. Our team will review this report within 24 hours and take action if it violates our guidelines.',
+      );
+    },
+    [message.id, message.sender.id],
+  );
+
+  const openReportFlow = useCallback(() => {
+    const buttons = REPORT_REASONS.map((reason) => ({
+      text: REPORT_REASON_LABELS[reason],
+      onPress: () => submitReport(reason),
+    }));
+    buttons.push({ text: 'Cancel', onPress: async () => undefined } as any);
+    Alert.alert('Why are you reporting this?', 'Choose the reason that best applies.', buttons, {
+      cancelable: true,
+    });
+  }, [submitReport]);
+
+  const blockSender = useCallback(() => {
+    Alert.alert(
+      'Block user',
+      `Block ${message.sender.username}? You won't see their messages. They won't be notified.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Block',
+          style: 'destructive',
+          onPress: async () => {
+            await moderation.blockUser(message.sender.id, message.sender.username);
+            onBlocked?.(message.sender.id);
+            Alert.alert('Blocked', `${message.sender.username} has been blocked.`);
+          },
+        },
+      ],
+    );
+  }, [message.sender.id, message.sender.username, onBlocked]);
+
+  const openMessageActions = useCallback(() => {
+    if (isOwn) return;
+    Alert.alert(
+      'Message actions',
+      `From ${message.sender.username}`,
+      [
+        { text: 'Report', style: 'destructive', onPress: openReportFlow },
+        { text: 'Block user', style: 'destructive', onPress: blockSender },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+      { cancelable: true },
+    );
+  }, [isOwn, message.sender.username, openReportFlow, blockSender]);
 
   // Event share bubble
   if (message.type === 'event_share') {
@@ -57,7 +131,12 @@ export default function MessageBubble({
     }
 
     return (
-      <View style={styles.otherRow}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onLongPress={openMessageActions}
+        delayLongPress={350}
+        style={styles.otherRow}
+      >
         {showAvatar ? (
           <Avatar uri={message.sender.profile_image} size={32} name={message.sender.username} style={{ marginRight: 8 }} />
         ) : (
@@ -70,7 +149,7 @@ export default function MessageBubble({
             <Text style={styles.time}>{formatTime(message.created_at)}</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   }
 
@@ -91,7 +170,12 @@ export default function MessageBubble({
   }
 
   return (
-    <View style={styles.otherRow}>
+    <TouchableOpacity
+      activeOpacity={1}
+      onLongPress={openMessageActions}
+      delayLongPress={350}
+      style={styles.otherRow}
+    >
       {showAvatar ? (
         <Avatar uri={message.sender.profile_image} size={32} name={message.sender.username} style={{ marginRight: 8 }} />
       ) : (
@@ -106,7 +190,7 @@ export default function MessageBubble({
           <Text style={styles.time}>{formatTime(message.created_at)}</Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

@@ -499,7 +499,7 @@ const EventDetailBottomSheet = forwardRef<BottomSheetModal, EventDetailBottomShe
                     <Image source={{ uri: resolveImageUrl(event.providedBy.logo) }} style={styles.providerLogo} />
                   )}
                   <Text style={styles.detailValueBold}>
-                    {event.providedBy?.name || '45th KUBA'}
+                    {event.providedBy?.name || 'Club'}
                   </Text>
                 </View>
               </View>
