@@ -137,7 +137,7 @@ export default function BarcodeDisplay({ barcode, userName, statusText, statusCo
         <View style={styles.barcodeContainer}>
           {Barcode ? (
             <Barcode
-              value={barcode.replace(/^KUBA-/, '')}
+              value={barcode.replace(/^[A-Z]+-/, '')}
               format="CODE128"
               singleBarWidth={3}
               height={80}
