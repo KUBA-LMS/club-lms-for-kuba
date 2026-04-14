@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../../navigation/types';
-import { getMyGroups, MyGroup } from '../../services/clubs';
+import { getMyGroups, MyGroup, deleteGroup } from '../../services/clubs';
 import AdminHeader from '../../components/admin/AdminHeader';
 import MemberCard from '../../components/admin/MemberCard';
 import MemberSearchSection from '../../components/admin/MemberSearchSection';
@@ -107,23 +107,58 @@ export default function AdminHubScreen() {
   const [tasksLoading, setTasksLoading] = useState(false);
   const [taskSearch, setTaskSearch] = useState('');
 
+  const loadAdminClubs = useCallback(async (preferId?: string | null) => {
+    try {
+      const data = await getMyGroups();
+      const adminClubs = data.filter((c) => c.role === 'admin' || c.role === 'lead');
+      setClubs(adminClubs);
+      if (adminClubs.length === 0) {
+        setSelectedClubId(null);
+        return;
+      }
+      const stillExists =
+        preferId && adminClubs.some((c) => c.id === preferId) ? preferId : null;
+      setSelectedClubId(stillExists || adminClubs[0].id);
+    } catch (error) {
+      console.error('Failed to fetch clubs:', error);
+    } finally {
+      setClubsLoading(false);
+    }
+  }, []);
+
   // Fetch clubs on mount
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getMyGroups();
-        const adminClubs = data.filter((c) => c.role === 'admin' || c.role === 'lead');
-        setClubs(adminClubs);
-        if (data.length > 0) {
-          setSelectedClubId(data[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch clubs:', error);
-      } finally {
-        setClubsLoading(false);
-      }
-    })();
-  }, []);
+    loadAdminClubs();
+  }, [loadAdminClubs]);
+
+  const handleDeleteClub = useCallback(() => {
+    const club = clubs.find((c) => c.id === selectedClubId);
+    if (!club) return;
+    Alert.alert(
+      'Delete this club?',
+      `Are you sure you want to delete "${club.name}"? All subgroups will also be deleted. You can restore it within 3 days from Settings > Recently Deleted.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteGroup(club.id);
+              Alert.alert(
+                'Deleted',
+                `"${club.name}" has been deleted. You have 3 days to restore it from Settings > Recently Deleted.`,
+              );
+              await loadAdminClubs(null);
+            } catch (err: any) {
+              const msg = err?.response?.data?.detail || 'Failed to delete club.';
+              Alert.alert('Error', msg);
+            }
+          },
+        },
+      ],
+    );
+  }, [clubs, selectedClubId, loadAdminClubs]);
 
   // Fetch data when club or tab changes
   useEffect(() => {
@@ -337,40 +372,51 @@ export default function AdminHubScreen() {
   // --- Render sections ---
 
   const renderClubSelector = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.clubSelectorContent}
-      style={styles.clubSelector}
-    >
-      {clubs.map((club) => (
+    <View style={styles.clubSelectorRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.clubSelectorContent}
+        style={styles.clubSelector}
+      >
+        {clubs.map((club) => (
+          <TouchableOpacity
+            key={club.id}
+            onPress={() => setSelectedClubId(club.id)}
+            activeOpacity={0.7}
+          >
+            {club.logo_image ? (
+              <Image
+                source={{ uri: resolveImageUrl(club.logo_image) }}
+                style={[
+                  styles.clubLogo,
+                  selectedClubId === club.id && styles.clubLogoSelected,
+                ]}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.clubLogo,
+                  styles.clubLogoPlaceholder,
+                  selectedClubId === club.id && styles.clubLogoSelected,
+                ]}
+              >
+                <Text style={styles.clubLogoText}>{club.name.charAt(0)}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      {selectedClubId && (
         <TouchableOpacity
-          key={club.id}
-          onPress={() => setSelectedClubId(club.id)}
-          activeOpacity={0.7}
+          onPress={handleDeleteClub}
+          style={styles.deleteClubBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          {club.logo_image ? (
-            <Image
-              source={{ uri: resolveImageUrl(club.logo_image) }}
-              style={[
-                styles.clubLogo,
-                selectedClubId === club.id && styles.clubLogoSelected,
-              ]}
-            />
-          ) : (
-            <View
-              style={[
-                styles.clubLogo,
-                styles.clubLogoPlaceholder,
-                selectedClubId === club.id && styles.clubLogoSelected,
-              ]}
-            >
-              <Text style={styles.clubLogoText}>{club.name.charAt(0)}</Text>
-            </View>
-          )}
+          <Text style={styles.deleteClubBtnText}>Delete</Text>
         </TouchableOpacity>
-      ))}
-    </ScrollView>
+      )}
+    </View>
   );
 
   const renderSegmentedControl = () => (
@@ -621,13 +667,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   // Club Selector
-  clubSelector: {
-    flexGrow: 0,
+  clubSelectorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
+  },
+  clubSelector: {
+    flexGrow: 1,
+    flexShrink: 1,
   },
   clubSelectorContent: {
     paddingHorizontal: 20,
     gap: 12,
+  },
+  deleteClubBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 16,
+    borderRadius: 14,
+    backgroundColor: '#FFECEC',
+  },
+  deleteClubBtnText: {
+    fontFamily: font.semibold,
+    fontSize: 12,
+    color: '#D93025',
   },
   clubLogo: {
     width: 50,

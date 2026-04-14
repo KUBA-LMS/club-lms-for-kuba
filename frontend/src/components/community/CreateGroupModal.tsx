@@ -48,7 +48,8 @@ export default function CreateGroupModal({
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
 
   const hasClubs = clubs.length > 0;
-  const isValid = name.trim().length > 0 && (hasClubs ? selectedClubId !== null : true);
+  const isValid = name.trim().length > 0;
+  const selectedParent = hasClubs ? clubs.find((c) => c.id === selectedClubId) || null : null;
 
   const handlePickImage = useCallback(async () => {
     if (!ImagePicker) return;
@@ -92,18 +93,44 @@ export default function CreateGroupModal({
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>{hasClubs ? 'Create New Group' : 'Create New Club'}</Text>
+          <Text style={styles.title}>Create New</Text>
 
-          {/* Club Picker - only show when clubs exist */}
+          {/* Club Picker - only show when user already has clubs */}
           {hasClubs && (
             <>
-              <Text style={styles.sectionLabel}>Select Club</Text>
+              <Text style={styles.sectionLabel}>Parent Club (optional)</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.clubPickerContent}
                 style={styles.clubPicker}
               >
+                {/* "New top-level club" chip */}
+                <TouchableOpacity
+                  style={styles.clubPickerItem}
+                  onPress={() => setSelectedClubId(null)}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[
+                      styles.clubPickerImageWrapper,
+                      selectedClubId === null && styles.clubPickerImageSelected,
+                      styles.clubPickerPlusWrapper,
+                    ]}
+                  >
+                    <Text style={styles.clubPickerPlus}>+</Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.clubPickerLabel,
+                      selectedClubId === null && styles.clubPickerLabelSelected,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    New
+                  </Text>
+                </TouchableOpacity>
+
                 {clubs.map((club) => {
                   const isSelected = club.id === selectedClubId;
                   return (
@@ -145,6 +172,11 @@ export default function CreateGroupModal({
                   );
                 })}
               </ScrollView>
+              <Text style={styles.modeHint}>
+                {selectedParent
+                  ? `Will be created as a subgroup under ${selectedParent.name}.`
+                  : 'Will be created as a new top-level club.'}
+              </Text>
             </>
           )}
 
@@ -301,6 +333,24 @@ const styles = StyleSheet.create({
   },
   clubPickerLabelSelected: {
     fontFamily: 'Inter-SemiBold',
+  },
+  clubPickerPlusWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F2F2F7',
+  },
+  clubPickerPlus: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 22,
+    color: '#1C1C1E',
+    lineHeight: 24,
+  },
+  modeHint: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    color: '#8E8E93',
+    alignSelf: 'flex-start',
+    marginBottom: 10,
   },
   logoArea: {
     width: 80,

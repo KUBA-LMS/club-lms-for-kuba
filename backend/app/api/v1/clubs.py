@@ -5,12 +5,15 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from uuid import UUID
+from datetime import datetime, timedelta, timezone
 
 from app.core.database import get_db
 from app.core.security import get_current_user, get_current_admin_user
 from app.models.user import User, user_club
 from app.services.notifications import notify_member_joined
 from app.models.club import Club
+
+RESTORE_WINDOW_DAYS = 3
 from app.schemas.club import (
     ClubCreate,
     ClubUpdate,
@@ -32,7 +35,11 @@ async def get_my_admin_clubs(
 ):
     """Return clubs where the current user is admin or lead."""
     if current_user.role == "superadmin":
-        result = await db.execute(select(Club.id, Club.name).order_by(Club.name))
+        result = await db.execute(
+            select(Club.id, Club.name)
+            .where(Club.deleted_at.is_(None))
+            .order_by(Club.name)
+        )
         return [{"id": str(cid), "name": cname} for cid, cname in result.fetchall()]
 
     result = await db.execute(
@@ -41,10 +48,51 @@ async def get_my_admin_clubs(
         .where(
             user_club.c.user_id == current_user.id,
             user_club.c.role.in_(["admin", "lead"]),
+            Club.deleted_at.is_(None),
         )
         .order_by(Club.name)
     )
     return [{"id": str(cid), "name": cname, "role": role} for cid, cname, role in result.fetchall()]
+
+
+@router.get("/me/deleted")
+async def get_my_deleted_clubs(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return recently deleted clubs that the current user can still restore (within 3 days)."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=RESTORE_WINDOW_DAYS)
+
+    if current_user.role == "superadmin":
+        result = await db.execute(
+            select(Club)
+            .where(Club.deleted_at.is_not(None), Club.deleted_at >= cutoff)
+            .order_by(Club.deleted_at.desc())
+        )
+        clubs = result.scalars().all()
+    else:
+        result = await db.execute(
+            select(Club)
+            .where(
+                Club.deleted_at.is_not(None),
+                Club.deleted_at >= cutoff,
+                Club.deleted_by == current_user.id,
+            )
+            .order_by(Club.deleted_at.desc())
+        )
+        clubs = result.scalars().all()
+
+    return [
+        {
+            "id": str(c.id),
+            "name": c.name,
+            "logo_image": c.logo_image,
+            "parent_id": str(c.parent_id) if c.parent_id else None,
+            "deleted_at": c.deleted_at.isoformat(),
+            "restorable_until": (c.deleted_at + timedelta(days=RESTORE_WINDOW_DAYS)).isoformat(),
+        }
+        for c in clubs
+    ]
 
 
 @router.get("/me", response_model=list[MyClubResponse])
@@ -57,7 +105,7 @@ async def get_my_clubs(
     result = await db.execute(
         select(Club, user_club.c.role)
         .join(user_club, user_club.c.club_id == Club.id)
-        .where(user_club.c.user_id == current_user.id)
+        .where(user_club.c.user_id == current_user.id, Club.deleted_at.is_(None))
         .order_by(Club.name)
     )
     rows = result.all()
@@ -74,7 +122,9 @@ async def get_my_clubs(
     for club in top_level:
         # Get subgroups of this club
         sub_result = await db.execute(
-            select(Club).where(Club.parent_id == club.id).order_by(Club.name)
+            select(Club)
+            .where(Club.parent_id == club.id, Club.deleted_at.is_(None))
+            .order_by(Club.name)
         )
         all_subgroups = sub_result.scalars().all()
 
@@ -130,9 +180,9 @@ async def list_clubs(
     """List all clubs with pagination."""
     offset = (page - 1) * limit
 
-    # Build base query
-    base_query = select(Club)
-    count_query = select(func.count(Club.id))
+    # Build base query (exclude soft-deleted)
+    base_query = select(Club).where(Club.deleted_at.is_(None))
+    count_query = select(func.count(Club.id)).where(Club.deleted_at.is_(None))
 
     if search:
         search_term = f"%{search}%"
@@ -181,7 +231,9 @@ async def get_club(
     current_user: User = Depends(get_current_user),
 ):
     """Get club details."""
-    result = await db.execute(select(Club).where(Club.id == club_id))
+    result = await db.execute(
+        select(Club).where(Club.id == club_id, Club.deleted_at.is_(None))
+    )
     club = result.scalar_one_or_none()
 
     if not club:
@@ -222,7 +274,9 @@ async def create_club(
     # Subgroup: verify user is admin/lead of the parent club
     if club_data.parent_id:
         parent_result = await db.execute(
-            select(Club).where(Club.id == club_data.parent_id)
+            select(Club).where(
+                Club.id == club_data.parent_id, Club.deleted_at.is_(None)
+            )
         )
         if not parent_result.scalar_one_or_none():
             raise HTTPException(
@@ -231,8 +285,10 @@ async def create_club(
             )
         await verify_club_admin(db, current_user, club_data.parent_id)
 
-    # Check if club name already exists
-    result = await db.execute(select(Club).where(Club.name == club_data.name))
+    # Check if an active club with the same name already exists
+    result = await db.execute(
+        select(Club).where(Club.name == club_data.name, Club.deleted_at.is_(None))
+    )
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -275,7 +331,9 @@ async def update_club(
     """Update a club (admin/lead of this club only)."""
     from app.core.security import verify_club_admin
     await verify_club_admin(db, current_user, club_id)
-    result = await db.execute(select(Club).where(Club.id == club_id))
+    result = await db.execute(
+        select(Club).where(Club.id == club_id, Club.deleted_at.is_(None))
+    )
     club = result.scalar_one_or_none()
 
     if not club:
@@ -311,16 +369,18 @@ async def update_club(
     )
 
 
-@router.delete("/{club_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{club_id}", status_code=status.HTTP_200_OK)
 async def delete_club(
     club_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Delete a club (admin/lead of this club only)."""
+    """Soft-delete a club. Restorable within 3 days by the same admin/lead."""
     from app.core.security import verify_club_admin
     await verify_club_admin(db, current_user, club_id)
-    result = await db.execute(select(Club).where(Club.id == club_id))
+    result = await db.execute(
+        select(Club).where(Club.id == club_id, Club.deleted_at.is_(None))
+    )
     club = result.scalar_one_or_none()
 
     if not club:
@@ -329,8 +389,64 @@ async def delete_club(
             detail="Club not found",
         )
 
-    await db.delete(club)
+    now = datetime.now(timezone.utc)
+    club.deleted_at = now
+    club.deleted_by = current_user.id
+
+    # Soft-delete all subgroups that are not yet deleted
+    await db.execute(
+        Club.__table__.update()
+        .where(Club.parent_id == club.id, Club.deleted_at.is_(None))
+        .values(deleted_at=now, deleted_by=current_user.id)
+    )
+
     await db.commit()
+
+    return {
+        "id": str(club.id),
+        "deleted_at": now.isoformat(),
+        "restorable_until": (now + timedelta(days=RESTORE_WINDOW_DAYS)).isoformat(),
+    }
+
+
+@router.post("/{club_id}/restore", status_code=status.HTTP_200_OK)
+async def restore_club(
+    club_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Restore a soft-deleted club within the 3-day window."""
+    result = await db.execute(select(Club).where(Club.id == club_id))
+    club = result.scalar_one_or_none()
+
+    if not club or club.deleted_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Deleted club not found",
+        )
+
+    # Only the user who deleted it (or a superadmin) can restore
+    if current_user.role != "superadmin" and club.deleted_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only restore clubs you deleted",
+        )
+
+    deleted_at = club.deleted_at
+    if deleted_at.tzinfo is None:
+        deleted_at = deleted_at.replace(tzinfo=timezone.utc)
+
+    if datetime.now(timezone.utc) - deleted_at > timedelta(days=RESTORE_WINDOW_DAYS):
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="Restore window has expired",
+        )
+
+    club.deleted_at = None
+    club.deleted_by = None
+    await db.commit()
+
+    return {"id": str(club.id), "name": club.name, "restored": True}
 
 
 @router.post("/{club_id}/join", status_code=status.HTTP_201_CREATED)
@@ -341,8 +457,10 @@ async def join_club(
     current_user: User = Depends(get_current_user),
 ):
     """Join a club. Pass role=admin to join as admin (via admin QR invite)."""
-    # Check if club exists
-    result = await db.execute(select(Club).where(Club.id == club_id))
+    # Check if club exists and is not deleted
+    result = await db.execute(
+        select(Club).where(Club.id == club_id, Club.deleted_at.is_(None))
+    )
     club = result.scalar_one_or_none()
 
     if not club:
@@ -419,8 +537,10 @@ async def get_club_members(
     """Get members of a club."""
     offset = (page - 1) * limit
 
-    # Check if club exists
-    result = await db.execute(select(Club).where(Club.id == club_id))
+    # Check if club exists and is not deleted
+    result = await db.execute(
+        select(Club).where(Club.id == club_id, Club.deleted_at.is_(None))
+    )
     if not result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

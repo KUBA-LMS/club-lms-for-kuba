@@ -43,3 +43,37 @@ export async function joinGroup(
 export async function leaveGroup(clubId: string): Promise<void> {
   await api.delete(`/clubs/${clubId}/leave`);
 }
+
+export interface DeletedClub {
+  id: string;
+  name: string;
+  logo_image: string | null;
+  parent_id: string | null;
+  deleted_at: string;
+  restorable_until: string;
+}
+
+export interface DeleteClubResponse {
+  id: string;
+  deleted_at: string;
+  restorable_until: string;
+}
+
+export async function deleteGroup(clubId: string): Promise<DeleteClubResponse> {
+  const response = await api.delete<DeleteClubResponse>(`/clubs/${clubId}`);
+  return response.data;
+}
+
+export async function restoreGroup(
+  clubId: string,
+): Promise<{ id: string; name: string; restored: boolean }> {
+  const response = await api.post<{ id: string; name: string; restored: boolean }>(
+    `/clubs/${clubId}/restore`,
+  );
+  return response.data;
+}
+
+export async function getDeletedGroups(): Promise<DeletedClub[]> {
+  const response = await api.get<DeletedClub[]>('/clubs/me/deleted');
+  return response.data;
+}

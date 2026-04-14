@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey
+from sqlalchemy import Column, String, Text, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -16,6 +16,8 @@ class Club(Base, TimestampMixin):
     logo_image = Column(String(500), nullable=True)
     university = Column(String(100), nullable=True)
     parent_id = Column(UUID(as_uuid=True), ForeignKey("clubs.id"), nullable=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    deleted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
     # Relationships
     members = relationship(
