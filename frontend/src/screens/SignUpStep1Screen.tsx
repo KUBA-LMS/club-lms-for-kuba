@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,46 +9,59 @@ import {
   Platform,
   ScrollView,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, font, spacing, screenPadding } from '../constants';
-import { CheckIcon } from '../components/icons';
-
-// Progress Bar component
-function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
-  const percentage = (progress / totalSteps) * 100;
-
-  return (
-    <View style={progressStyles.container}>
-      <View style={progressStyles.bar}>
-        <View style={[progressStyles.fill, { width: `${percentage}%` }]} />
-      </View>
-    </View>
-  );
-}
-
-const progressStyles = StyleSheet.create({
-  container: {
-    width: 180,
-    height: 4,
-  },
-  bar: {
-    flex: 1,
-    backgroundColor: '#EBEBF0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 4,
-  },
-});
+import { colors, font, spacing } from '../constants';
+import { CheckIcon, CloseIcon } from '../components/icons';
+import SignUpHeader from '../components/auth/SignUpHeader';
+import AnimatedButton from '../components/auth/AnimatedButton';
+import HelpLink from '../components/auth/HelpLink';
+import { authService } from '../services/auth';
 
 type SignUpStep1NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'SignUpStep1'>;
+
+type UsernameError =
+  | null
+  | 'too_short'
+  | 'too_long'
+  | 'invalid_chars'
+  | 'leading_period'
+  | 'trailing_period'
+  | 'consecutive_periods';
+
+function validateUsername(value: string): UsernameError {
+  if (value.length === 0) return null;
+  if (value.length < 3) return 'too_short';
+  if (value.length > 30) return 'too_long';
+  if (!/^[a-z0-9._]+$/.test(value)) return 'invalid_chars';
+  if (value.startsWith('.')) return 'leading_period';
+  if (value.endsWith('.')) return 'trailing_period';
+  if (/\.{2,}/.test(value)) return 'consecutive_periods';
+  return null;
+}
+
+function usernameErrorMessage(err: UsernameError): string {
+  switch (err) {
+    case 'too_short':
+      return 'Username must be at least 3 characters.';
+    case 'too_long':
+      return 'Username must be 30 characters or fewer.';
+    case 'invalid_chars':
+      return 'Only lowercase letters, numbers, periods, and underscores are allowed.';
+    case 'leading_period':
+      return 'Username cannot start with a period.';
+    case 'trailing_period':
+      return 'Username cannot end with a period.';
+    case 'consecutive_periods':
+      return 'Username cannot contain consecutive periods.';
+    default:
+      return '';
+  }
+}
 
 export default function SignUpStep1Screen() {
   const { width } = useWindowDimensions();
@@ -59,46 +72,97 @@ export default function SignUpStep1Screen() {
   const [legalName, setLegalName] = useState('');
   const [email, setEmail] = useState('');
   const [focusedField, setFocusedField] = useState<'username' | 'legalName' | 'email' | null>(null);
-  const [usernameValid, setUsernameValid] = useState(false);
-  const [emailValid, setEmailValid] = useState(false);
+  const [usernameTouched, setUsernameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
 
-  // Responsive scaling
-  const baseWidth = 402;
-  const scale = Math.min(width / baseWidth, 1.2);
-  const inputWidth = Math.min(313 * scale, width - 80);
+  type Availability = 'idle' | 'checking' | 'available' | 'taken' | 'error';
+  const [usernameAvailability, setUsernameAvailability] = useState<Availability>('idle');
+  const [emailAvailability, setEmailAvailability] = useState<Availability>('idle');
+  const usernameReqSeq = useRef(0);
+  const emailReqSeq = useRef(0);
 
-  // Validate username (basic validation - at least 3 characters, alphanumeric)
-  const validateUsername = (value: string) => {
-    const isValid = value.length >= 3 && /^[a-zA-Z0-9_]+$/.test(value);
-    setUsernameValid(isValid);
-    return isValid;
-  };
+  const contentWidth = Math.min(354, width - 48);
 
-  const handleUsernameChange = (value: string) => {
-    setUsername(value);
-    validateUsername(value);
-  };
+  const usernameError = useMemo(() => validateUsername(username), [username]);
+  const emailError = useMemo(() => {
+    if (email.length === 0) return null;
+    // TLD must be at least 2 characters; disallow spaces and multiple @.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return 'Please enter a valid email address.';
+    }
+    if (email.length > 255) return 'Email is too long.';
+    return null;
+  }, [email]);
 
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    setEmailValid(valid);
-  };
+  const usernameFormatValid = username.length > 0 && usernameError === null;
+  const emailFormatValid = email.length > 0 && emailError === null;
+  // Trim so whitespace-only input is rejected even if the user pastes spaces.
+  const legalNameValid = legalName.trim().length > 0 && legalName.trim().length <= 100;
 
-  const isFormValid = usernameValid && legalName.trim().length > 0 && emailValid;
+  // Block submit unless the backend confirmed availability. Transient network
+  // errors still allow submit — the signup endpoint re-checks authoritatively.
+  const usernameReady =
+    usernameFormatValid &&
+    (usernameAvailability === 'available' || usernameAvailability === 'error');
+  const emailReady =
+    emailFormatValid && (emailAvailability === 'available' || emailAvailability === 'error');
+
+  const isFormValid = usernameReady && legalNameValid && emailReady;
+
+  const showUsernameFormatError = usernameTouched && usernameError !== null;
+  const showUsernameTaken = usernameFormatValid && usernameAvailability === 'taken';
+  const showEmailFormatError = emailTouched && emailError !== null;
+  const showEmailTaken = emailFormatValid && emailAvailability === 'taken';
+
+  // Debounced availability checks. Stale responses discarded via sequence refs.
+  useEffect(() => {
+    if (!usernameFormatValid) {
+      setUsernameAvailability('idle');
+      return;
+    }
+    setUsernameAvailability('checking');
+    const seq = ++usernameReqSeq.current;
+    const handle = setTimeout(async () => {
+      try {
+        const result = await authService.checkUsername(username);
+        if (seq !== usernameReqSeq.current) return;
+        setUsernameAvailability(result.available ? 'available' : 'taken');
+      } catch {
+        if (seq !== usernameReqSeq.current) return;
+        setUsernameAvailability('error');
+      }
+    }, 450);
+    return () => clearTimeout(handle);
+  }, [username, usernameFormatValid]);
+
+  useEffect(() => {
+    if (!emailFormatValid) {
+      setEmailAvailability('idle');
+      return;
+    }
+    setEmailAvailability('checking');
+    const seq = ++emailReqSeq.current;
+    const handle = setTimeout(async () => {
+      try {
+        const result = await authService.checkEmail(email);
+        if (seq !== emailReqSeq.current) return;
+        setEmailAvailability(result.available ? 'available' : 'taken');
+      } catch {
+        if (seq !== emailReqSeq.current) return;
+        setEmailAvailability('error');
+      }
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [email, emailFormatValid]);
 
   const handleNext = () => {
     if (isFormValid) {
-      navigation.navigate('SignUpStep2', { username, name: legalName.trim(), email: email.trim() });
+      navigation.navigate('SignUpStep2', {
+        username: username.trim(),
+        name: legalName.trim(),
+        email: email.trim(),
+      });
     }
-  };
-
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const handleStartOver = () => {
-    navigation.navigate('Login');
   };
 
   return (
@@ -110,168 +174,159 @@ export default function SignUpStep1Screen() {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 },
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 20 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={[styles.header, { width: inputWidth + 40 }]}>
-          {/* Back Button */}
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Text style={styles.backArrow}>{'<'}</Text>
-          </TouchableOpacity>
+        <SignUpHeader step={1} totalSteps={5} width={contentWidth} />
 
-          {/* Progress Section */}
-          <View style={styles.progressSection}>
-            <ProgressBar progress={1} totalSteps={5} />
-            <Text style={styles.stepText}>Create Account{'\n'}1/5</Text>
-          </View>
+        <View style={[styles.body, { width: contentWidth }]}>
+          <Text style={styles.heading}>Set up your profile.</Text>
 
-          {/* Start Over Button */}
-          <TouchableOpacity onPress={handleStartOver} style={styles.startOverButton}>
-            <Text style={styles.startOverIcon}>↺</Text>
-            <Text style={styles.startOverText}>start{'\n'}over</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
-            CLUB.{'\n'}LMS
-          </Text>
-        </View>
-
-        {/* Content Section */}
-        <View style={[styles.contentContainer, { width: inputWidth }]}>
-          {/* Heading */}
-          <Text style={[styles.heading, { fontSize: Math.max(24, 30 * scale) }]}>
-            Set up your profile.
-          </Text>
-
-          {/* Help Link */}
-          <View style={styles.helpRow}>
-            <Text style={styles.helpText}>Help?   </Text>
-            <TouchableOpacity onPress={() => { /* TODO: Open user guide */ }}>
-              <Text style={styles.guideLink}>Read user guide</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Input Fields */}
-          <View style={styles.inputContainer}>
-            {/* Username Input */}
-            <View style={styles.inputWrapper}>
-              <View
-                style={[
-                  styles.inputField,
-                  focusedField === 'username' && styles.inputFieldFocused,
-                ]}
-              >
-                {(focusedField === 'username' || username) && (
-                  <Text style={styles.inputLabel}>Username</Text>
+          {/* Username */}
+          <View style={styles.field}>
+            <View
+              style={[
+                styles.inputField,
+                focusedField === 'username' && styles.inputFieldActive,
+                (showUsernameFormatError || showUsernameTaken) && styles.inputFieldError,
+              ]}
+            >
+              {username.length > 0 && <Text style={styles.floatingLabel}>Enter Username</Text>}
+              <TextInput
+                style={[styles.input, username.length > 0 && styles.inputWithLabel]}
+                placeholder={username.length > 0 ? '' : 'Enter Username'}
+                placeholderTextColor={colors.gray500}
+                value={username}
+                onChangeText={(v) => {
+                  setUsername(v);
+                  if (!usernameTouched) setUsernameTouched(true);
+                }}
+                onFocus={() => setFocusedField('username')}
+                onBlur={() => setFocusedField(null)}
+                autoCapitalize="none"
+                autoCorrect={false}
+                maxLength={30}
+              />
+              <View style={styles.trailingIcon} pointerEvents="none">
+                {usernameFormatValid && usernameAvailability === 'checking' && (
+                  <ActivityIndicator size="small" color={colors.gray600} />
                 )}
-                <TextInput
-                  style={[
-                    styles.input,
-                    (focusedField === 'username' || username) && styles.inputWithLabel,
-                  ]}
-                  placeholder={focusedField === 'username' || username ? '' : 'Enter Username'}
-                  placeholderTextColor={colors.gray400}
-                  value={username}
-                  onChangeText={handleUsernameChange}
-                  onFocus={() => setFocusedField('username')}
-                  onBlur={() => setFocusedField(null)}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {usernameValid && (
-                  <View style={styles.validIcon}>
-                    <CheckIcon size={16} color="#1C1C1E" />
-                  </View>
+                {usernameFormatValid && usernameAvailability === 'available' && (
+                  <CheckIcon size={18} color={colors.successDark} />
+                )}
+                {usernameFormatValid && usernameAvailability === 'taken' && (
+                  <CloseIcon size={18} color={colors.error} />
                 )}
               </View>
             </View>
+            {showUsernameFormatError && (
+              <Text style={styles.errorText}>{usernameErrorMessage(usernameError)}</Text>
+            )}
+            {!showUsernameFormatError && showUsernameTaken && (
+              <Text style={styles.errorText}>That username is already taken. Try another.</Text>
+            )}
+            {!showUsernameFormatError && usernameAvailability === 'available' && (
+              <Text style={styles.successText}>Username is available.</Text>
+            )}
+          </View>
 
-            {/* Legal Name Input */}
-            <View style={styles.inputWrapper}>
-              <View
-                style={[
-                  styles.inputField,
-                  focusedField === 'legalName' && styles.inputFieldFocused,
-                ]}
-              >
-                {(focusedField === 'legalName' || legalName) && (
-                  <Text style={styles.inputLabel}>Legal Name(Full name)</Text>
-                )}
-                <TextInput
-                  style={[
-                    styles.input,
-                    (focusedField === 'legalName' || legalName) && styles.inputWithLabel,
-                  ]}
-                  placeholder={focusedField === 'legalName' || legalName ? '' : 'Enter Legal Name(Full name)'}
-                  placeholderTextColor={colors.gray400}
-                  value={legalName}
-                  onChangeText={setLegalName}
-                  onFocus={() => setFocusedField('legalName')}
-                  onBlur={() => setFocusedField(null)}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                />
-              </View>
-            </View>
-
-            {/* Email Input */}
-            <View style={styles.inputWrapper}>
-              <View
-                style={[
-                  styles.inputField,
-                  focusedField === 'email' && styles.inputFieldFocused,
-                ]}
-              >
-                {(focusedField === 'email' || email) && (
-                  <Text style={styles.inputLabel}>Email</Text>
-                )}
-                <TextInput
-                  style={[
-                    styles.input,
-                    (focusedField === 'email' || email) && styles.inputWithLabel,
-                  ]}
-                  placeholder={focusedField === 'email' || email ? '' : 'Enter Email'}
-                  placeholderTextColor={colors.gray400}
-                  value={email}
-                  onChangeText={handleEmailChange}
-                  onFocus={() => setFocusedField('email')}
-                  onBlur={() => setFocusedField(null)}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                />
-                {emailValid && (
-                  <View style={styles.validIcon}>
-                    <CheckIcon size={16} color="#1C1C1E" />
-                  </View>
-                )}
-              </View>
+          {/* Legal name */}
+          <View style={styles.field}>
+            <View
+              style={[
+                styles.inputField,
+                focusedField === 'legalName' && styles.inputFieldActive,
+              ]}
+            >
+              {legalName.length > 0 && (
+                <Text style={styles.floatingLabel}>Enter Legal Name (Full name)</Text>
+              )}
+              <TextInput
+                style={[styles.input, legalName.length > 0 && styles.inputWithLabel]}
+                placeholder={legalName.length > 0 ? '' : 'Enter Legal Name (Full name)'}
+                placeholderTextColor={colors.gray500}
+                value={legalName}
+                onChangeText={setLegalName}
+                onFocus={() => setFocusedField('legalName')}
+                onBlur={() => setFocusedField(null)}
+                autoCapitalize="words"
+                autoCorrect={false}
+                maxLength={100}
+              />
+              {legalNameValid && (
+                <View style={styles.trailingIcon}>
+                  <CheckIcon size={18} color={colors.successDark} />
+                </View>
+              )}
             </View>
           </View>
 
-          {/* Next Button */}
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              isFormValid ? styles.nextButtonActive : styles.nextButtonDisabled,
-            ]}
+          {/* Email */}
+          <View style={styles.field}>
+            <View
+              style={[
+                styles.inputField,
+                focusedField === 'email' && styles.inputFieldActive,
+                (showEmailFormatError || showEmailTaken) && styles.inputFieldError,
+              ]}
+            >
+              {email.length > 0 && <Text style={styles.floatingLabel}>Enter Email</Text>}
+              <TextInput
+                style={[styles.input, email.length > 0 && styles.inputWithLabel]}
+                placeholder={email.length > 0 ? '' : 'Enter Email'}
+                placeholderTextColor={colors.gray500}
+                value={email}
+                onChangeText={(v) => {
+                  setEmail(v);
+                  if (!emailTouched) setEmailTouched(true);
+                }}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                maxLength={255}
+                textContentType="emailAddress"
+              />
+              <View style={styles.trailingIcon} pointerEvents="none">
+                {emailFormatValid && emailAvailability === 'checking' && (
+                  <ActivityIndicator size="small" color={colors.gray600} />
+                )}
+                {emailFormatValid && emailAvailability === 'available' && (
+                  <CheckIcon size={18} color={colors.successDark} />
+                )}
+                {emailFormatValid && emailAvailability === 'taken' && (
+                  <CloseIcon size={18} color={colors.error} />
+                )}
+              </View>
+            </View>
+            {showEmailFormatError && (
+              <Text style={styles.errorText}>{emailError}</Text>
+            )}
+            {!showEmailFormatError && showEmailTaken && (
+              <Text style={styles.errorText}>
+                That email is already registered. Try logging in instead.
+              </Text>
+            )}
+            {!showEmailFormatError && emailAvailability === 'available' && (
+              <Text style={styles.successText}>Email is available.</Text>
+            )}
+          </View>
+
+          {/* Next */}
+          <AnimatedButton
+            style={[styles.nextButton, !isFormValid && styles.nextButtonDisabled]}
             onPress={handleNext}
-            activeOpacity={0.8}
             disabled={!isFormValid}
           >
-            <Text style={[
-              styles.nextButtonText,
-              isFormValid ? styles.nextButtonTextActive : styles.nextButtonTextDisabled,
-            ]}>
+            <Text style={[styles.nextButtonText, !isFormValid && styles.nextButtonTextDisabled]}>
               Next  →
             </Text>
-          </TouchableOpacity>
+          </AnimatedButton>
+
+          <HelpLink context="step1" />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -287,86 +342,126 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: screenPadding.horizontal,
-  },
-  backButton: {
-    padding: spacing.sm,
-  },
-  backArrow: {
-    fontSize: 22,
-    color: colors.black,
-    fontWeight: '300',
-  },
-  progressSection: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 6,
-  },
-  stepText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 11,
-    color: colors.gray500,
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  startOverButton: {
-    alignItems: 'center',
-    padding: spacing.xs,
-    gap: 3,
-  },
-  startOverIcon: {
-    fontSize: 17,
-    color: colors.gray500,
-  },
-  startOverText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 10,
-    color: colors.gray500,
-    textAlign: 'center',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: Platform.select({
-      ios: 'PorterSansBlock',
-      android: 'porter-sans-inline-block',
-      default: 'System',
-    }),
-    color: colors.black,
-    textAlign: 'center',
-    lineHeight: 30,
-  },
-  contentContainer: {
-    alignItems: 'flex-start',
+  body: {
+    alignItems: 'stretch',
+    marginTop: 32,
   },
   heading: {
+    fontFamily: Platform.select({
+      ios: font.bold,
+      android: font.bold,
+      default: 'System',
+    }),
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.brandText,
+    lineHeight: 36,
+    marginBottom: 32,
+  },
+  field: {
+    marginBottom: 14,
+  },
+  inputField: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: '#D4D4D4',
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  inputFieldActive: {
+    borderColor: colors.brandText,
+  },
+  inputFieldError: {
+    borderColor: colors.error,
+  },
+  floatingLabel: {
+    position: 'absolute',
+    top: 4,
+    left: 16,
+    fontSize: 10,
+    color: colors.gray600,
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+  },
+  input: {
+    fontSize: 14,
+    color: colors.brandText,
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+    paddingRight: 30,
+    paddingVertical: 14,
+  },
+  inputWithLabel: {
+    paddingTop: 18,
+    paddingBottom: 8,
+  },
+  trailingIcon: {
+    position: 'absolute',
+    right: 14,
+    top: 0,
+    bottom: 0,
+    width: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successText: {
+    fontFamily: Platform.select({
+      ios: font.medium,
+      android: font.medium,
+      default: 'System',
+    }),
+    fontSize: 12,
+    color: colors.successDark,
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  errorText: {
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+    fontSize: 12,
+    color: colors.error,
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  nextButton: {
+    backgroundColor: colors.brand,
+    borderRadius: 8,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  nextButtonDisabled: {
+    backgroundColor: '#D4D4D4',
+  },
+  nextButtonText: {
     fontFamily: Platform.select({
       ios: font.semibold,
       android: font.semibold,
       default: 'System',
     }),
-    fontWeight: '700',
-    color: colors.black,
-    marginBottom: spacing.xs,
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.brandText,
+  },
+  nextButtonTextDisabled: {
+    color: colors.gray600,
   },
   helpRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginTop: 20,
   },
   helpText: {
     fontFamily: Platform.select({
@@ -375,7 +470,7 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 12,
-    color: colors.black,
+    color: colors.brandText,
   },
   guideLink: {
     fontFamily: Platform.select({
@@ -384,86 +479,7 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    color: colors.brandText,
     textDecorationLine: 'underline',
-  },
-  inputContainer: {
-    gap: spacing.sm + spacing.xxs,
-    width: '100%',
-    marginBottom: screenPadding.horizontal,
-  },
-  inputWrapper: {
-    marginTop: spacing.sm + spacing.xxs,
-  },
-  inputField: {
-    height: 54,
-    backgroundColor: colors.gray50,
-    borderRadius: 14,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  inputFieldFocused: {
-    backgroundColor: '#EBEBF0',
-  },
-  inputLabel: {
-    position: 'absolute',
-    top: 6,
-    left: spacing.md,
-    fontSize: 11,
-    color: colors.gray500,
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.black,
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    paddingRight: 30,
-  },
-  inputWithLabel: {
-    paddingTop: spacing.sm + spacing.xxs,
-  },
-  validIcon: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    marginTop: -8,
-  },
-  nextButton: {
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    marginTop: spacing.sm + spacing.xxs,
-  },
-  nextButtonDisabled: {
-    backgroundColor: colors.gray400,
-  },
-  nextButtonActive: {
-    backgroundColor: '#1C1C1E',
-  },
-  nextButtonText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 16,
-  },
-  nextButtonTextDisabled: {
-    color: colors.white,
-  },
-  nextButtonTextActive: {
-    color: colors.white,
   },
 });

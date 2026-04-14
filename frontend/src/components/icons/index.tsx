@@ -1,7 +1,21 @@
 import React from 'react';
+import { Image } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 export { default as OnePassLogo } from './OnePassLogo';
+
+// Club X brand logo (Figma): rendered from PNG asset.
+// Native aspect ratio ~3.32:1 (w:h).
+export function ClubXLogo({ height = 36 }: { height?: number }) {
+  const width = height * 3.32;
+  return (
+    <Image
+      source={require('../../assets/images/login-signin-logo.png')}
+      style={{ width, height }}
+      resizeMode="contain"
+    />
+  );
+}
 
 // Search Icon - Figma exact SVG
 export function SearchIcon({ size = 20, color = '#212121' }: { size?: number; color?: string }) {
@@ -569,7 +583,23 @@ export function GearIcon({ size = 24, color = '#000000' }: { size?: number; colo
   );
 }
 
-// Eye Off Icon - password visibility toggle
+// Eye Open Icon - password visible state
+export function EyeIcon({ size = 24, color = '#000000' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx={12} cy={12} r={3} stroke={color} strokeWidth={2} />
+    </Svg>
+  );
+}
+
+// Eye Off Icon - password hidden state
 export function EyeOffIcon({ size = 24, color = '#000000' }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

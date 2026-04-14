@@ -19,8 +19,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { AuthStackParamList } from '../navigation/types';
 import { ApiError } from '../types/auth';
-import { colors, font, spacing, layout, screenPadding } from '../constants';
-import { EyeOffIcon } from '../components/icons';
+import { colors, font, spacing } from '../constants';
+import { EyeIcon, EyeOffIcon, ClubXLogo } from '../components/icons';
+import AnimatedButton from '../components/auth/AnimatedButton';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -34,23 +35,22 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
+  const [loginError, setLoginError] = useState(false);
 
-  // Responsive scaling
-  const baseWidth = 402;
-  const scale = Math.min(width / baseWidth, 1.2);
-  const inputWidth = Math.min(313 * scale, width - 80);
+  const contentWidth = Math.min(354, width - 48);
 
   const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter email and password');
+      setLoginError(true);
       return;
     }
 
     try {
+      setLoginError(false);
       await login({ username_or_email: email.trim(), password });
-      // Navigation to main screen will be handled by App.tsx based on auth state
     } catch (error) {
       const apiError = error as ApiError;
+      setLoginError(true);
       Alert.alert(
         'Login Failed',
         apiError.detail || 'Please check your credentials',
@@ -70,6 +70,9 @@ export default function LoginScreen() {
     navigation.navigate('ForgotPassword');
   };
 
+  const emailHasValue = email.length > 0;
+  const passwordHasValue = password.length > 0;
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -79,53 +82,41 @@ export default function LoginScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 48, paddingBottom: insets.bottom + 20 },
+          { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={[styles.title, { fontSize: Math.max(36, 50 * scale) }]}>
-            CLUB.{'\n'}LMS
-          </Text>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <ClubXLogo height={44} />
         </View>
 
-        {/* Welcome Section */}
-        <View style={[styles.welcomeContainer, { width: inputWidth }]}>
-          <Text style={[styles.welcomeText, { fontSize: Math.max(24, 30 * scale) }]}>
-            WELCOME.
-          </Text>
-          <View style={styles.signupRow}>
-            <Text style={styles.newUserText}>New User?   </Text>
-            <TouchableOpacity onPress={handleSignUp}>
-              <Text style={styles.signupLink}>Sign up now</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Body */}
+        <View style={[styles.body, { width: contentWidth }]}>
+          {/* Heading */}
+          <Text style={styles.heading}>WELCOME</Text>
 
-        {/* Input Fields */}
-        <View style={[styles.inputContainer, { width: inputWidth }]}>
-          {/* Email/ID Input */}
-          <View style={styles.inputWrapper}>
+          {/* Inputs */}
+          <View style={styles.inputsContainer}>
+            {/* ID / Email */}
             <View
               style={[
                 styles.inputField,
-                focusedField === 'email' && styles.inputFieldFocused,
+                (focusedField === 'email' || loginError) && styles.inputFieldActive,
+                loginError && styles.inputFieldError,
               ]}
             >
-              {(focusedField === 'email' || email) && (
-                <Text style={styles.inputLabel}>Enter ID or Email</Text>
-              )}
+              {emailHasValue && <Text style={styles.floatingLabel}>Enter ID or Email</Text>}
               <TextInput
-                style={[
-                  styles.input,
-                  (focusedField === 'email' || email) && styles.inputWithLabel,
-                ]}
-                placeholder={focusedField === 'email' || email ? '' : 'Enter ID or Email'}
-                placeholderTextColor={colors.gray400}
+                style={[styles.input, emailHasValue && styles.inputWithLabel]}
+                placeholder={emailHasValue ? '' : 'Enter ID or Email'}
+                placeholderTextColor={colors.gray500}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(v) => {
+                  setEmail(v);
+                  if (loginError) setLoginError(false);
+                }}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
                 autoCapitalize="none"
@@ -134,28 +125,25 @@ export default function LoginScreen() {
                 editable={!isLoading}
               />
             </View>
-          </View>
 
-          {/* Password Input */}
-          <View style={styles.inputWrapper}>
+            {/* Password */}
             <View
               style={[
                 styles.inputField,
-                focusedField === 'password' && styles.inputFieldFocused,
+                (focusedField === 'password' || loginError) && styles.inputFieldActive,
+                loginError && styles.inputFieldError,
               ]}
             >
-              {(focusedField === 'password' || password) && (
-                <Text style={styles.inputLabel}>Enter Password</Text>
-              )}
+              {passwordHasValue && <Text style={styles.floatingLabel}>Enter Password</Text>}
               <TextInput
-                style={[
-                  styles.input,
-                  (focusedField === 'password' || password) && styles.inputWithLabel,
-                ]}
-                placeholder={focusedField === 'password' || password ? '' : 'Enter Password'}
-                placeholderTextColor={colors.gray400}
+                style={[styles.input, passwordHasValue && styles.inputWithLabel, { paddingRight: 36 }]}
+                placeholder={passwordHasValue ? '' : 'Enter Password'}
+                placeholderTextColor={colors.gray500}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(v) => {
+                  setPassword(v);
+                  if (loginError) setLoginError(false);
+                }}
                 onFocus={() => setFocusedField('password')}
                 onBlur={() => setFocusedField(null)}
                 secureTextEntry={!showPassword}
@@ -168,30 +156,53 @@ export default function LoginScreen() {
                 onPress={() => setShowPassword(!showPassword)}
                 hitSlop={8}
               >
-                <EyeOffIcon size={16} color="#1e1e1e" />
+                {showPassword ? (
+                  <EyeIcon size={18} color={colors.gray700} />
+                ) : (
+                  <EyeOffIcon size={18} color={colors.gray700} />
+                )}
               </Pressable>
             </View>
+
+            {/* Forgot Password link */}
+            {loginError && (
+              <TouchableOpacity style={styles.forgotLink} onPress={handleForgotPassword}>
+                <Text style={styles.forgotLinkText}>forgot password?</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
-            <Text style={styles.forgotPasswordText}>forgot password?</Text>
-          </TouchableOpacity>
-        </View>
+          {/* Action Buttons */}
+          <View style={styles.actionsContainer}>
+            <AnimatedButton
+              style={[styles.primaryButton, isLoading && styles.primaryButtonDisabled]}
+              onPress={handleSignIn}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors.brandText} />
+              ) : (
+                <Text style={styles.primaryButtonText}>Sign in</Text>
+              )}
+            </AnimatedButton>
 
-        {/* Sign In Button */}
-        <TouchableOpacity
-          style={[styles.signInButton, { width: inputWidth }, isLoading && styles.signInButtonDisabled]}
-          onPress={handleSignIn}
-          activeOpacity={0.8}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color={colors.white} />
-          ) : (
-            <Text style={styles.signInButtonText}>Sign in</Text>
-          )}
-        </TouchableOpacity>
+            <Text style={styles.orText}>or</Text>
+
+            <AnimatedButton
+              style={styles.secondaryButton}
+              onPress={handleSignUp}
+              disabled={isLoading}
+            >
+              <Text style={styles.secondaryButtonText}>Sign up</Text>
+            </AnimatedButton>
+
+            {!loginError && (
+              <TouchableOpacity style={styles.forgotLinkBottom} onPress={handleForgotPassword}>
+                <Text style={styles.forgotLinkBottomText}>forgot password?</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -206,81 +217,50 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  titleContainer: {
+  logoContainer: {
     alignItems: 'center',
-    marginBottom: spacing.xl + spacing.md,
+    marginBottom: 80,
   },
-  title: {
+  body: {
+    alignItems: 'stretch',
+  },
+  heading: {
     fontFamily: Platform.select({
-      ios: 'PorterSansBlock',
-      android: 'porter-sans-inline-block',
+      ios: font.bold,
+      android: font.bold,
       default: 'System',
     }),
-    color: colors.black,
-    textAlign: 'center',
-    lineHeight: 60,
-  },
-  welcomeContainer: {
-    alignItems: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  welcomeText: {
-    fontFamily: Platform.select({
-      ios: font.semibold,
-      android: font.semibold,
-      default: 'System',
-    }),
+    fontSize: 28,
     fontWeight: '700',
-    color: colors.black,
-    marginBottom: spacing.xs,
+    color: colors.brandText,
+    lineHeight: 42,
+    marginBottom: 24,
   },
-  signupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  newUserText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 12,
-    color: colors.black,
-  },
-  signupLink: {
-    fontFamily: Platform.select({
-      ios: font.semibold,
-      android: font.semibold,
-      default: 'System',
-    }),
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1C1C1E',
-    textDecorationLine: 'underline',
-  },
-  inputContainer: {
-    gap: spacing.sm + spacing.xxs,
-    marginBottom: screenPadding.horizontal,
-  },
-  inputWrapper: {
-    marginTop: spacing.sm + spacing.xxs,
+  inputsContainer: {
+    gap: 16,
+    marginBottom: 24,
   },
   inputField: {
-    height: 54,
-    backgroundColor: colors.gray50,
-    borderRadius: 14,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#D4D4D4',
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    paddingHorizontal: 16,
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
   },
-  inputFieldFocused: {
-    backgroundColor: '#EBEBF0',
+  inputFieldActive: {
+    borderColor: colors.brandText,
   },
-  inputLabel: {
+  inputFieldError: {
+    borderColor: colors.error,
+  },
+  floatingLabel: {
     position: 'absolute',
-    top: 8,
-    left: spacing.md,
-    fontSize: 11,
-    color: colors.gray500,
+    top: 4,
+    left: 16,
+    fontSize: 10,
+    color: colors.gray600,
     fontFamily: Platform.select({
       ios: font.regular,
       android: font.regular,
@@ -289,29 +269,95 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 15,
-    color: '#1C1C1E',
+    fontSize: 14,
+    color: colors.brandText,
     fontFamily: Platform.select({
       ios: font.regular,
       android: font.regular,
       default: 'System',
     }),
-    paddingRight: 30,
   },
   inputWithLabel: {
-    paddingTop: spacing.sm + spacing.xxs,
+    paddingTop: 14,
   },
   eyeButton: {
     position: 'absolute',
-    right: spacing.md,
-    top: '50%',
+    right: 14,
+    top: 0,
+    bottom: 0,
+    width: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  forgotLink: {
     marginTop: -8,
+    alignSelf: 'flex-start',
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: spacing.xs,
+  forgotLinkText: {
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+    fontSize: 12,
+    color: colors.error,
   },
-  forgotPasswordText: {
+  actionsContainer: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: colors.brand,
+    borderRadius: 8,
+    height: 46,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonDisabled: {
+    opacity: 0.6,
+  },
+  primaryButtonText: {
+    fontFamily: Platform.select({
+      ios: font.semibold,
+      android: font.semibold,
+      default: 'System',
+    }),
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.brandText,
+  },
+  orText: {
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+    fontSize: 16,
+    color: colors.brandText,
+  },
+  secondaryButton: {
+    backgroundColor: colors.brandText,
+    borderRadius: 8,
+    height: 46,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonText: {
+    fontFamily: Platform.select({
+      ios: font.semibold,
+      android: font.semibold,
+      default: 'System',
+    }),
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.white,
+  },
+  forgotLinkBottom: {
+    marginTop: 8,
+  },
+  forgotLinkBottomText: {
     fontFamily: Platform.select({
       ios: font.regular,
       android: font.regular,
@@ -319,26 +365,5 @@ const styles = StyleSheet.create({
     }),
     fontSize: 12,
     color: colors.gray500,
-  },
-  signInButton: {
-    height: 54,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sm + spacing.xxs,
-  },
-  signInButtonDisabled: {
-    backgroundColor: colors.gray700,
-  },
-  signInButtonText: {
-    fontFamily: Platform.select({
-      ios: font.semibold,
-      android: font.semibold,
-      default: 'System',
-    }),
-    fontSize: 16,
-    color: colors.white,
-    letterSpacing: 0.2,
   },
 });

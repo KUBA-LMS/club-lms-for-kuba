@@ -9,47 +9,28 @@ import {
   Platform,
   ScrollView,
   useWindowDimensions,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, font, spacing, screenPadding } from '../constants';
-import { CheckIcon, CloseIcon } from '../components/icons';
-
-// Progress Bar component
-function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
-  const percentage = (progress / totalSteps) * 100;
-
-  return (
-    <View style={progressStyles.container}>
-      <View style={progressStyles.bar}>
-        <View style={[progressStyles.fill, { width: `${percentage}%` }]} />
-      </View>
-    </View>
-  );
-}
-
-const progressStyles = StyleSheet.create({
-  container: {
-    width: 180,
-    height: 4,
-  },
-  bar: {
-    flex: 1,
-    backgroundColor: '#EBEBF0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 4,
-  },
-});
+import { colors, font } from '../constants';
+import { CheckIcon, CloseIcon, EyeIcon, EyeOffIcon } from '../components/icons';
+import SignUpHeader from '../components/auth/SignUpHeader';
+import AnimatedButton from '../components/auth/AnimatedButton';
+import HelpLink from '../components/auth/HelpLink';
 
 type SignUpStep4NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'SignUpStep4'>;
 type SignUpStep4RouteProp = RouteProp<AuthStackParamList, 'SignUpStep4'>;
+
+function validatePasswordRules(pwd: string) {
+  if (pwd.length < 8) return false;
+  const hasLetter = /[a-zA-Z]/.test(pwd);
+  const hasNumber = /[0-9]/.test(pwd);
+  const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+  return hasLetter && hasNumber && hasSymbol;
+}
 
 export default function SignUpStep4Screen() {
   const { width } = useWindowDimensions();
@@ -60,27 +41,16 @@ export default function SignUpStep4Screen() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [focusedField, setFocusedField] = useState<'password' | 'confirm' | null>(null);
 
-  // Responsive scaling
-  const baseWidth = 402;
-  const scale = Math.min(width / baseWidth, 1.2);
-  const inputWidth = Math.min(313 * scale, width - 80);
+  const contentWidth = Math.min(354, width - 48);
 
-  // Password validation: at least 8 chars with letters, numbers, and symbols
-  const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return false;
-    const hasLetter = /[a-zA-Z]/.test(pwd);
-    const hasNumber = /[0-9]/.test(pwd);
-    const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
-    return hasLetter && hasNumber && hasSymbol;
-  };
-
-  const isPasswordValid = validatePassword(password);
+  const isPasswordValid = validatePasswordRules(password);
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
   const isFormValid = isPasswordValid && passwordsMatch;
 
-  // Determine error states
   const showPasswordError = password.length > 0 && !isPasswordValid;
   const showConfirmError = confirmPassword.length > 0 && !passwordsMatch && isPasswordValid;
 
@@ -98,174 +68,144 @@ export default function SignUpStep4Screen() {
     }
   };
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const handleStartOver = () => {
-    navigation.navigate('Login');
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 },
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 20 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={[styles.header, { width: inputWidth + 40 }]}>
-          {/* Back Button */}
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Text style={styles.backArrow}>{'<'}</Text>
-          </TouchableOpacity>
+        <SignUpHeader step={4} totalSteps={5} width={contentWidth} />
 
-          {/* Progress Section */}
-          <View style={styles.progressSection}>
-            <ProgressBar progress={4} totalSteps={5} />
-            <Text style={styles.stepText}>Create Account{'\n'}4/5</Text>
-          </View>
+        <View style={[styles.body, { width: contentWidth }]}>
+          <Text style={styles.heading}>Set up your password.</Text>
 
-          {/* Start Over Button */}
-          <TouchableOpacity onPress={handleStartOver} style={styles.startOverButton}>
-            <Text style={styles.startOverIcon}>↺</Text>
-            <Text style={styles.startOverText}>start{'\n'}over</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
-            CLUB.{'\n'}LMS
-          </Text>
-        </View>
-
-        {/* Content Section */}
-        <View style={[styles.contentContainer, { width: inputWidth }]}>
-          {/* Heading */}
-          <Text style={[styles.heading, { fontSize: Math.max(24, 30 * scale) }]}>
-            Set up your password.
-          </Text>
-
-          {/* Help Link */}
-          <View style={styles.helpRow}>
-            <Text style={styles.helpText}>Help?   </Text>
-            <TouchableOpacity onPress={() => { /* TODO: Open user guide */ }}>
-              <Text style={styles.guideLink}>Read user guide</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Input Fields */}
-          <View style={styles.inputContainer}>
-            {/* Password Input */}
-            <View style={styles.inputWrapper}>
-              <View
+          {/* Password */}
+          <View style={styles.field}>
+            <View
+              style={[
+                styles.inputField,
+                focusedField === 'password' && styles.inputFieldActive,
+                showPasswordError && styles.inputFieldError,
+              ]}
+            >
+              {password.length > 0 && <Text style={styles.floatingLabel}>Enter Password</Text>}
+              <TextInput
                 style={[
-                  styles.inputField,
-                  focusedField === 'password' && styles.inputFieldFocused,
+                  styles.input,
+                  password.length > 0 && styles.inputWithLabel,
+                  { paddingRight: 56 },
                 ]}
-              >
-                {(focusedField === 'password' || password) && (
-                  <Text style={styles.inputLabel}>Enter Password</Text>
-                )}
-                <TextInput
-                  style={[
-                    styles.input,
-                    (focusedField === 'password' || password) && styles.inputWithLabel,
-                  ]}
-                  placeholder={focusedField === 'password' || password ? '' : 'Enter Password'}
-                  placeholderTextColor={colors.gray400}
-                  value={password}
-                  onChangeText={setPassword}
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={() => setFocusedField(null)}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+                placeholder={password.length > 0 ? '' : 'Enter Password'}
+                placeholderTextColor={colors.gray500}
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={styles.trailingWrapper}>
                 {password.length > 0 && (
-                  <View style={styles.validIcon}>
-                    {isPasswordValid ? (
-                      <CheckIcon size={16} color="#1C1C1E" />
-                    ) : (
-                      <CloseIcon size={20} color={colors.error} />
-                    )}
-                  </View>
+                  isPasswordValid ? (
+                    <CheckIcon size={18} color={colors.successDark} />
+                  ) : (
+                    <CloseIcon size={18} color={colors.error} />
+                  )
                 )}
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={8}
+                  style={styles.eyeButton}
+                >
+                  {showPassword ? (
+                    <EyeIcon size={18} color={colors.gray700} />
+                  ) : (
+                    <EyeOffIcon size={18} color={colors.gray700} />
+                  )}
+                </Pressable>
               </View>
             </View>
-
-            {/* Password Requirements Hint */}
-            <Text style={[styles.hintText, showPasswordError && styles.hintTextError]}>
-              Must be at least 8 characters long with a mix of letters, numbers, and symbols.
+            <Text style={[styles.hintText, showPasswordError && styles.errorText]}>
+              Must be at least 8 characters with letters, numbers, and symbols.
             </Text>
-
-            {/* Confirm Password Input */}
-            <View style={styles.inputWrapper}>
-              <View
-                style={[
-                  styles.inputField,
-                  focusedField === 'confirm' && styles.inputFieldFocused,
-                ]}
-              >
-                {(focusedField === 'confirm' || confirmPassword) && (
-                  <Text style={styles.inputLabel}>Confirm Password</Text>
-                )}
-                <TextInput
-                  style={[
-                    styles.input,
-                    (focusedField === 'confirm' || confirmPassword) && styles.inputWithLabel,
-                  ]}
-                  placeholder={focusedField === 'confirm' || confirmPassword ? '' : 'Confirm Password'}
-                  placeholderTextColor={colors.gray400}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  onFocus={() => setFocusedField('confirm')}
-                  onBlur={() => setFocusedField(null)}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {confirmPassword.length > 0 && isPasswordValid && (
-                  <View style={styles.validIcon}>
-                    {passwordsMatch ? (
-                      <CheckIcon size={16} color="#1C1C1E" />
-                    ) : (
-                      <CloseIcon size={20} color={colors.error} />
-                    )}
-                  </View>
-                )}
-              </View>
-              {showConfirmError && (
-                <Text style={styles.errorText}>Passwords do not match.</Text>
-              )}
-            </View>
           </View>
 
-          {/* Next Button */}
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              isFormValid ? styles.nextButtonActive : styles.nextButtonDisabled,
-            ]}
+          {/* Confirm */}
+          <View style={styles.field}>
+            <View
+              style={[
+                styles.inputField,
+                focusedField === 'confirm' && styles.inputFieldActive,
+                showConfirmError && styles.inputFieldError,
+              ]}
+            >
+              {confirmPassword.length > 0 && (
+                <Text style={styles.floatingLabel}>Confirm Password</Text>
+              )}
+              <TextInput
+                style={[
+                  styles.input,
+                  confirmPassword.length > 0 && styles.inputWithLabel,
+                  { paddingRight: 56 },
+                ]}
+                placeholder={confirmPassword.length > 0 ? '' : 'Confirm Password'}
+                placeholderTextColor={colors.gray500}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                onFocus={() => setFocusedField('confirm')}
+                onBlur={() => setFocusedField(null)}
+                secureTextEntry={!showConfirm}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={styles.trailingWrapper}>
+                {confirmPassword.length > 0 && isPasswordValid && (
+                  passwordsMatch ? (
+                    <CheckIcon size={18} color={colors.successDark} />
+                  ) : (
+                    <CloseIcon size={18} color={colors.error} />
+                  )
+                )}
+                <Pressable
+                  onPress={() => setShowConfirm(!showConfirm)}
+                  hitSlop={8}
+                  style={styles.eyeButton}
+                >
+                  {showConfirm ? (
+                    <EyeIcon size={18} color={colors.gray700} />
+                  ) : (
+                    <EyeOffIcon size={18} color={colors.gray700} />
+                  )}
+                </Pressable>
+              </View>
+            </View>
+            {passwordsMatch && (
+              <Text style={styles.successText}>Passwords match.</Text>
+            )}
+            {showConfirmError && (
+              <Text style={styles.errorText}>Passwords do not match.</Text>
+            )}
+          </View>
+
+          <AnimatedButton
+            style={[styles.nextButton, !isFormValid && styles.nextButtonDisabled]}
             onPress={handleNext}
-            activeOpacity={0.8}
             disabled={!isFormValid}
           >
-            <Text style={[
-              styles.nextButtonText,
-              isFormValid ? styles.nextButtonTextActive : styles.nextButtonTextDisabled,
-            ]}>
+            <Text style={[styles.nextButtonText, !isFormValid && styles.nextButtonTextDisabled]}>
               Next  →
             </Text>
-          </TouchableOpacity>
+          </AnimatedButton>
+
+          <HelpLink context="step4" />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -281,86 +221,139 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: screenPadding.horizontal,
-  },
-  backButton: {
-    padding: spacing.sm,
-  },
-  backArrow: {
-    fontSize: 22,
-    color: colors.black,
-    fontWeight: '300',
-  },
-  progressSection: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 6,
-  },
-  stepText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 11,
-    color: colors.gray500,
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  startOverButton: {
-    alignItems: 'center',
-    padding: spacing.xs,
-    gap: 3,
-  },
-  startOverIcon: {
-    fontSize: 17,
-    color: colors.gray500,
-  },
-  startOverText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 10,
-    color: colors.gray500,
-    textAlign: 'center',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: Platform.select({
-      ios: 'PorterSansBlock',
-      android: 'porter-sans-inline-block',
-      default: 'System',
-    }),
-    color: colors.black,
-    textAlign: 'center',
-    lineHeight: 30,
-  },
-  contentContainer: {
-    alignItems: 'flex-start',
+  body: {
+    alignItems: 'stretch',
+    marginTop: 32,
   },
   heading: {
+    fontFamily: Platform.select({
+      ios: font.bold,
+      android: font.bold,
+      default: 'System',
+    }),
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.brandText,
+    lineHeight: 36,
+    marginBottom: 32,
+  },
+  field: {
+    marginBottom: 14,
+  },
+  inputField: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: '#D4D4D4',
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  inputFieldActive: {
+    borderColor: colors.brandText,
+  },
+  inputFieldError: {
+    borderColor: colors.error,
+  },
+  floatingLabel: {
+    position: 'absolute',
+    top: 4,
+    left: 16,
+    fontSize: 10,
+    color: colors.gray600,
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+  },
+  input: {
+    fontSize: 14,
+    color: colors.brandText,
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+    paddingVertical: 14,
+  },
+  inputWithLabel: {
+    paddingTop: 18,
+    paddingBottom: 8,
+  },
+  trailingWrapper: {
+    position: 'absolute',
+    right: 14,
+    top: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  eyeButton: {
+    padding: 2,
+  },
+  hintText: {
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+    fontSize: 12,
+    color: colors.gray600,
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  errorText: {
+    fontFamily: Platform.select({
+      ios: font.regular,
+      android: font.regular,
+      default: 'System',
+    }),
+    fontSize: 12,
+    color: colors.error,
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  successText: {
+    fontFamily: Platform.select({
+      ios: font.medium,
+      android: font.medium,
+      default: 'System',
+    }),
+    fontSize: 12,
+    color: colors.successDark,
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  nextButton: {
+    backgroundColor: colors.brand,
+    borderRadius: 8,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  nextButtonDisabled: {
+    backgroundColor: '#D4D4D4',
+  },
+  nextButtonText: {
     fontFamily: Platform.select({
       ios: font.semibold,
       android: font.semibold,
       default: 'System',
     }),
-    fontWeight: '700',
-    color: colors.black,
-    marginBottom: spacing.xs,
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.brandText,
+  },
+  nextButtonTextDisabled: {
+    color: colors.gray600,
   },
   helpRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginTop: 20,
   },
   helpText: {
     fontFamily: Platform.select({
@@ -369,7 +362,7 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 12,
-    color: colors.black,
+    color: colors.brandText,
   },
   guideLink: {
     fontFamily: Platform.select({
@@ -378,110 +371,7 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    color: colors.brandText,
     textDecorationLine: 'underline',
-  },
-  inputContainer: {
-    width: '100%',
-    marginBottom: screenPadding.horizontal,
-  },
-  inputWrapper: {
-    marginTop: spacing.sm + spacing.xxs,
-  },
-  inputField: {
-    height: 54,
-    backgroundColor: colors.gray50,
-    borderRadius: 14,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  inputFieldFocused: {
-    backgroundColor: '#EBEBF0',
-  },
-  inputLabel: {
-    position: 'absolute',
-    top: 6,
-    left: spacing.md,
-    fontSize: 11,
-    color: colors.gray500,
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.black,
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    paddingRight: 30,
-  },
-  inputWithLabel: {
-    paddingTop: spacing.sm + spacing.xxs,
-  },
-  validIcon: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    marginTop: -10,
-  },
-  hintText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 11,
-    color: colors.gray600,
-    marginTop: spacing.xs,
-    marginLeft: spacing.sm + spacing.xxs,
-  },
-  hintTextError: {
-    color: colors.error,
-  },
-  errorText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 11,
-    color: colors.error,
-    marginTop: spacing.xs,
-    marginLeft: spacing.sm + spacing.xxs,
-  },
-  nextButton: {
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    marginTop: spacing.sm + spacing.xxs,
-  },
-  nextButtonDisabled: {
-    backgroundColor: colors.gray400,
-  },
-  nextButtonActive: {
-    backgroundColor: '#1C1C1E',
-  },
-  nextButtonText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 16,
-  },
-  nextButtonTextDisabled: {
-    color: colors.white,
-  },
-  nextButtonTextActive: {
-    color: colors.white,
   },
 });

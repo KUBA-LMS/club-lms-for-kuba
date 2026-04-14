@@ -20,6 +20,8 @@ export default function AuthNavigator() {
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
+        animationDuration: 320,
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />

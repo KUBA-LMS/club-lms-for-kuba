@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.ts",
   "scripts": {
     "set-ip": "IP=$(ipconfig getifaddr en0) && echo \"NAVER_MAP_CLIENT_ID=31t54pbm6t\\nEXPO_PUBLIC_API_URL=http://${IP}:8000/api/v1\" > .env && echo \"Set API URL to http://${IP}:8000/api/v1\"",

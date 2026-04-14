@@ -4,11 +4,17 @@ export const colors = {
   primaryLight: '#4DA3FF',
   primaryDark: '#0056B3',
 
+  // Brand (Figma: lime green accent used on primary CTA & progress bar)
+  brand: '#97F821',
+  brandDark: '#7DD918',
+  brandText: '#0A0A0A',
+
   // Secondary
   secondary: '#5856D6',
 
   // Status
   success: '#34C759',
+  successDark: '#18A200',
   warning: '#FF9500',
   error: '#FF3B30',
   info: '#5AC8FA',

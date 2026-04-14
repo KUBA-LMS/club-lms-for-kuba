@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Platform,
   ScrollView,
@@ -16,41 +15,12 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, GenderType } from '../types/auth';
-import { colors, font, spacing, layout, screenPadding } from '../constants';
+import { colors, font } from '../constants';
 import { uploadImage } from '../services/upload';
 import { userService } from '../services/user';
 import { CheckIcon } from '../components/icons';
-
-// Progress Bar component
-function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
-  const percentage = (progress / totalSteps) * 100;
-
-  return (
-    <View style={progressStyles.container}>
-      <View style={progressStyles.bar}>
-        <View style={[progressStyles.fill, { width: `${percentage}%` }]} />
-      </View>
-    </View>
-  );
-}
-
-const progressStyles = StyleSheet.create({
-  container: {
-    width: 180,
-    height: 4,
-  },
-  bar: {
-    flex: 1,
-    backgroundColor: '#EBEBF0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 4,
-  },
-});
+import SignUpHeader from '../components/auth/SignUpHeader';
+import AnimatedButton from '../components/auth/AnimatedButton';
 
 type SignUpStep5NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'SignUpStep5'>;
 type SignUpStep5RouteProp = RouteProp<AuthStackParamList, 'SignUpStep5'>;
@@ -66,11 +36,7 @@ export default function SignUpStep5Screen() {
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
 
-  // Responsive scaling
-  const baseWidth = 402;
-  const scale = Math.min(width / baseWidth, 1.2);
-  const inputWidth = Math.min(313 * scale, width - 80);
-
+  const contentWidth = Math.min(354, width - 48);
   const isFormValid = termsAgreed && privacyAgreed;
 
   const handleTermsPress = () => {
@@ -88,17 +54,8 @@ export default function SignUpStep5Screen() {
     setPrivacyAgreed(true);
   };
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const handleStartOver = () => {
-    navigation.navigate('Login');
-  };
-
   const handleComplete = async () => {
     if (!isFormValid) return;
-
     try {
       const signUpData: any = {
         username,
@@ -106,23 +63,20 @@ export default function SignUpStep5Screen() {
         email,
         password,
       };
-
-      // Don't send local file:// URI as profile_image during signup
       if (nationality) signUpData.nationality = nationality;
-      if (gender && ['male', 'female', 'other'].includes(gender)) {
-        signUpData.gender = gender as GenderType;
+      if (gender && ['male', 'female', 'other'].includes(gender.toLowerCase())) {
+        signUpData.gender = gender.toLowerCase() as GenderType;
       }
 
       await signUp(signUpData);
 
-      // If user selected a profile image, login temporarily to upload it
       if (profileImage) {
         try {
           await login({ username_or_email: email, password });
           const uploadedUrl = await uploadImage(profileImage);
           await userService.updateProfile({ profile_image: uploadedUrl });
         } catch {
-          // Profile image upload failed, but account was created
+          // Account is created; profile image upload failure is non-fatal.
         }
       }
 
@@ -134,10 +88,7 @@ export default function SignUpStep5Screen() {
             text: 'OK',
             onPress: () => {
               navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Login' }],
-                })
+                CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] })
               );
             },
           },
@@ -151,106 +102,63 @@ export default function SignUpStep5Screen() {
 
   return (
     <ScrollView
+      style={styles.container}
       contentContainerStyle={[
         styles.scrollContent,
-        { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 },
+        { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 20 },
       ]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      style={styles.container}
     >
-      {/* Header */}
-      <View style={[styles.header, { width: inputWidth + 40 }]}>
-        {/* Back Button */}
-        <TouchableOpacity onPress={handleBack} style={styles.backButton} disabled={isLoading}>
-          <Text style={styles.backArrow}>{'<'}</Text>
-        </TouchableOpacity>
+      <SignUpHeader step={5} totalSteps={5} width={contentWidth} />
 
-        {/* Progress Section */}
-        <View style={styles.progressSection}>
-          <ProgressBar progress={5} totalSteps={5} />
-          <Text style={styles.stepText}>Create Account{'\n'}5/5</Text>
-        </View>
+      <View style={[styles.body, { width: contentWidth }]}>
+        <Text style={styles.heading}>Agree to terms of use.</Text>
 
-        {/* Start Over Button */}
-        <TouchableOpacity onPress={handleStartOver} style={styles.startOverButton} disabled={isLoading}>
-          <Text style={styles.startOverIcon}>↺</Text>
-          <Text style={styles.startOverText}>start{'\n'}over</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
-          CLUB.{'\n'}LMS
-        </Text>
-      </View>
-
-      {/* Content Section */}
-      <View style={[styles.contentContainer, { width: inputWidth }]}>
-        {/* Heading */}
-        <Text style={[styles.heading, { fontSize: Math.max(24, 30 * scale) }]}>
-          Agree to terms of use.
-        </Text>
-
-        {/* Help Link */}
-        <View style={styles.helpRow}>
-          <Text style={styles.helpText}>Help?   </Text>
-          <TouchableOpacity onPress={() => { /* TODO: Open user guide */ }}>
-            <Text style={styles.guideLink}>Read user guide</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Agreement Items */}
         <View style={styles.agreementContainer}>
-          {/* Terms of Service */}
-          <TouchableOpacity
+          <AnimatedButton
             style={styles.agreementItem}
             onPress={handleTermsPress}
-            activeOpacity={0.7}
+            disabled={isLoading}
           >
             <Text style={styles.agreementText}>[Required] View Terms of Service</Text>
-            <CheckIcon size={16} color={termsAgreed ? '#1C1C1E' : colors.gray300} />
-          </TouchableOpacity>
+            <CheckIcon size={18} color={termsAgreed ? colors.successDark : '#D4D4D4'} />
+          </AnimatedButton>
 
-          {/* Privacy Policy */}
-          <TouchableOpacity
+          <AnimatedButton
             style={styles.agreementItem}
             onPress={handlePrivacyPress}
-            activeOpacity={0.7}
+            disabled={isLoading}
           >
             <Text style={styles.agreementText}>[Required] View Privacy Policy</Text>
-            <CheckIcon size={16} color={privacyAgreed ? '#1C1C1E' : colors.gray300} />
-          </TouchableOpacity>
+            <CheckIcon size={18} color={privacyAgreed ? colors.successDark : '#D4D4D4'} />
+          </AnimatedButton>
 
-          {/* Agree to All Button */}
-          <View style={styles.agreeAllContainer}>
-            <TouchableOpacity
-              style={styles.agreeAllButton}
-              onPress={handleAgreeToAll}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.agreeAllText}>Agree to all</Text>
-            </TouchableOpacity>
-          </View>
+          <AnimatedButton
+            onPress={handleAgreeToAll}
+            disabled={isLoading}
+            style={styles.agreeAllRow}
+          >
+            <CheckIcon size={18} color={isFormValid ? colors.successDark : '#D4D4D4'} />
+            <Text style={styles.agreeAllText}>Agree to all</Text>
+          </AnimatedButton>
         </View>
 
-        {/* Complete Button */}
-        <TouchableOpacity
-          style={[
-            styles.completeButton,
-            isFormValid && !isLoading ? styles.completeButtonActive : styles.completeButtonDisabled,
-          ]}
+        <AnimatedButton
+          style={[styles.completeButton, !isFormValid && styles.completeButtonDisabled]}
           onPress={handleComplete}
-          activeOpacity={0.8}
           disabled={!isFormValid || isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={colors.brandText} />
           ) : (
-            <Text style={styles.completeButtonText}>Complete Sign up</Text>
+            <Text
+              style={[styles.completeButtonText, !isFormValid && styles.completeButtonTextDisabled]}
+            >
+              Complete Sign up
+            </Text>
           )}
-        </TouchableOpacity>
+        </AnimatedButton>
       </View>
     </ScrollView>
   );
@@ -265,120 +173,35 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: screenPadding.horizontal,
-  },
-  backButton: {
-    padding: spacing.sm,
-  },
-  backArrow: {
-    fontSize: 22,
-    color: colors.black,
-    fontWeight: '300',
-  },
-  progressSection: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 6,
-  },
-  stepText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 11,
-    color: colors.gray500,
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  startOverButton: {
-    alignItems: 'center',
-    padding: spacing.xs,
-    gap: 3,
-  },
-  startOverIcon: {
-    fontSize: 17,
-    color: colors.gray500,
-  },
-  startOverText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 10,
-    color: colors.gray500,
-    textAlign: 'center',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: Platform.select({
-      ios: 'PorterSansBlock',
-      android: 'porter-sans-inline-block',
-      default: 'System',
-    }),
-    color: colors.black,
-    textAlign: 'center',
-    lineHeight: 30,
-  },
-  contentContainer: {
-    alignItems: 'flex-start',
+  body: {
+    alignItems: 'stretch',
+    marginTop: 32,
   },
   heading: {
     fontFamily: Platform.select({
-      ios: font.semibold,
-      android: font.semibold,
+      ios: font.bold,
+      android: font.bold,
       default: 'System',
     }),
+    fontSize: 28,
     fontWeight: '700',
-    color: colors.black,
-    marginBottom: spacing.xs,
-  },
-  helpRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  helpText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 12,
-    color: colors.black,
-  },
-  guideLink: {
-    fontFamily: Platform.select({
-      ios: font.semibold,
-      android: font.semibold,
-      default: 'System',
-    }),
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1C1C1E',
-    textDecorationLine: 'underline',
+    color: colors.brandText,
+    lineHeight: 36,
+    marginBottom: 32,
   },
   agreementContainer: {
-    width: '100%',
-    marginBottom: screenPadding.horizontal,
+    gap: 12,
+    marginBottom: 8,
   },
   agreementItem: {
     height: 54,
-    backgroundColor: colors.gray50,
-    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#D4D4D4',
+    borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm + spacing.xxs,
+    paddingHorizontal: 16,
   },
   agreementText: {
     fontFamily: Platform.select({
@@ -386,49 +209,48 @@ const styles = StyleSheet.create({
       android: font.regular,
       default: 'System',
     }),
-    fontSize: 15,
-    color: colors.gray900,
+    fontSize: 14,
+    color: colors.brandText,
   },
-  agreeAllContainer: {
-    alignItems: 'flex-end',
-    marginTop: spacing.sm + spacing.xxs,
-  },
-  agreeAllButton: {
-    backgroundColor: colors.black,
-    paddingHorizontal: spacing.sm + spacing.xs,
-    paddingVertical: spacing.xs,
-    borderRadius: layout.borderRadius.xs,
+  agreeAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    marginTop: 8,
+    paddingVertical: 4,
   },
   agreeAllText: {
     fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
+      ios: font.medium,
+      android: font.medium,
       default: 'System',
     }),
-    fontSize: 11,
-    color: colors.white,
+    fontSize: 14,
+    color: colors.brandText,
   },
   completeButton: {
-    height: 52,
-    borderRadius: 16,
+    backgroundColor: colors.brand,
+    borderRadius: 8,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    marginTop: spacing.lg,
+    marginTop: 24,
   },
   completeButtonDisabled: {
-    backgroundColor: colors.gray400,
-  },
-  completeButtonActive: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#D4D4D4',
   },
   completeButtonText: {
     fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
+      ios: font.semibold,
+      android: font.semibold,
       default: 'System',
     }),
     fontSize: 16,
-    color: colors.white,
+    fontWeight: '500',
+    color: colors.brandText,
+  },
+  completeButtonTextDisabled: {
+    color: colors.gray600,
   },
 });

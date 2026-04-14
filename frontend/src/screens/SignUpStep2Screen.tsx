@@ -16,107 +16,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
-import { colors, font, spacing, layout, screenPadding } from '../constants';
-import { EditIcon } from '../components/icons';
-
-// User icon placeholder component
-function UserIcon({ size = 100, color = '#000000' }: { size?: number; color?: string }) {
-  const headSize = size * 0.25;
-  const bodyWidth = size * 0.5;
-  const bodyHeight = size * 0.3;
-
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      {/* Head */}
-      <View
-        style={{
-          width: headSize,
-          height: headSize,
-          borderRadius: headSize / 2,
-          borderWidth: 2,
-          borderColor: color,
-          marginBottom: 4,
-        }}
-      />
-      {/* Body */}
-      <View
-        style={{
-          width: bodyWidth,
-          height: bodyHeight,
-          borderTopLeftRadius: bodyWidth / 2,
-          borderTopRightRadius: bodyWidth / 2,
-          borderWidth: 2,
-          borderColor: color,
-          borderBottomWidth: 0,
-        }}
-      />
-    </View>
-  );
-}
-
-// Upload icon component
-function UploadIcon({ size = 15, color = '#000000' }: { size?: number; color?: string }) {
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: 1.5,
-          borderColor: color,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <View style={{ width: 1.5, height: size * 0.4, backgroundColor: color }} />
-        <View
-          style={{
-            position: 'absolute',
-            top: size * 0.2,
-            width: size * 0.3,
-            height: size * 0.3,
-            borderTopWidth: 1.5,
-            borderLeftWidth: 1.5,
-            borderColor: color,
-            transform: [{ rotate: '45deg' }],
-          }}
-        />
-      </View>
-    </View>
-  );
-}
-
-// Progress Bar component
-function ProgressBar({ progress, totalSteps }: { progress: number; totalSteps: number }) {
-  const percentage = (progress / totalSteps) * 100;
-
-  return (
-    <View style={progressStyles.container}>
-      <View style={progressStyles.bar}>
-        <View style={[progressStyles.fill, { width: `${percentage}%` }]} />
-      </View>
-    </View>
-  );
-}
-
-const progressStyles = StyleSheet.create({
-  container: {
-    width: 180,
-    height: 4,
-  },
-  bar: {
-    flex: 1,
-    backgroundColor: '#EBEBF0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 4,
-  },
-});
+import { colors, font } from '../constants';
+import { EditPencilIcon, PlusIcon } from '../components/icons';
+import SignUpHeader from '../components/auth/SignUpHeader';
+import AnimatedButton from '../components/auth/AnimatedButton';
+import HelpLink from '../components/auth/HelpLink';
 
 type SignUpStep2NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'SignUpStep2'>;
 type SignUpStep2RouteProp = RouteProp<AuthStackParamList, 'SignUpStep2'>;
@@ -132,13 +36,9 @@ export default function SignUpStep2Screen() {
   const [isCropping, setIsCropping] = useState(false);
   const [tempImage, setTempImage] = useState<string | null>(null);
 
-  // Responsive scaling
-  const baseWidth = 402;
-  const scale = Math.min(width / baseWidth, 1.2);
-  const inputWidth = Math.min(313 * scale, width - 80);
-
-  // Profile picture size
-  const profileSize = Math.min(170 * scale, width - 120);
+  const contentWidth = Math.min(354, width - 48);
+  const profileSize = Math.min(220, width - 180);
+  const cropSize = Math.min(280, width - 80);
 
   const pickFromLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -176,15 +76,11 @@ export default function SignUpStep2Screen() {
   };
 
   const handleUploadPress = () => {
-    Alert.alert(
-      'Upload Picture',
-      'Choose an option',
-      [
-        { text: 'Take Photo', onPress: takePhoto },
-        { text: 'Choose from Library', onPress: pickFromLibrary },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    Alert.alert('Upload Picture', 'Choose an option', [
+      { text: 'Take Photo', onPress: takePhoto },
+      { text: 'Choose from Library', onPress: pickFromLibrary },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const handleCropDone = () => {
@@ -196,10 +92,6 @@ export default function SignUpStep2Screen() {
   const handleCropBack = () => {
     setTempImage(null);
     setIsCropping(false);
-  };
-
-  const handleEditPress = () => {
-    handleUploadPress();
   };
 
   const handleNext = () => {
@@ -220,93 +112,52 @@ export default function SignUpStep2Screen() {
     });
   };
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const handleStartOver = () => {
-    navigation.navigate('Login');
-  };
-
   const hasProfileImage = !!profileImage;
 
-  // Cropping mode UI
+  // Cropping screen
   if (isCropping && tempImage) {
     return (
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
+      <KeyboardAvoidingView style={styles.container}>
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 },
+            { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 20 },
           ]}
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <View style={[styles.header, { width: inputWidth + 40 }]}>
-            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <Text style={styles.backArrow}>{'<'}</Text>
-            </TouchableOpacity>
+          <SignUpHeader step={2} totalSteps={5} width={contentWidth} />
 
-            <View style={styles.progressSection}>
-              <ProgressBar progress={2} totalSteps={5} />
-              <Text style={styles.stepText}>Create Account{'\n'}2/5</Text>
-            </View>
-
-            <TouchableOpacity onPress={handleStartOver} style={styles.startOverButton}>
-              <Text style={styles.startOverIcon}>↺</Text>
-              <Text style={styles.startOverText}>start{'\n'}over</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Title */}
-          <View style={styles.titleContainer}>
-            <Text style={[styles.title, { fontSize: Math.max(20, 24 * scale) }]}>
-              CLUB.{'\n'}LMS
-            </Text>
-          </View>
-
-          {/* Crop Area */}
-          <View style={styles.cropContainer}>
-            <Image
-              source={{ uri: tempImage }}
-              style={[styles.cropImage, { width: 300 * scale, height: 300 * scale }]}
-              resizeMode="cover"
-            />
-            {/* Crop overlay */}
+          <View style={[styles.cropWrapper, { width: contentWidth, marginTop: 40 }]}>
             <View
               style={[
-                styles.cropOverlay,
-                {
-                  width: 300 * scale,
-                  height: 300 * scale,
-                  borderRadius: 150 * scale,
-                },
+                styles.cropImageWrapper,
+                { width: cropSize, height: cropSize, borderRadius: cropSize / 2 },
               ]}
-            />
-          </View>
-
-          {/* Crop Buttons */}
-          <View style={[styles.buttonRow, { width: inputWidth }]}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.backActionButton]}
-              onPress={handleCropBack}
-              activeOpacity={0.8}
             >
-              <Text style={styles.backActionButtonText}>Back</Text>
-            </TouchableOpacity>
+              <Image
+                source={{ uri: tempImage }}
+                style={{ width: cropSize, height: cropSize }}
+                resizeMode="cover"
+              />
+            </View>
 
-            <TouchableOpacity
-              style={[styles.actionButton, styles.doneButton]}
-              onPress={handleCropDone}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.doneButtonText}>Done</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonRow}>
+              <AnimatedButton
+                style={[styles.actionButton, styles.backActionButton]}
+                onPress={handleCropBack}
+              >
+                <Text style={styles.backActionButtonText}>Back</Text>
+              </AnimatedButton>
+
+              <AnimatedButton
+                style={[styles.actionButton, styles.primaryActionButton]}
+                onPress={handleCropDone}
+              >
+                <Text style={styles.primaryActionButtonText}>Done</Text>
+              </AnimatedButton>
+            </View>
+
+            <HelpLink context="step2" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -314,122 +165,82 @@ export default function SignUpStep2Screen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
+    <KeyboardAvoidingView style={styles.container}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 },
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 20 },
         ]}
-        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={[styles.header, { width: inputWidth + 40 }]}>
-          {/* Back Button */}
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Text style={styles.backArrow}>{'<'}</Text>
-          </TouchableOpacity>
+        <SignUpHeader step={2} totalSteps={5} width={contentWidth} />
 
-          {/* Progress Section */}
-          <View style={styles.progressSection}>
-            <ProgressBar progress={2} totalSteps={5} />
-            <Text style={styles.stepText}>Create Account{'\n'}2/5</Text>
-          </View>
+        <View style={[styles.body, { width: contentWidth }]}>
+          <Text style={styles.heading}>Set profile picture.</Text>
 
-          {/* Start Over Button */}
-          <TouchableOpacity onPress={handleStartOver} style={styles.startOverButton}>
-            <Text style={styles.startOverIcon}>↺</Text>
-            <Text style={styles.startOverText}>start{'\n'}over</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={[styles.title, { fontSize: Math.max(24, 30 * scale) }]}>
-            CLUB.{'\n'}LMS
-          </Text>
-        </View>
-
-        {/* Content Section */}
-        <View style={[styles.contentContainer, { width: inputWidth }]}>
-          {/* Heading */}
-          <Text style={[styles.heading, { fontSize: Math.max(24, 30 * scale) }]}>
-            Set profile picture.
-          </Text>
-
-          {/* Help Link */}
-          <View style={styles.helpRow}>
-            <Text style={styles.helpText}>Help?   </Text>
-            <TouchableOpacity onPress={() => { /* TODO: Open user guide */ }}>
-              <Text style={styles.guideLink}>Read user guide</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Profile Picture Area */}
-          <View style={styles.profileContainer}>
+          <View style={styles.pictureContainer}>
             {hasProfileImage ? (
               <View style={styles.profileImageWrapper}>
                 <Image
-                  source={{ uri: profileImage }}
+                  source={{ uri: profileImage! }}
                   style={[
                     styles.profileImage,
                     { width: profileSize, height: profileSize, borderRadius: profileSize / 2 },
                   ]}
                   resizeMode="cover"
                 />
-                <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
-                  <EditIcon size={12} color="#000000" />
+                <TouchableOpacity
+                  style={styles.editOverlay}
+                  onPress={handleUploadPress}
+                  activeOpacity={0.85}
+                >
+                  <EditPencilIcon size={12} color={colors.brandText} />
                   <Text style={styles.editText}>Edit</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <TouchableOpacity
-                style={[styles.uploadPlaceholder, { width: profileSize, height: profileSize }]}
+                style={[
+                  styles.uploadPlaceholder,
+                  { width: profileSize, height: profileSize, borderRadius: profileSize / 2 },
+                ]}
                 onPress={handleUploadPress}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
               >
-                <UserIcon size={profileSize * 0.6} color="#000000" />
-                <View style={styles.uploadTextRow}>
-                  <UploadIcon size={15} color="#000000" />
-                  <Text style={styles.uploadText}>upload picture</Text>
-                </View>
+                <PlusIcon size={48} color={colors.brandText} />
+                <Text style={styles.uploadText}>Upload Picture</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Action Buttons */}
           <View style={styles.buttonRow}>
-            <TouchableOpacity
+            <AnimatedButton
               style={[styles.actionButton, styles.skipButton]}
               onPress={handleSkip}
-              activeOpacity={0.8}
             >
               <Text style={styles.skipButtonText}>Skip</Text>
-            </TouchableOpacity>
+            </AnimatedButton>
 
-            <TouchableOpacity
+            <AnimatedButton
               style={[
                 styles.actionButton,
-                hasProfileImage ? styles.nextButtonActive : styles.nextButtonDisabled,
+                hasProfileImage ? styles.primaryActionButton : styles.primaryActionButtonDisabled,
               ]}
               onPress={handleNext}
-              activeOpacity={0.8}
               disabled={!hasProfileImage}
             >
               <Text
                 style={[
-                  styles.nextButtonText,
-                  hasProfileImage ? styles.nextButtonTextActive : styles.nextButtonTextDisabled,
+                  styles.primaryActionButtonText,
+                  !hasProfileImage && styles.primaryActionButtonTextDisabled,
                 ]}
               >
                 Next  →
               </Text>
-            </TouchableOpacity>
+            </AnimatedButton>
           </View>
+
+          <HelpLink context="step2" />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -445,86 +256,137 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: screenPadding.horizontal,
-  },
-  backButton: {
-    padding: spacing.sm,
-  },
-  backArrow: {
-    fontSize: 22,
-    color: colors.black,
-    fontWeight: '300',
-  },
-  progressSection: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 6,
-  },
-  stepText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 11,
-    color: colors.gray500,
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  startOverButton: {
-    alignItems: 'center',
-    padding: spacing.xs,
-    gap: 3,
-  },
-  startOverIcon: {
-    fontSize: 17,
-    color: colors.gray500,
-  },
-  startOverText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 10,
-    color: colors.gray500,
-    textAlign: 'center',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: Platform.select({
-      ios: 'PorterSansBlock',
-      android: 'porter-sans-inline-block',
-      default: 'System',
-    }),
-    color: colors.black,
-    textAlign: 'center',
-    lineHeight: 30,
-  },
-  contentContainer: {
-    alignItems: 'flex-start',
+  body: {
+    alignItems: 'stretch',
+    marginTop: 32,
   },
   heading: {
+    fontFamily: Platform.select({
+      ios: font.bold,
+      android: font.bold,
+      default: 'System',
+    }),
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.brandText,
+    lineHeight: 36,
+    marginBottom: 32,
+  },
+  pictureContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  uploadPlaceholder: {
+    backgroundColor: '#D4D4D4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  uploadText: {
+    fontFamily: Platform.select({
+      ios: font.medium,
+      android: font.medium,
+      default: 'System',
+    }),
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.brandText,
+  },
+  profileImageWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileImage: {
+    backgroundColor: '#E5E5EA',
+  },
+  editOverlay: {
+    position: 'absolute',
+    bottom: '38%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+  },
+  editText: {
+    fontFamily: Platform.select({
+      ios: font.medium,
+      android: font.medium,
+      default: 'System',
+    }),
+    fontSize: 14,
+    color: colors.brandText,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    height: 46,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skipButton: {
+    backgroundColor: colors.brandText,
+  },
+  skipButtonText: {
     fontFamily: Platform.select({
       ios: font.semibold,
       android: font.semibold,
       default: 'System',
     }),
-    fontWeight: '700',
-    color: colors.black,
-    marginBottom: spacing.xs,
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.white,
+  },
+  primaryActionButton: {
+    backgroundColor: colors.brand,
+  },
+  primaryActionButtonDisabled: {
+    backgroundColor: '#D4D4D4',
+  },
+  primaryActionButtonText: {
+    fontFamily: Platform.select({
+      ios: font.semibold,
+      android: font.semibold,
+      default: 'System',
+    }),
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.brandText,
+  },
+  primaryActionButtonTextDisabled: {
+    color: colors.gray600,
+  },
+  backActionButton: {
+    backgroundColor: colors.error,
+  },
+  backActionButtonText: {
+    fontFamily: Platform.select({
+      ios: font.semibold,
+      android: font.semibold,
+      default: 'System',
+    }),
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.white,
+  },
+  cropWrapper: {
+    alignItems: 'center',
+    gap: 32,
+  },
+  cropImageWrapper: {
+    overflow: 'hidden',
+    backgroundColor: '#E5E5EA',
   },
   helpRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginTop: 20,
   },
   helpText: {
     fontFamily: Platform.select({
@@ -533,7 +395,7 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 12,
-    color: colors.black,
+    color: colors.brandText,
   },
   guideLink: {
     fontFamily: Platform.select({
@@ -542,143 +404,7 @@ const styles = StyleSheet.create({
       default: 'System',
     }),
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    color: colors.brandText,
     textDecorationLine: 'underline',
-  },
-  profileContainer: {
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: spacing.xl + spacing.md,
-    marginTop: screenPadding.horizontal,
-  },
-  uploadPlaceholder: {
-    backgroundColor: colors.gray100,
-    borderRadius: layout.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  uploadTextRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.sm + spacing.xxs,
-    gap: spacing.xs,
-  },
-  uploadText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 13,
-    color: colors.black,
-  },
-  profileImageWrapper: {
-    alignItems: 'center',
-  },
-  profileImage: {
-    backgroundColor: colors.gray100,
-  },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    paddingHorizontal: spacing.sm + spacing.xxs,
-    paddingVertical: 6,
-    borderRadius: layout.borderRadius.xs,
-    marginTop: -30,
-    gap: spacing.xs,
-  },
-  editText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 15,
-    color: colors.black,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    gap: spacing.md,
-  },
-  actionButton: {
-    flex: 1,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  skipButton: {
-    backgroundColor: colors.black,
-  },
-  skipButtonText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 16,
-    color: colors.white,
-  },
-  nextButtonDisabled: {
-    backgroundColor: colors.gray400,
-  },
-  nextButtonActive: {
-    backgroundColor: '#1C1C1E',
-  },
-  nextButtonText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 16,
-  },
-  nextButtonTextDisabled: {
-    color: colors.white,
-  },
-  nextButtonTextActive: {
-    color: colors.white,
-  },
-  backActionButton: {
-    backgroundColor: colors.error,
-  },
-  backActionButtonText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 16,
-    color: colors.white,
-  },
-  doneButton: {
-    backgroundColor: colors.black,
-  },
-  doneButtonText: {
-    fontFamily: Platform.select({
-      ios: font.regular,
-      android: font.regular,
-      default: 'System',
-    }),
-    fontSize: 16,
-    color: colors.white,
-  },
-  cropContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xl + spacing.md,
-    marginTop: screenPadding.horizontal,
-  },
-  cropImage: {
-    backgroundColor: colors.gray100,
-  },
-  cropOverlay: {
-    position: 'absolute',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
 });
