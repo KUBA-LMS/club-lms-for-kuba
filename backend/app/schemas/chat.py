@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
@@ -59,10 +59,18 @@ class ChatListResponse(BaseModel):
 
 # Message schemas
 class MessageCreate(BaseModel):
-    content: str = Field(..., min_length=1)
+    # Whitespace-only messages are rejected in the validator below.
+    content: str = Field(..., min_length=1, max_length=4000)
     type: MessageTypeEnum = MessageTypeEnum.text
     ticket_id: Optional[UUID] = None
     payment_amount: Optional[Decimal] = None
+
+    @field_validator("content")
+    @classmethod
+    def _no_blank(cls, v: str) -> str:
+        if v is None or not v.strip():
+            raise ValueError("Message content cannot be empty or whitespace only")
+        return v
 
 
 class MessageResponse(BaseModel):

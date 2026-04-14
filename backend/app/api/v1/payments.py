@@ -84,11 +84,20 @@ async def create_payment_request(
         if not p_check.scalar_one_or_none():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"User {pid} is not a chat member")
 
-    # Calculate split amounts
+    # Calculate split amounts.
+    # Split "policy": every non-requester participant pays ceil(total/N) so that
+    # the requester is guaranteed to collect at least `total`. The requester's
+    # own entry exists for bookkeeping and absorbs the rounding difference
+    # (which is always <= 0 under ROUND_CEILING).
     all_participants = [current_user.id] + [pid for pid in data.participant_ids if pid != current_user.id]
     n = len(all_participants)
-    base_amount = (data.total_amount / n).quantize(Decimal("1"), rounding=ROUND_CEILING)
-    remainder = data.total_amount - base_amount * n
+    if n < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one other participant is required to split with",
+        )
+    base_amount = (data.total_amount / Decimal(n)).quantize(Decimal("1"), rounding=ROUND_CEILING)
+    remainder = data.total_amount - base_amount * Decimal(n)  # <= 0 by construction
 
     # Create message first
     content = f"Request 1/N: {int(data.total_amount):,} KRW"

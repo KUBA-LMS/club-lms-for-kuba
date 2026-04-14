@@ -367,23 +367,28 @@ async def send_friend_request(
             detail="Already friends",
         )
 
-    # Check pending request already exists (either direction)
-    existing_req = await db.execute(
-        select(FriendRequest).where(
-            FriendRequest.status == "pending",
-            or_(
-                and_(
-                    FriendRequest.from_user_id == current_user.id,
-                    FriendRequest.to_user_id == friend_id,
+    # Check pending request already exists (either direction). The same block
+    # is repeated after a possible IntegrityError to handle the race where A
+    # and B both try to send a request simultaneously.
+    async def _existing_pending():
+        q = await db.execute(
+            select(FriendRequest).where(
+                FriendRequest.status == "pending",
+                or_(
+                    and_(
+                        FriendRequest.from_user_id == current_user.id,
+                        FriendRequest.to_user_id == friend_id,
+                    ),
+                    and_(
+                        FriendRequest.from_user_id == friend_id,
+                        FriendRequest.to_user_id == current_user.id,
+                    ),
                 ),
-                and_(
-                    FriendRequest.from_user_id == friend_id,
-                    FriendRequest.to_user_id == current_user.id,
-                ),
-            ),
+            )
         )
-    )
-    existing = existing_req.scalar_one_or_none()
+        return q.scalar_one_or_none()
+
+    existing = await _existing_pending()
     if existing:
         # If THEY already sent us a request, auto-accept
         if existing.from_user_id == friend_id:
@@ -393,13 +398,31 @@ async def send_friend_request(
             detail="Friend request already pending",
         )
 
-    # Create new request
+    # Create new request. If a simultaneous request from the other side lands
+    # first, we converge on "friends" by auto-accepting the inverse request.
+    from sqlalchemy.exc import IntegrityError
+
     req = FriendRequest(
         from_user_id=current_user.id,
         to_user_id=friend_id,
     )
     db.add(req)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        existing = await _existing_pending()
+        if existing and existing.from_user_id == friend_id:
+            return await _accept_request(db, existing, current_user)
+        # If the existing request is our own, treat as success (idempotent).
+        if existing and existing.from_user_id == current_user.id:
+            await db.refresh(existing)
+            req = existing
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Friend request already pending",
+            )
     await db.refresh(req)
 
     # WS notification

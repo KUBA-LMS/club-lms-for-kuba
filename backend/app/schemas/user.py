@@ -1,10 +1,39 @@
-from pydantic import BaseModel, EmailStr, Field
+import re
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
 from enum import Enum
 
 from app.schemas.club import ClubBriefResponse
+
+
+# Duplicated locally to avoid a circular import between schemas.user and
+# schemas.auth. Kept in sync with ``_validate_password_strength`` in
+# ``app/schemas/auth.py`` -- change both together.
+_WEAK_PASSWORDS = {
+    "password", "password1", "12345678", "qwerty123", "iloveyou",
+    "admin123", "letmein1", "welcome1", "abcd1234",
+}
+_HAS_LETTER = re.compile(r"[A-Za-z]")
+_HAS_DIGIT = re.compile(r"\d")
+_HAS_SYMBOL = re.compile(r"[^A-Za-z0-9]")
+
+
+def _validate_password_strength(value: str) -> str:
+    if value is None or len(value) < 8:
+        raise ValueError("Password must be at least 8 characters long")
+    if len(value) > 128:
+        raise ValueError("Password must be at most 128 characters long")
+    if not _HAS_LETTER.search(value):
+        raise ValueError("Password must contain at least one letter")
+    if not _HAS_DIGIT.search(value):
+        raise ValueError("Password must contain at least one digit")
+    if not _HAS_SYMBOL.search(value):
+        raise ValueError("Password must contain at least one symbol (e.g. ! # $ % @)")
+    if value.lower() in _WEAK_PASSWORDS:
+        raise ValueError("Password is too common. Please choose a stronger one")
+    return value
 
 
 class GenderEnum(str, Enum):
@@ -36,14 +65,23 @@ class UserCreate(UserBase):
 
 
 class UserSignUp(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[A-Za-z0-9_]+$")
     legal_name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
-    password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=8, max_length=128)
     profile_image: Optional[str] = None
     student_id: Optional[str] = Field(None, max_length=20)
     nationality: Optional[str] = Field(None, max_length=50)
     gender: Optional[GenderEnum] = None
+
+    _check_password = field_validator("password")(_validate_password_strength)
+
+    @field_validator("legal_name")
+    @classmethod
+    def _strip_legal_name(cls, v: str) -> str:
+        if v is None or not v.strip():
+            raise ValueError("Legal name cannot be empty")
+        return v.strip()
 
 
 # Update schemas
