@@ -17,8 +17,10 @@ from app.models import user, club, event, registration, ticket, chat
 # access to the values within the .ini file in use.
 config = context.config
 
-# Override sqlalchemy.url with the one from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Override sqlalchemy.url with the one from settings.
+# configparser treats `%` as interpolation, so escape any literal `%` in the URL
+# (common when passwords are percent-encoded, e.g. `%23` for `#`).
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
