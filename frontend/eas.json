@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 15.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba-production.up.railway.app/api/v1",
+        "NAVER_MAP_CLIENT_ID": "31t54pbm6t"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://club-lms-for-kuba-production.up.railway.app/api/v1",
+        "NAVER_MAP_CLIENT_ID": "31t54pbm6t"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "hnseongmin11@gmail.com",
+        "ascAppId": "6761349162",
+        "appleTeamId": "45JS5XMNVC"
+      }
+    }
+  }
+}
