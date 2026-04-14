@@ -930,7 +930,8 @@ export default function HomeScreen() {
         {/* Floating OnePass Button */}
         <View
           style={[styles.floatingOnePass, {
-            bottom: bottomPadding + 8,
+            bottom: bottomPadding - 16,
+            right: isAdmin ? 16 + 52 + 24 : screenPadding.horizontal,
           }]}
           pointerEvents="box-none"
         >
@@ -940,7 +941,7 @@ export default function HomeScreen() {
         {/* Admin FAB — same bottom level as OnePass, right side */}
         {isAdmin && (
           <View
-            style={[styles.adminColumn, { bottom: bottomPadding + 8 }]}
+            style={[styles.adminColumn, { bottom: bottomPadding - 16 }]}
             pointerEvents="box-none"
           >
             <AdminFaceFab

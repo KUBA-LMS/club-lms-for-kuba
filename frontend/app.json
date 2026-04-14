@@ -23,7 +23,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.clubx.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "Camera is used to scan barcodes for event check-in",
+        "NSLocationWhenInUseUsageDescription": "Your location is used to show nearby club events on the map — for example, displaying meetups happening within 2 km of you — and to sort the event list by distance so the closest ones appear first.",
+        "NSCameraUsageDescription": "Camera is used to scan QR codes for event check-in and group invitations.",
         "LSApplicationQueriesSchemes": [
           "supertoss",
           "kakaopay",

@@ -68,6 +68,9 @@ class Settings(BaseSettings):
     # Kakao (Local Search API)
     KAKAO_REST_API_KEY: str = ""
 
+    # Google Places API (New) - bilingual place search
+    GOOGLE_PLACES_API_KEY: str = ""
+
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def fix_database_url(cls, v):
