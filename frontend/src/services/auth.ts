@@ -39,6 +39,28 @@ export const authService = {
   },
 
   /**
+   * Check whether a username is available for signup.
+   */
+  async checkUsername(username: string): Promise<{ available: boolean; reason?: string }> {
+    const response = await api.get<{ available: boolean; reason?: string }>(
+      '/auth/check-username',
+      { params: { username } },
+    );
+    return response.data;
+  },
+
+  /**
+   * Check whether an email is available for signup.
+   */
+  async checkEmail(email: string): Promise<{ available: boolean; reason?: string }> {
+    const response = await api.get<{ available: boolean; reason?: string }>(
+      '/auth/check-email',
+      { params: { email } },
+    );
+    return response.data;
+  },
+
+  /**
    * Logout and clear stored tokens.
    */
   async logout(): Promise<void> {

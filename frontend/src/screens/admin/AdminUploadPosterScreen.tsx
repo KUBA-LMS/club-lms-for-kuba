@@ -50,9 +50,10 @@ export default function AdminUploadPosterScreen({ navigation, route }: Props) {
       return;
     }
 
+    // Posters are portrait / free-aspect — allow the user to crop freely.
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: false,
+      allowsEditing: true,
       quality: 0.8,
     });
 

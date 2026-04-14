@@ -25,6 +25,9 @@ export default function ChatMessageBar({
   const [text, setText] = useState('');
   const [showActions, setShowActions] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  // Local dedup guard: React Native's TouchableOpacity still fires onPress
+  // even when `disabled` is true, so we gate the handler ourselves.
+  const sendingRef = useRef(false);
 
   const toggleActions = () => {
     if (showActions) {
@@ -45,9 +48,19 @@ export default function ChatMessageBar({
   };
 
   const handleSend = () => {
-    if (!text.trim() || isSending) return;
-    onSend(text.trim());
+    const trimmed = text.trim();
+    if (!trimmed || isSending || sendingRef.current) return;
+    sendingRef.current = true;
     setText('');
+    try {
+      onSend(trimmed);
+    } finally {
+      // Release the local guard on the next tick; parent's ``isSending`` prop
+      // then takes over to block further sends while the network call runs.
+      setTimeout(() => {
+        sendingRef.current = false;
+      }, 0);
+    }
   };
 
   const handleAction = (action: () => void) => {

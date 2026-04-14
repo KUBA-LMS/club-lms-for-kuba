@@ -147,10 +147,14 @@ export const storage = {
   // Clear all auth data
   async clearAuth(): Promise<void> {
     try {
+      // Token data + session-scoped caches. Moderation data (blocked users,
+      // pending reports) is intentionally preserved across logout so that a
+      // user's blocklist survives a reinstall/relogin.
       await AsyncStorage.multiRemove([
         config.ACCESS_TOKEN_KEY,
         config.REFRESH_TOKEN_KEY,
         config.USER_KEY,
+        SEARCH_HISTORY_KEY,
       ]);
     } catch (error) {
       console.error('Error clearing auth data:', error);

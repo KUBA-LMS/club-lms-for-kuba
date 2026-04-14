@@ -217,11 +217,12 @@ export default function AdminCreateEventScreen() {
       return;
     }
 
+    // Event main image displays full-bleed in the feed — let the user pick
+    // any aspect and crop freely. Do not lock to [1,1].
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.85,
     });
 
     if (!result.canceled && result.assets[0]) {

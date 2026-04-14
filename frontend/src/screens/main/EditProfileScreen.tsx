@@ -131,6 +131,8 @@ export default function EditProfileScreen() {
             value={editData.username || ''}
             onChangeText={(v) => setEditData((p) => ({ ...p, username: v }))}
             autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={30}
             placeholderTextColor={colors.gray300}
           />
         </View>
@@ -141,6 +143,9 @@ export default function EditProfileScreen() {
             style={styles.input}
             value={editData.legal_name || ''}
             onChangeText={(v) => setEditData((p) => ({ ...p, legal_name: v }))}
+            autoCapitalize="words"
+            autoCorrect={false}
+            maxLength={100}
             placeholderTextColor={colors.gray300}
           />
         </View>
@@ -153,6 +158,9 @@ export default function EditProfileScreen() {
             onChangeText={(v) => setEditData((p) => ({ ...p, email: v }))}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={255}
+            textContentType="emailAddress"
             placeholderTextColor={colors.gray300}
           />
         </View>
@@ -163,6 +171,9 @@ export default function EditProfileScreen() {
             style={styles.input}
             value={editData.student_id || ''}
             onChangeText={(v) => setEditData((p) => ({ ...p, student_id: v }))}
+            autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={20}
             placeholderTextColor={colors.gray300}
           />
         </View>
@@ -175,6 +186,9 @@ export default function EditProfileScreen() {
             onChangeText={(v) =>
               setEditData((p) => ({ ...p, nationality: v }))
             }
+            autoCapitalize="words"
+            autoCorrect={false}
+            maxLength={50}
             placeholderTextColor={colors.gray300}
           />
         </View>
