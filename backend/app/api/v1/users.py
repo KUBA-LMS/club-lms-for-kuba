@@ -445,25 +445,52 @@ async def send_friend_request(
     return {"message": "Friend request sent", "request_id": str(req.id)}
 
 
-# --- List incoming friend requests ---
+# --- List pending friend requests (incoming or outgoing) ---
 
 @router.get("/me/friend-requests", response_model=FriendRequestListResponse)
 async def get_friend_requests(
+    direction: str = "received",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Get pending incoming friend requests."""
-    query = (
-        select(FriendRequest)
-        .options(
-            selectinload(FriendRequest.from_user).selectinload(User.clubs),
+    """Get pending friend requests.
+
+    ``direction``:
+        * ``received`` (default) -- requests where I am the recipient,
+          backwards-compatible with pre-4.x clients.
+        * ``sent`` -- requests I sent that are still awaiting a response.
+    """
+    if direction not in ("received", "sent"):
+        raise HTTPException(
+            status_code=400,
+            detail="direction must be 'received' or 'sent'",
         )
-        .where(
-            FriendRequest.to_user_id == current_user.id,
-            FriendRequest.status == "pending",
+
+    if direction == "sent":
+        query = (
+            select(FriendRequest)
+            .options(
+                selectinload(FriendRequest.to_user).selectinload(User.clubs),
+            )
+            .where(
+                FriendRequest.from_user_id == current_user.id,
+                FriendRequest.status == "pending",
+            )
+            .order_by(FriendRequest.created_at.desc())
         )
-        .order_by(FriendRequest.created_at.desc())
-    )
+    else:
+        query = (
+            select(FriendRequest)
+            .options(
+                selectinload(FriendRequest.from_user).selectinload(User.clubs),
+            )
+            .where(
+                FriendRequest.to_user_id == current_user.id,
+                FriendRequest.status == "pending",
+            )
+            .order_by(FriendRequest.created_at.desc())
+        )
+
     result = await db.execute(query)
     requests = result.scalars().all()
 
@@ -471,24 +498,71 @@ async def get_friend_requests(
 
     data = []
     for r in requests:
+        if direction == "sent":
+            other_user = r.to_user
+        else:
+            other_user = r.from_user
+
+        other_brief = UserBriefResponse(
+            id=other_user.id,
+            username=other_user.username,
+            profile_image=other_user.profile_image,
+        )
+        me_brief = UserBriefResponse(
+            id=current_user.id,
+            username=current_user.username,
+            profile_image=current_user.profile_image,
+        )
+
         data.append(FriendRequestResponse(
             id=r.id,
-            from_user=UserBriefResponse(
-                id=r.from_user.id,
-                username=r.from_user.username,
-                profile_image=r.from_user.profile_image,
-            ),
-            to_user=UserBriefResponse(
-                id=current_user.id,
-                username=current_user.username,
-                profile_image=current_user.profile_image,
-            ),
+            from_user=me_brief if direction == "sent" else other_brief,
+            to_user=other_brief if direction == "sent" else me_brief,
             status=r.status,
-            common_clubs=_common_clubs(r.from_user.clubs, my_club_ids),
+            common_clubs=_common_clubs(other_user.clubs, my_club_ids),
             created_at=r.created_at,
         ))
 
     return FriendRequestListResponse(data=data, total=len(data))
+
+
+# --- Cancel a request I sent ---
+
+@router.delete(
+    "/me/friend-requests/{request_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def cancel_friend_request(
+    request_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Cancel a pending friend request that I previously sent.
+
+    Only the sender can cancel (recipients must use /reject). Already-accepted
+    or already-rejected requests cannot be cancelled -- the endpoint returns
+    a 409 Conflict in that case.
+    """
+    result = await db.execute(
+        select(FriendRequest).where(FriendRequest.id == request_id)
+    )
+    req = result.scalar_one_or_none()
+
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if req.from_user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the sender can cancel a friend request",
+        )
+    if req.status != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Request is already {req.status} and cannot be cancelled",
+        )
+
+    await db.delete(req)
+    await db.commit()
 
 
 # --- Accept / reject friend request ---

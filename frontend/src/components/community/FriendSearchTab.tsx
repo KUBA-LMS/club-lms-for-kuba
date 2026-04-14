@@ -13,10 +13,12 @@ import { SearchIcon } from '../icons';
 import { colors, font } from '../../constants';
 import { resolveImageUrl } from '../../utils/image';
 import Avatar from '../common/Avatar';
+import { Alert } from 'react-native';
 import {
   searchUsers,
   sendFriendRequest,
   acceptFriendRequest,
+  cancelFriendRequest,
   UserSearchItem,
   ClubBrief,
 } from '../../services/user';
@@ -48,7 +50,11 @@ type ItemState = 'none' | 'sent' | 'received' | 'friend';
 
 interface FriendSearchItemProps {
   user: UserSearchItem;
-  onStateChange: (userId: string, newState: ItemState) => void;
+  onStateChange: (
+    userId: string,
+    newState: ItemState,
+    requestId?: string | null,
+  ) => void;
 }
 
 function FriendSearchItem({ user, onStateChange }: FriendSearchItemProps) {
@@ -66,10 +72,11 @@ function FriendSearchItem({ user, onStateChange }: FriendSearchItemProps) {
     if (loading) return;
     setLoading(true);
     try {
-      await sendFriendRequest(user.id);
-      onStateChange(user.id, 'sent');
-    } catch {
-      // silent
+      const res = await sendFriendRequest(user.id);
+      onStateChange(user.id, 'sent', res.request_id);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || 'Failed to send request';
+      Alert.alert('Error', detail);
     } finally {
       setLoading(false);
     }
@@ -81,12 +88,40 @@ function FriendSearchItem({ user, onStateChange }: FriendSearchItemProps) {
     try {
       await acceptFriendRequest(user.request_id);
       onStateChange(user.id, 'friend');
-    } catch {
-      // silent
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || 'Failed to accept';
+      Alert.alert('Error', detail);
     } finally {
       setLoading(false);
     }
   }, [user.id, user.request_id, loading, onStateChange]);
+
+  const handleCancelSent = useCallback(() => {
+    if (loading || !user.request_id) return;
+    Alert.alert(
+      'Cancel friend request?',
+      `Withdraw your friend request to ${user.username}?`,
+      [
+        { text: 'Keep', style: 'cancel' },
+        {
+          text: 'Withdraw',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await cancelFriendRequest(user.request_id!);
+              onStateChange(user.id, 'none', null);
+            } catch (err: any) {
+              const detail = err?.response?.data?.detail || 'Failed to cancel';
+              Alert.alert('Error', detail);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [loading, user.id, user.request_id, user.username, onStateChange]);
 
   const renderButton = () => {
     if (loading) {
@@ -105,9 +140,13 @@ function FriendSearchItem({ user, onStateChange }: FriendSearchItemProps) {
         );
       case 'sent':
         return (
-          <View style={styles.pendingBadge}>
-            <Text style={styles.pendingText}>Pending</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.pendingBadge}
+            onPress={handleCancelSent}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.pendingText}>Cancel</Text>
+          </TouchableOpacity>
         );
       case 'received':
         return (
@@ -184,16 +223,30 @@ export default function FriendSearchTab() {
     [doSearch],
   );
 
-  const handleStateChange = useCallback((userId: string, newState: ItemState) => {
-    setResults((prev) =>
-      prev.map((u) => {
-        if (u.id !== userId) return u;
-        if (newState === 'friend') return { ...u, is_friend: true, request_status: null };
-        if (newState === 'sent') return { ...u, request_status: 'sent' as const };
-        return u;
-      }),
-    );
-  }, []);
+  const handleStateChange = useCallback(
+    (userId: string, newState: ItemState, requestId?: string | null) => {
+      setResults((prev) =>
+        prev.map((u) => {
+          if (u.id !== userId) return u;
+          if (newState === 'friend') {
+            return { ...u, is_friend: true, request_status: null, request_id: null };
+          }
+          if (newState === 'sent') {
+            return {
+              ...u,
+              request_status: 'sent' as const,
+              request_id: requestId ?? u.request_id,
+            };
+          }
+          if (newState === 'none') {
+            return { ...u, request_status: null, request_id: null };
+          }
+          return u;
+        }),
+      );
+    },
+    [],
+  );
 
   return (
     <View style={styles.container}>

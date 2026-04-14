@@ -161,9 +161,14 @@ export interface FriendRequestListResponse {
 
 // --- Friend request API ---
 
-export async function getFriendRequests(): Promise<FriendRequestListResponse> {
+export type FriendRequestDirection = 'received' | 'sent';
+
+export async function getFriendRequests(
+  direction: FriendRequestDirection = 'received',
+): Promise<FriendRequestListResponse> {
   const response = await api.get<FriendRequestListResponse>(
     '/users/me/friend-requests',
+    { params: { direction } },
   );
   return response.data;
 }
@@ -174,6 +179,10 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
 
 export async function rejectFriendRequest(requestId: string): Promise<void> {
   await api.post(`/users/me/friend-requests/${requestId}/reject`);
+}
+
+export async function cancelFriendRequest(requestId: string): Promise<void> {
+  await api.delete(`/users/me/friend-requests/${requestId}`);
 }
 
 // --- My Clubs ---
