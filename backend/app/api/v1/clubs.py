@@ -177,12 +177,28 @@ async def list_clubs(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """List all clubs with pagination."""
+    """List clubs the current user can manage (admin/lead). Superadmins see all clubs.
+
+    This endpoint backs the event-creation provider picker, so it intentionally
+    scopes results to clubs the caller has permission to post events for.
+    """
     offset = (page - 1) * limit
 
     # Build base query (exclude soft-deleted)
     base_query = select(Club).where(Club.deleted_at.is_(None))
     count_query = select(func.count(Club.id)).where(Club.deleted_at.is_(None))
+
+    # Non-superadmins only see clubs where they hold admin/lead role.
+    if current_user.role != "superadmin":
+        managed_ids_subq = (
+            select(user_club.c.club_id)
+            .where(
+                user_club.c.user_id == current_user.id,
+                user_club.c.role.in_(["admin", "lead"]),
+            )
+        )
+        base_query = base_query.where(Club.id.in_(managed_ids_subq))
+        count_query = count_query.where(Club.id.in_(managed_ids_subq))
 
     if search:
         search_term = f"%{search}%"
